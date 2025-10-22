@@ -10,11 +10,18 @@ export function SettingTab() {
   const t = useTranslations('settings')
   const notMobilePages = ['about', 'file', 'shortcuts']
   
-  // Add translations to the config
-  const config = baseConfig.filter(item => typeof item !== 'string').map(item => ({
-    ...item,
-    title: t(`${item.anchor}.title`)
-  })).filter(item => !notMobilePages.includes(item.anchor))
+  // Add translations to the config, keep separators
+  const config = baseConfig.map(item => {
+    if (typeof item === 'string') return item
+    return {
+      ...item,
+      title: t(`${item.anchor}.title`)
+    }
+  }).filter(item => {
+    // 过滤掉不支持的移动端页面，但保留分隔符
+    if (typeof item === 'string') return true
+    return !notMobilePages.includes(item.anchor)
+  })
 
   function handleNavigation(anchor: string) {
     router.push(`/mobile/setting/pages/${anchor}`)
@@ -23,10 +30,19 @@ export function SettingTab() {
   return (
     <ul className="flex flex-col w-full">
       {
-        config.map(item => {
+        config.map((item, index) => {
+          // 如果是分隔符字符串，渲染分隔线
+          if (typeof item === 'string') {
+            return (
+              <li key={`separator-${index}`}>
+                <div className="h-0.5 bg-muted my-2" />
+              </li>
+            )
+          }
+          
           return (
             <li
-              className="flex items-center gap-2 p-4 border-b last:border-b-0 w-full justify-between"
+              className="flex items-center gap-2 p-4 w-full justify-between active:bg-accent"
               key={item.anchor}
               onClick={() => handleNavigation(item.anchor)}
             >
