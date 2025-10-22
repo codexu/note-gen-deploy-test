@@ -1,5 +1,5 @@
 "use client"
-import {TooltipProvider } from "@/components/ui/tooltip"
+import {TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import {
   FilePlus, 
   FolderGit2, 
@@ -215,11 +215,18 @@ export function FileToolbar() {
         <TooltipProvider>
           {/* 排序 */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="inline-flex items-center">
-                <TooltipButton icon={sortDirection === 'asc' ? <SortAsc className={`h-4 w-4 ${sortType !== 'none' ? 'text-primary' : ''}`} /> : <SortDesc className={`h-4 w-4 ${sortType !== 'none' ? 'text-primary' : ''}`} />} tooltipText={t('sort')} />
-              </div>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9">
+                    {sortDirection === 'asc' ? <SortAsc className={`h-4 w-4 ${sortType !== 'none' ? 'text-primary' : ''}`} /> : <SortDesc className={`h-4 w-4 ${sortType !== 'none' ? 'text-primary' : ''}`} />}
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('sort')}</p>
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setSortType('name')} className={sortType === 'name' ? 'bg-accent' : ''}>
                 <ArrowDownAZ className="mr-2 h-4 w-4" />
