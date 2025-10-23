@@ -30,7 +30,7 @@ import { McpButton } from "./mcp-button"
 
 export function ChatInput() {
   const [text, setText] = useState("")
-  const { primaryModel } = useSettingStore()
+  const { primaryModel, chatToolbarConfig } = useSettingStore()
   const { chats, loading, locale, isLinkMark, isPlaceholderEnabled } = useChatStore()
   const { marks, trashState } = useMarkStore()
   const [isComposing, setIsComposing] = useState(false)
@@ -254,20 +254,37 @@ export function ChatInput() {
           
           {/* 可滑动的按钮容器 */}
           <div className="flex overflow-x-auto scrollbar-hide md:overflow-visible">
-            <ModelSelect />
-            <PromptSelect />
-            <ChatLanguage />
-            <ChatLink inputType={inputType} />
-            <FileLink
-              onFileLinkClick={openFileSelector}
-              disabled={!primaryModel || loading}
-            />
-            <McpButton />
-            <RagSwitch />
-            <ChatPlaceholder />
-            <ClipboardMonitor />
-            <ClearContext />
-            <ClearChat />
+            {chatToolbarConfig
+              .filter(item => item.enabled)
+              .sort((a, b) => a.order - b.order)
+              .map(item => {
+                switch (item.id) {
+                  case 'modelSelect':
+                    return <ModelSelect key={item.id} />
+                  case 'promptSelect':
+                    return <PromptSelect key={item.id} />
+                  case 'chatLanguage':
+                    return <ChatLanguage key={item.id} />
+                  case 'chatLink':
+                    return <ChatLink key={item.id} inputType={inputType} />
+                  case 'fileLink':
+                    return <FileLink key={item.id} onFileLinkClick={openFileSelector} disabled={!primaryModel || loading} />
+                  case 'mcpButton':
+                    return <McpButton key={item.id} />
+                  case 'ragSwitch':
+                    return <RagSwitch key={item.id} />
+                  case 'chatPlaceholder':
+                    return <ChatPlaceholder key={item.id} />
+                  case 'clipboardMonitor':
+                    return <ClipboardMonitor key={item.id} />
+                  case 'clearContext':
+                    return <ClearContext key={item.id} />
+                  case 'clearChat':
+                    return <ClearChat key={item.id} />
+                  default:
+                    return null
+                }
+              })}
           </div>
         </div>
         <div className="flex items-center justify-end gap-2 pr-1">

@@ -64,6 +64,16 @@
           "save": "Save",
           "cancel": "Cancel"
         }
+      },
+      "tools": {
+        "title": "Tool Settings",
+        "chatToolbar": {
+          "title": "Chat Toolbar",
+          "desc": "Customize the display order and visibility of chat toolbar buttons for a personalized chat experience",
+          "button": "Configure",
+          "dialogTitle": "Configure Chat Toolbar",
+          "dialogDesc": "Drag tools to adjust order, use switches to show or hide"
+        }
       }
     },
     "rag": {

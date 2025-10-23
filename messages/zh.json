@@ -62,6 +62,16 @@
           "save": "保存",
           "cancel": "取消"
         }
+      },
+      "tools": {
+        "title": "工具设置",
+        "chatToolbar": {
+          "title": "对话工具栏",
+          "desc": "自定义对话工具栏按钮的显示顺序和可见性，打造个性化的对话体验",
+          "button": "设置",
+          "dialogTitle": "配置对话工具栏",
+          "dialogDesc": "拖动工具调整排序，使用开关控制显示或隐藏"
+        }
       }
     },
     "rag": {

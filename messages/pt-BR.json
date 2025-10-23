@@ -64,6 +64,16 @@
           "save": "Salvar",
           "cancel": "Cancelar"
         }
+      },
+      "tools": {
+        "title": "Configurações de Ferramentas",
+        "chatToolbar": {
+          "title": "Barra de Ferramentas do Chat",
+          "desc": "Personalize a ordem de exibição e a visibilidade dos botões da barra de ferramentas do chat para uma experiência de chat personalizada",
+          "button": "Configurar",
+          "dialogTitle": "Configurar Barra de Ferramentas do Chat",
+          "dialogDesc": "Arraste as ferramentas para ajustar a ordem, use as chaves para mostrar ou ocultar"
+        }
       }
     },
     "rag": {
