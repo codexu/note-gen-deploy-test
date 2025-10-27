@@ -14,88 +14,92 @@ import { OpenBroswer } from "@/components/open-broswer";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui/button";
-import { checkSyncProjectState, createSyncProject, getUserInfo } from "@/lib/sync/gitlab";
+import { checkSyncRepoState, createSyncRepo, getUserInfo } from "@/lib/sync/gitea";
 import { RepoNames, SyncStateEnum } from "@/lib/sync/github.types";
-import { GitlabInstanceType, GITLAB_INSTANCES } from "@/lib/sync/gitlab.types";
+import { GiteaInstanceType, GITEA_INSTANCES } from "@/lib/sync/gitea.types";
 import { DatabaseBackup, Eye, EyeOff, Globe, Server, Plus, RefreshCcw } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 dayjs.extend(relativeTime)
 
-export function GitlabSync() {
+export function GiteaSync() {
   const t = useTranslations();
   const { 
-    gitlabInstanceType,
-    setGitlabInstanceType,
-    gitlabCustomUrl,
-    setGitlabCustomUrl,
-    gitlabAccessToken,
-    setGitlabAccessToken,
-    gitlabAutoSync,
-    setGitlabAutoSync,
+    giteaInstanceType,
+    setGiteaInstanceType,
+    giteaCustomUrl,
+    setGiteaCustomUrl,
+    giteaAccessToken,
+    setGiteaAccessToken,
+    giteaAutoSync,
+    setGiteaAutoSync,
     primaryBackupMethod,
     setPrimaryBackupMethod,
-    gitlabCustomSyncRepo,
-    setGitlabCustomSyncRepo
+    giteaCustomSyncRepo,
+    setGiteaCustomSyncRepo
   } = useSettingStore()
   
   const {
-    gitlabUserInfo,
-    gitlabSyncProjectState,
-    setGitlabSyncProjectState,
-    gitlabSyncProjectInfo,
-    setGitlabSyncProjectInfo
+    giteaUserInfo,
+    setGiteaUserInfo,
+    giteaSyncRepoState,
+    setGiteaSyncRepoState,
+    giteaSyncRepoInfo,
+    setGiteaSyncRepoInfo
   } = useSyncStore()
 
-  const [gitlabAccessTokenVisible, setGitlabAccessTokenVisible] = useState<boolean>(false)
+  const [giteaAccessTokenVisible, setGiteaAccessTokenVisible] = useState<boolean>(false)
 
   // 获取实际使用的仓库名称
   const getRepoName = () => {
-    return gitlabCustomSyncRepo.trim() || RepoNames.sync
+    return giteaCustomSyncRepo.trim() || RepoNames.sync
   }
 
 
-  // 检查 Gitlab 项目状态（仅检查，不创建）
-  async function checkProjectState() {
+  // 检查 Gitea 仓库状态（仅检查，不创建）
+  async function checkRepoState() {
     try {
-      setGitlabSyncProjectState(SyncStateEnum.checking)
-      // 先清空之前的项目信息
-      setGitlabSyncProjectInfo(undefined)
+      setGiteaSyncRepoState(SyncStateEnum.checking)
+      // 先清空之前的仓库信息
+      setGiteaSyncRepoInfo(undefined)
       
-      await getUserInfo();
-      // 检查同步项目状态
+      // 获取并保存用户信息
+      const userInfo = await getUserInfo();
+      setGiteaUserInfo(userInfo);
+      
+      // 检查同步仓库状态
       const repoName = getRepoName()
-      const syncProject = await checkSyncProjectState(repoName)
+      const syncRepo = await checkSyncRepoState(repoName)
       
-      if (syncProject) {
-        setGitlabSyncProjectInfo(syncProject)
-        setGitlabSyncProjectState(SyncStateEnum.success)
+      if (syncRepo) {
+        setGiteaSyncRepoInfo(syncRepo)
+        setGiteaSyncRepoState(SyncStateEnum.success)
       } else {
-        setGitlabSyncProjectInfo(undefined)
-        setGitlabSyncProjectState(SyncStateEnum.fail)
+        setGiteaSyncRepoInfo(undefined)
+        setGiteaSyncRepoState(SyncStateEnum.fail)
       }
     } catch (err) {
-      console.error('Failed to check GitLab projects:', err)
-      setGitlabSyncProjectInfo(undefined)
-      setGitlabSyncProjectState(SyncStateEnum.fail)
+      console.error('Failed to check Gitea repos:', err)
+      setGiteaSyncRepoInfo(undefined)
+      setGiteaSyncRepoState(SyncStateEnum.fail)
     }
   }
 
-  // 手动创建项目
-  async function createGitlabProject() {
+  // 手动创建仓库
+  async function createGiteaRepo() {
     try {
-      setGitlabSyncProjectState(SyncStateEnum.creating)
+      setGiteaSyncRepoState(SyncStateEnum.creating)
       const repoName = getRepoName()
-      const info = await createSyncProject(repoName, true)
+      const info = await createSyncRepo(repoName, true)
       if (info) {
-        setGitlabSyncProjectInfo(info)
-        setGitlabSyncProjectState(SyncStateEnum.success)
+        setGiteaSyncRepoInfo(info)
+        setGiteaSyncRepoState(SyncStateEnum.success)
       } else {
-        setGitlabSyncProjectState(SyncStateEnum.fail)
+        setGiteaSyncRepoState(SyncStateEnum.fail)
       }
     } catch (err) {
-      console.error('Failed to create Gitlab project:', err)
-      setGitlabSyncProjectState(SyncStateEnum.fail)
+      console.error('Failed to create Gitea repo:', err)
+      setGiteaSyncRepoState(SyncStateEnum.fail)
     }
   }
 
@@ -103,41 +107,62 @@ export function GitlabSync() {
   async function tokenChangeHandler(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
     if (value === '') {
-      setGitlabSyncProjectState(SyncStateEnum.fail)
-      setGitlabSyncProjectInfo(undefined)
+      setGiteaSyncRepoState(SyncStateEnum.fail)
+      setGiteaSyncRepoInfo(undefined)
+      setGiteaUserInfo(undefined)
     }
-    setGitlabAccessToken(value)
+    setGiteaAccessToken(value)
     const store = await Store.load('store.json');
-    await store.set('gitlabAccessToken', value)
+    await store.set('giteaAccessToken', value)
     await store.save()
+    
+    // 如果 token 有效，自动检查仓库状态
+    if (value.trim()) {
+      // 等待一下再检查，避免频繁请求
+      setTimeout(() => {
+        checkRepoState()
+      }, 500)
+    }
   }
 
   // 实例类型变化处理
-  async function instanceTypeChangeHandler(value: GitlabInstanceType) {
-    await setGitlabInstanceType(value)
+  async function instanceTypeChangeHandler(value: GiteaInstanceType) {
+    await setGiteaInstanceType(value)
+    // 如果有 token，重新检查仓库状态
+    if (giteaAccessToken.trim()) {
+      setTimeout(() => {
+        checkRepoState()
+      }, 500)
+    }
   }
 
   // 自定义 URL 变化处理
   async function customUrlChangeHandler(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
-    await setGitlabCustomUrl(value)
+    await setGiteaCustomUrl(value)
+    // 如果是自建实例且有 token，重新检查仓库状态
+    if (giteaInstanceType === GiteaInstanceType.SELF_HOSTED && giteaAccessToken.trim() && value.trim()) {
+      setTimeout(() => {
+        checkRepoState()
+      }, 500)
+    }
   }
 
   // 获取当前实例的 Token 创建 URL
   function getTokenCreateUrl() {
-    if (gitlabInstanceType === GitlabInstanceType.SELF_HOSTED) {
-      return gitlabCustomUrl ? `${gitlabCustomUrl}/-/user_settings/personal_access_tokens` : '#'
+    if (giteaInstanceType === GiteaInstanceType.SELF_HOSTED) {
+      return giteaCustomUrl ? `${giteaCustomUrl}/user/settings/applications` : '#'
     }
-    const instance = GITLAB_INSTANCES[gitlabInstanceType]
-    return `${instance.baseUrl}/-/user_settings/personal_access_tokens`
+    const instance = GITEA_INSTANCES[giteaInstanceType]
+    return `${instance.baseUrl}/user/settings/applications`
   }
 
   // 获取当前实例显示名称
   function getInstanceDisplayName() {
-    if (gitlabInstanceType === GitlabInstanceType.SELF_HOSTED) {
-      return gitlabCustomUrl || '自建实例'
+    if (giteaInstanceType === GiteaInstanceType.SELF_HOSTED) {
+      return giteaCustomUrl || '自建实例'
     }
-    return GITLAB_INSTANCES[gitlabInstanceType].name
+    return GITEA_INSTANCES[giteaInstanceType].name
   }
 
   useEffect(() => {
@@ -145,23 +170,25 @@ export function GitlabSync() {
       const store = await Store.load('store.json');
       
       // 加载实例类型
-      const instanceType = await store.get<GitlabInstanceType>('gitlabInstanceType')
+      const instanceType = await store.get<GiteaInstanceType>('giteaInstanceType')
       if (instanceType) {
-        setGitlabInstanceType(instanceType)
+        setGiteaInstanceType(instanceType)
       }
       
       // 加载自定义 URL
-      const customUrl = await store.get<string>('gitlabCustomUrl')
+      const customUrl = await store.get<string>('giteaCustomUrl')
       if (customUrl) {
-        setGitlabCustomUrl(customUrl)
+        setGiteaCustomUrl(customUrl)
       }
       
       // 加载访问令牌
-      const token = await store.get<string>('gitlabAccessToken')
+      const token = await store.get<string>('giteaAccessToken')
       if (token) {
-        setGitlabAccessToken(token)
+        setGiteaAccessToken(token)
+        // 如果有 token，自动检查仓库状态
+        checkRepoState()
       } else {
-        setGitlabAccessToken('')
+        setGiteaAccessToken('')
       }
     }
     init()
@@ -171,51 +198,43 @@ export function GitlabSync() {
 
   return (
     <div className="space-y-8">
-      <FormItem title={t('settings.sync.gitlabInstanceType')} desc={t('settings.sync.gitlabInstanceTypeDesc')}>
-        <Select value={gitlabInstanceType} onValueChange={instanceTypeChangeHandler}>
+      <FormItem title={t('settings.sync.giteaInstanceType')} desc={t('settings.sync.giteaInstanceTypeDesc')}>
+        <Select value={giteaInstanceType} onValueChange={instanceTypeChangeHandler}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder={t('settings.sync.gitlabInstanceTypePlaceholder')} />
+            <SelectValue placeholder={t('settings.sync.giteaInstanceTypePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={GitlabInstanceType.OFFICIAL}>
+            <SelectItem value={GiteaInstanceType.OFFICIAL}>
               <div className="flex items-center gap-2">
                 <Globe className="size-4" />
                 <div>
-                  <div className="font-medium">GitLab.com</div>
+                  <div className="font-medium">Gitea.com</div>
                 </div>
               </div>
             </SelectItem>
-            <SelectItem value={GitlabInstanceType.JIHULAB}>
-              <div className="flex items-center gap-2">
-                <Globe className="size-4" />
-                <div>
-                  <div className="font-medium">极狐</div>
-                </div>
-              </div>
-            </SelectItem>
-            <SelectItem value={GitlabInstanceType.SELF_HOSTED}>
+            <SelectItem value={GiteaInstanceType.SELF_HOSTED}>
               <div className="flex items-center gap-2">
                 <Server className="size-4" />
                 <div>
-                  <div className="font-medium">{t('settings.sync.gitlabInstanceTypeOptions.selfHosted')}</div>
+                  <div className="font-medium">{t('settings.sync.giteaInstanceTypeOptions.selfHosted')}</div>
                 </div>
               </div>
             </SelectItem>
           </SelectContent>
         </Select>
       </FormItem>
-      {gitlabInstanceType === GitlabInstanceType.SELF_HOSTED && (
-        <FormItem title="GitLab URL" desc={t('settings.sync.gitlabInstanceTypeOptions.selfHostedDesc')}>
+      {giteaInstanceType === GiteaInstanceType.SELF_HOSTED && (
+        <FormItem title="Gitea URL" desc={t('settings.sync.giteaInstanceTypeOptions.selfHostedDesc')}>
           <Input 
-            value={gitlabCustomUrl} 
+            value={giteaCustomUrl} 
             onChange={customUrlChangeHandler} 
-            placeholder="https://gitlab.example.com"
+            placeholder="https://gitea.example.com"
             type="url"
           />
         </FormItem>
       )}
 
-      <FormItem title="GitLab Access Token" desc={t('settings.sync.gitlabAccessTokenDesc', { instanceDisplayName: getInstanceDisplayName() })}>
+      <FormItem title="Gitea Access Token" desc={t('settings.sync.giteaAccessTokenDesc', { instanceDisplayName: getInstanceDisplayName() })}>
         <OpenBroswer 
           url={getTokenCreateUrl()} 
           title={t('settings.sync.newToken')} 
@@ -223,56 +242,56 @@ export function GitlabSync() {
         />
         <div className="flex gap-2">
           <Input 
-            value={gitlabAccessToken} 
+            value={giteaAccessToken} 
             onChange={tokenChangeHandler} 
-            type={gitlabAccessTokenVisible ? 'text' : 'password'} 
+            type={giteaAccessTokenVisible ? 'text' : 'password'} 
           />
-          <Button variant="outline" size="icon" onClick={() => setGitlabAccessTokenVisible(!gitlabAccessTokenVisible)}>
-            {gitlabAccessTokenVisible ? <Eye /> : <EyeOff />}
+          <Button variant="outline" size="icon" onClick={() => setGiteaAccessTokenVisible(!giteaAccessTokenVisible)}>
+            {giteaAccessTokenVisible ? <Eye /> : <EyeOff />}
           </Button>
         </div>
       </FormItem>
       <FormItem title={t('settings.sync.customSyncRepo')} desc={t('settings.sync.customSyncRepoDesc')}>
         <Input 
-          value={gitlabCustomSyncRepo} 
+          value={giteaCustomSyncRepo} 
           onChange={(e) => {
-            setGitlabCustomSyncRepo(e.target.value)
+            setGiteaCustomSyncRepo(e.target.value)
           }}
           placeholder={RepoNames.sync}
         />
       </FormItem>
       <FormItem title={t('settings.sync.repoStatus')}>
         <Card>
-          <CardHeader className={`${gitlabSyncProjectInfo ? 'border-b' : ''}`}>
+          <CardHeader className={`${giteaSyncRepoInfo ? 'border-b' : ''}`}>
             <CardTitle className="flex justify-between items-center">
               <div className="flex gap-2 items-center">
                 <DatabaseBackup className="size-4" />
-                {getRepoName()}（{gitlabSyncProjectInfo?.visibility === 'public' ? t('settings.sync.public') : t('settings.sync.private')}）
+                {getRepoName()}（{giteaSyncRepoInfo?.private ? t('settings.sync.private') : t('settings.sync.public')}）
               </div>
-              <Badge className={`${gitlabSyncProjectState === SyncStateEnum.success ? 'bg-green-800' : 'bg-red-800'}`}>
-                {gitlabSyncProjectState}
+              <Badge className={`${giteaSyncRepoState === SyncStateEnum.success ? 'bg-green-800' : 'bg-red-800'}`}>
+                {giteaSyncRepoState}
               </Badge>
             </CardTitle>
             <CardDescription>
               <span>{t('settings.sync.syncRepoDesc')}</span>
             </CardDescription>
             {/* 手动检测和创建按钮 */}
-            {gitlabAccessToken && (
+            {giteaAccessToken && (
               <div className="mt-3 flex gap-2">
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={checkProjectState}
-                  disabled={gitlabSyncProjectState === SyncStateEnum.checking}
+                  onClick={checkRepoState}
+                  disabled={giteaSyncRepoState === SyncStateEnum.checking}
                 >
                   <RefreshCcw className="size-4 mr-1" />
-                  {gitlabSyncProjectState === SyncStateEnum.checking ? t('settings.sync.checking') : t('settings.sync.checkRepo')}
+                  {giteaSyncRepoState === SyncStateEnum.checking ? t('settings.sync.checking') : t('settings.sync.checkRepo')}
                 </Button>
-                {gitlabSyncProjectState === SyncStateEnum.fail && (
+                {giteaSyncRepoState === SyncStateEnum.fail && (
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={createGitlabProject}
+                    onClick={createGiteaRepo}
                   >
                     <Plus className="size-4 mr-1" />
                     {t('settings.sync.createRepo')}
@@ -282,18 +301,18 @@ export function GitlabSync() {
             )}
           </CardHeader>
           {
-            gitlabSyncProjectInfo &&
+            giteaSyncRepoInfo &&
             <CardContent className="flex items-center gap-4 mt-4">
               <Avatar className="size-12">
-                <AvatarImage src={gitlabUserInfo?.avatar_url || ''} />
+                <AvatarImage src={giteaUserInfo?.avatar_url || ''} />
               </Avatar>
               <div>
                 <h3 className="text-xl font-bold mb-1">
-                  <OpenBroswer title={gitlabSyncProjectInfo?.name_with_namespace || ''} url={gitlabSyncProjectInfo?.web_url || ''} />
+                  <OpenBroswer title={giteaSyncRepoInfo?.full_name || ''} url={giteaSyncRepoInfo?.html_url || ''} />
                 </h3>
                 <CardDescription className="flex">
-                  <p className="text-zinc-500 leading-6">{t('settings.sync.createdAt', { time: dayjs(gitlabSyncProjectInfo?.created_at).fromNow() })}，</p>
-                  <p className="text-zinc-500 leading-6">{t('settings.sync.updatedAt', { time: dayjs(gitlabSyncProjectInfo?.updated_at).fromNow() })}。</p>
+                  <p className="text-zinc-500 leading-6">{t('settings.sync.createdAt', { time: dayjs(giteaSyncRepoInfo?.created_at).fromNow() })}，</p>
+                  <p className="text-zinc-500 leading-6">{t('settings.sync.updatedAt', { time: dayjs(giteaSyncRepoInfo?.updated_at).fromNow() })}。</p>
                 </CardDescription>
               </div>
             </CardContent>
@@ -301,7 +320,7 @@ export function GitlabSync() {
         </Card>
       </FormItem>
       {
-        gitlabSyncProjectInfo &&
+        giteaSyncRepoInfo &&
         <FormItem title={t('settings.others')}>
           <Item variant="outline">
             <ItemMedia variant="icon"><RefreshCcw className="size-4" /></ItemMedia>
@@ -311,9 +330,9 @@ export function GitlabSync() {
             </ItemContent>
             <ItemActions>
               <Select
-                value={gitlabAutoSync}
-                onValueChange={(value) => setGitlabAutoSync(value)}
-                disabled={!gitlabAccessToken || gitlabSyncProjectState !== SyncStateEnum.success}
+                value={giteaAutoSync}
+                onValueChange={(value) => setGiteaAutoSync(value)}
+                disabled={!giteaAccessToken || giteaSyncRepoState !== SyncStateEnum.success}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder={t('settings.sync.autoSyncOptions.placeholder')} />
@@ -333,15 +352,15 @@ export function GitlabSync() {
       }
 
       {/* 主要备份方式设置 */}
-        {primaryBackupMethod === 'gitlab' ? (
+        {primaryBackupMethod === 'gitea' ? (
           <Button disabled variant="outline">
-            {t('settings.sync.isPrimaryBackup', { type: 'GitLab' })}
+            {t('settings.sync.isPrimaryBackup', { type: 'Gitea' })}
           </Button>
         ) : (
           <Button 
             variant="outline" 
-            onClick={() => setPrimaryBackupMethod('gitlab')}
-            disabled={!gitlabAccessToken || gitlabSyncProjectState !== SyncStateEnum.success}
+            onClick={() => setPrimaryBackupMethod('gitea')}
+            disabled={!giteaAccessToken || giteaSyncRepoState !== SyncStateEnum.success}
           >
             {t('settings.sync.setPrimaryBackup')}
           </Button>

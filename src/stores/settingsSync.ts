@@ -1,10 +1,11 @@
 import { Store } from '@tauri-apps/plugin-store'
 import { create } from 'zustand'
 import { filterSyncData, mergeSyncData } from '@/config/sync-exclusions'
-import { uploadFile as uploadGithubFile, getFiles as githubGetFiles } from '@/lib/github'
-import { uploadFile as uploadGiteeFile, getFiles as giteeGetFiles } from '@/lib/gitee'
-import { uploadFile as uploadGitlabFile, getFiles as gitlabGetFiles } from '@/lib/gitlab'
-import { getSyncRepoName } from '@/lib/repo-utils'
+import { uploadFile as uploadGithubFile, getFiles as githubGetFiles } from '@/lib/sync/github'
+import { uploadFile as uploadGiteeFile, getFiles as giteeGetFiles } from '@/lib/sync/gitee'
+import { uploadFile as uploadGitlabFile, getFiles as gitlabGetFiles } from '@/lib/sync/gitlab'
+import { uploadFile as uploadGiteaFile, getFiles as giteaGetFiles } from '@/lib/sync/gitea'
+import { getSyncRepoName } from '@/lib/sync/repo-utils'
 
 interface SettingsSyncState {
   syncState: boolean
@@ -31,7 +32,7 @@ const useSettingsSyncStore = create<SettingsSyncState>((set) => ({
   uploadSettings: async () => {
     try {
       const store = await Store.load('store.json')
-      const primaryBackupMethod = await store.get<'github' | 'gitee' | 'gitlab'>('primaryBackupMethod') || 'github'
+      const primaryBackupMethod = await store.get<'github' | 'gitee' | 'gitlab' | 'gitea'>('primaryBackupMethod') || 'github'
       
       // 获取所有配置项
       const allSettings: Record<string, any> = {}
@@ -63,6 +64,9 @@ const useSettingsSyncStore = create<SettingsSyncState>((set) => ({
           break
         case 'gitlab':
           uploadFile = uploadGitlabFile
+          break
+        case 'gitea':
+          uploadFile = uploadGiteaFile
           break
         default:
           uploadFile = uploadGithubFile
@@ -98,7 +102,7 @@ const useSettingsSyncStore = create<SettingsSyncState>((set) => ({
   downloadSettings: async () => {
     try {
       const store = await Store.load('store.json')
-      const primaryBackupMethod = await store.get<'github' | 'gitee' | 'gitlab'>('primaryBackupMethod') || 'github'
+      const primaryBackupMethod = await store.get<'github' | 'gitee' | 'gitlab' | 'gitea'>('primaryBackupMethod') || 'github'
       
       // 获取本地配置（用于保留排除字段）
       const localSettings: Record<string, any> = {}
@@ -120,6 +124,9 @@ const useSettingsSyncStore = create<SettingsSyncState>((set) => ({
           break
         case 'gitlab':
           getFiles = gitlabGetFiles
+          break
+        case 'gitea':
+          getFiles = giteaGetFiles
           break
         default:
           getFiles = githubGetFiles

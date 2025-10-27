@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import { Chat, clearChatsByTagId, deleteChat, getChats, initChatsDb, insertChat, updateChat, updateChatsInsertedById, getAllChats, deleteAllChats, insertChats } from '@/db/chats'
-import { uploadFile as uploadGithubFile, getFiles as githubGetFiles, decodeBase64ToString } from '@/lib/github';
-import { uploadFile as uploadGiteeFile, getFiles as giteeGetFiles } from '@/lib/gitee';
-import { uploadFile as uploadGitlabFile, getFiles as gitlabGetFiles, getFileContent as gitlabGetFileContent } from '@/lib/gitlab';
-import { getSyncRepoName } from '@/lib/repo-utils';
+import { uploadFile as uploadGithubFile, getFiles as githubGetFiles, decodeBase64ToString } from '@/lib/sync/github';
+import { uploadFile as uploadGiteeFile, getFiles as giteeGetFiles } from '@/lib/sync/gitee';
+import { uploadFile as uploadGitlabFile, getFiles as gitlabGetFiles, getFileContent as gitlabGetFileContent } from '@/lib/sync/gitlab';
+import { uploadFile as uploadGiteaFile, getFiles as giteaGetFiles, getFileContent as giteaGetFileContent } from '@/lib/sync/gitea';
+import { getSyncRepoName } from '@/lib/sync/repo-utils';
 import { Store } from '@tauri-apps/plugin-store';
 import { locales } from '@/lib/locales';
 
@@ -211,6 +212,19 @@ const useChatStore = create<ChatState>((set, get) => ({
           sha: chatFile?.sha || '',
         })
         break;
+      case 'gitea':
+        const giteaRepo = await getSyncRepoName('gitea')
+        files = await giteaGetFiles({ path, repo: giteaRepo })
+        const giteaChatFile = files?.find(file => file.name === filename)
+        res = await uploadGiteaFile({
+          ext: 'json',
+          file: jsonToBase64(chats),
+          repo: giteaRepo,
+          path,
+          filename,
+          sha: giteaChatFile?.sha || '',
+        })
+        break;
     }
     if (res) {
       result = true
@@ -260,6 +274,10 @@ const useChatStore = create<ChatState>((set, get) => ({
       case 'gitlab':
         const gitlabRepo2 = await getSyncRepoName('gitlab')
         files = await gitlabGetFileContent({ path: `${path}/${filename}`, ref: 'main', repo: gitlabRepo2 })
+        break;
+      case 'gitea':
+        const giteaRepo2 = await getSyncRepoName('gitea')
+        files = await giteaGetFileContent({ path: `${path}/${filename}`, ref: 'main', repo: giteaRepo2 })
         break;
     }
     if (files) {
