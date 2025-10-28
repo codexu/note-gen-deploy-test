@@ -49,7 +49,7 @@ const TOOL_CONFIG_MAP: Record<string, { icon: React.ReactNode; labelKey: string 
   chatLanguage: { icon: <Languages className="size-4" />, labelKey: 'chatLanguage.tooltip' },
   chatLink: { icon: <Link2 className="size-4" />, labelKey: 'tagLink.on' },
   fileLink: { icon: <FileText className="size-4" />, labelKey: 'fileLink.tooltip' },
-  mcpButton: { icon: <ServerCrash className="size-4" />, labelKey: 'modelSelect.tooltip' },
+  mcpButton: { icon: <ServerCrash className="size-4" />, labelKey: 'mcp.tooltip' },
   ragSwitch: { icon: <BookOpen className="size-4" />, labelKey: 'rag.enabled' },
   chatPlaceholder: { icon: <Lightbulb className="size-4" />, labelKey: 'placeholder.on' },
   clipboardMonitor: { icon: <Clipboard className="size-4" />, labelKey: 'clipboardMonitor.enable' },

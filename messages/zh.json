@@ -1019,6 +1019,9 @@
           "on": "已关联标签",
           "off": "未关联标签"
         },
+        "mcp": {
+          "tooltip": "MCP 服务器"
+        },
         "modelSelect": {
           "tooltip": "选择 AI 模型",
           "placeholder": "搜索 AI 模型",

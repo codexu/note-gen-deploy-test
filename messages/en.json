@@ -1051,6 +1051,9 @@
         "clearContext": {
           "tooltip": "Clear context"
         },
+        "mcp": {
+          "tooltip": "MCP server"
+        },
         "chatLanguage": {
           "tooltip": "Select chat language",
           "placeholder": "Search language"

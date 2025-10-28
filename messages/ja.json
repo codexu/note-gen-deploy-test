@@ -967,6 +967,9 @@
           "enable": "クリップボード監視(有効)",
           "disable": "クリップボード監視(無効)"
         },
+        "mcp": {
+          "tooltip": "MCP サーバー"
+        },
         "send": "送信",
         "stop": "停止",
         "terminate": "終了",
