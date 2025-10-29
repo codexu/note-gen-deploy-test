@@ -67,9 +67,16 @@
         "title": "ツール設定",
         "chatToolbar": {
           "title": "チャットツールバー",
-          "desc": "チャットツールバーボタンの表示順序と可視性をカスタマイズして、パーソナライズされたチャット体験を作成",
+          "desc": "チャットツールバーボタンの表示順序と可視性をカスタマイズ",
           "button": "設定",
           "dialogTitle": "チャットツールバーを構成",
+          "dialogDesc": "ツールをドラッグして順序を調整し、スイッチを使用して表示または非表示を制御"
+        },
+        "recordToolbar": {
+          "title": "記録ツールバー",
+          "desc": "記録ツールバーボタンの表示順序と可視性をカスタマイズ",
+          "button": "設定",
+          "dialogTitle": "記録ツールバーを構成",
           "dialogDesc": "ツールをドラッグして順序を調整し、スイッチを使用して表示または非表示を制御"
         }
       }
@@ -921,7 +928,13 @@
         "selectedCount": "{count}項目を選択中",
         "moveSelectedTags": "選択した{count}項目を移動",
         "deleteSelected": "選択した{count}項目を削除",
-        "deleteSelectedForever": "選択した{count}項目を完全削除"
+        "deleteSelectedForever": "選択した{count}項目を完全削除",
+        "text": "テキスト記録",
+        "recording": "音声記録",
+        "scan": "画像スキャン",
+        "image": "画像アップロード",
+        "link": "リンク記録",
+        "file": "ファイルアップロード"
       }
     },
     "chat": {
@@ -1308,5 +1321,30 @@
     "tools": "個のツール",
     "connecting": "接続中",
     "disconnected": "未接続"
+  },
+  "recording": {
+    "title": "音声録音",
+    "description": "マイクボタンをクリックして録音を開始すると、システムが自動的に認識してテキストに変換します",
+    "recording": "録音中",
+    "paused": "一時停止",
+    "ready": "準備完了",
+    "processing": "処理中...",
+    "cancel": "キャンセル",
+    "error": "エラー",
+    "success": "成功",
+    "noModelConfigured": "音声認識モデルが設定されていません。設定で構成してください",
+    "startError": "録音を開始できません",
+    "noAudioData": "音声データが録音されていません",
+    "transcriptionSuccess": "音声認識完了",
+    "transcriptionEmpty": "認識結果が空です",
+    "transcriptionError": "音声認識に失敗しました",
+    "noContentDetected": "コンテンツが検出されませんでした",
+    "doubleClickToSelectFile": "ダブルクリックで音声ファイルを選択",
+    "mode": {
+      "builtin": "ブラウザ認識",
+      "builtinDesc": "無料、リアルタイム認識",
+      "model": "AIモデル認識",
+      "modelDesc": "STTモデルが必要、より正確"
+    }
   }
 }

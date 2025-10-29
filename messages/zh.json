@@ -67,9 +67,16 @@
         "title": "工具设置",
         "chatToolbar": {
           "title": "对话工具栏",
-          "desc": "自定义对话工具栏按钮的显示顺序和可见性，打造个性化的对话体验",
+          "desc": "自定义对话工具栏按钮的显示顺序和可见性",
           "button": "设置",
           "dialogTitle": "配置对话工具栏",
+          "dialogDesc": "拖动工具调整排序，使用开关控制显示或隐藏"
+        },
+        "recordToolbar": {
+          "title": "记录工具栏",
+          "desc": "自定义记录工具栏按钮的显示顺序和可见性",
+          "button": "设置",
+          "dialogTitle": "配置记录工具栏",
           "dialogDesc": "拖动工具调整排序，使用开关控制显示或隐藏"
         }
       }
@@ -979,7 +986,13 @@
         "selectedCount": "已选择 {count} 项",
         "moveSelectedTags": "转移选中的 {count} 项",
         "deleteSelected": "删除选中的 {count} 项",
-        "deleteSelectedForever": "彻底删除选中的 {count} 项"
+        "deleteSelectedForever": "彻底删除选中的 {count} 项",
+        "text": "记录文本",
+        "recording": "录音记录",
+        "scan": "扫描图片",
+        "image": "上传图片",
+        "link": "记录链接",
+        "file": "上传文件"
       }
     },
     "chat": {
@@ -1385,6 +1398,7 @@
     "transcriptionEmpty": "识别结果为空",
     "transcriptionError": "语音识别失败",
     "noContentDetected": "未识别到内容",
+    "doubleClickToSelectFile": "双击选择音频文件",
     "mode": {
       "builtin": "浏览器识别",
       "builtinDesc": "免费，实时识别",

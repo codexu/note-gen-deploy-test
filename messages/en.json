@@ -69,9 +69,16 @@
         "title": "Tool Settings",
         "chatToolbar": {
           "title": "Chat Toolbar",
-          "desc": "Customize the display order and visibility of chat toolbar buttons for a personalized chat experience",
+          "desc": "Customize the display order and visibility of chat toolbar buttons",
           "button": "Configure",
           "dialogTitle": "Configure Chat Toolbar",
+          "dialogDesc": "Drag tools to adjust order, use switches to show or hide"
+        },
+        "recordToolbar": {
+          "title": "Record Toolbar",
+          "desc": "Customize the display order and visibility of record toolbar buttons",
+          "button": "Configure",
+          "dialogTitle": "Configure Record Toolbar",
           "dialogDesc": "Drag tools to adjust order, use switches to show or hide"
         }
       }
@@ -952,12 +959,12 @@
         "restore": "Restore",
         "delete": "Delete",
         "deleteConfirm": "Are you sure to delete?",
-        "moveTag": "Move to Tag",
+        "moveTag": "Move Tag",
         "convertTo": "Convert to {type}",
         "copyLink": "Copy Link",
         "copied": "Copied to clipboard!",
         "regenerateDesc": "Regenerate Description",
-        "viewFolder": "View in Folder",
+        "viewFolder": "View Folder",
         "viewFile": "View Original File",
         "deleteForever": "Delete Forever",
         "sortByName": "Sort by Name",
@@ -976,7 +983,13 @@
         "selectedCount": "Selected {count} items",
         "moveSelectedTags": "Move selected {count} items",
         "deleteSelected": "Delete selected {count} items",
-        "deleteSelectedForever": "Delete selected {count} items forever"
+        "deleteSelectedForever": "Delete selected {count} items forever",
+        "text": "Record Text",
+        "recording": "Audio Recording",
+        "scan": "Scan Image",
+        "image": "Upload Image",
+        "link": "Record Link",
+        "file": "Upload File"
       }
     },
     "chat": {
@@ -1414,11 +1427,111 @@
     "transcriptionSuccess": "Speech recognition completed",
     "transcriptionEmpty": "Recognition result is empty",
     "transcriptionError": "Speech recognition failed",
+    "noContentDetected": "No content detected",
+    "doubleClickToSelectFile": "Double click to select audio file",
     "mode": {
       "builtin": "Browser Recognition",
       "builtinDesc": "Free, real-time recognition",
       "model": "AI Model Recognition",
       "modelDesc": "Requires STT model, more accurate"
     }
+  },
+  "editor": {
+    "copySuccess": "Copy Success",
+    "copySuccessDescription": "Copied to clipboard",
+    "floatbar": {
+      "readAloud": {
+        "start": "Read Aloud",
+        "stop": "Stop Reading",
+        "loading": "Loading..."
+      }
+    },
+    "toolbar": {
+      "mark": {
+        "title": "Records",
+        "tooltip": "Records",
+        "description": "Convert records into content to insert into the article.",
+        "noRecords": "No records",
+        "ocrNoContent": "OCR did not recognize any content"
+      },
+      "question": {
+        "tooltip": "Q&A",
+        "selectContent": "Please select content first",
+        "promptTemplate": "Reference text: \n{content}\nBased on the question: \n{question}\n, directly provide the answer content."
+      },
+      "continue": {
+        "tooltip": "Continue",
+        "promptTemplate": "Based on the preceding text: \n{content}\n continue writing and return content not exceeding 100 words.\nYou can reference the following text: \n{endContent}\n, but avoid duplicating its content."
+      },
+      "polish": {
+        "tooltip": "Polish",
+        "selectContent": "Please select content first",
+        "promptTemplate": "Polish this text: \n{content}\n, keep the language unchanged, fix typos and grammatical errors, directly return the polished result."
+      },
+      "eraser": {
+        "tooltip": "Simplify",
+        "selectContent": "Please select content first",
+        "promptTemplate": "Simplify this text: \n{content}\n, this text is too verbose, reduce the word count by at least half, keep the language unchanged, directly return the optimized result."
+      },
+      "expansion": {
+        "tooltip": "Expand",
+        "selectContent": "Please select content first",
+        "promptTemplate": "Expand this text: \n{content}\n, this text is too short, increase the word count by at least half, keep the language unchanged, directly return the expanded result."
+      },
+      "translation": {
+        "tooltip": "Translate",
+        "description": "Translate the selected text",
+        "selectContent": "Please select content first",
+        "promptTemplate": "Translate this text: \n{content}\n, into {language}, directly return the translated result."
+      }
+    },
+    "upload": {
+      "error": "Upload failed",
+      "needToken": "Upload images need to configure accessToken",
+      "uploading": "Uploading image"
+    }
+  },
+  "footer": {
+    "wordCount": "Words",
+    "sync": {
+      "sync": "Sync",
+      "synced": "Synced",
+      "syncing": "Syncing",
+      "syncFailed": "Sync Failed",
+      "checkNetworkOrToken": "Please check network connection or token",
+      "quickSync": "Quick Sync"
+    },
+    "history": {
+      "loadingHistory": "Loading history",
+      "historyRecords": "History Records",
+      "noHistory": "No History",
+      "loading": "Loading",
+      "recordsCount": "records",
+      "filterQuickSync": "Filter Quick Syncs",
+      "committedAt": "committed at",
+      "pull": "Pull",
+      "quickSync": "Quick Sync"
+    },
+    "vectorCalc": {
+      "tooltip": "Vector Calculation: Auto-calculate 30s after editing, or click to calculate now",
+      "calculating": "Calculating",
+      "pending": "Pending {progress}%",
+      "synced": "Synced"
+    }
   }
+},
+"mcp": {
+  "selectServers": "MCP Servers",
+  "searchServers": "Search servers...",
+  "noServers": "MCP service not enabled",
+  "noServersFound": "No matching servers found",
+  "addServer": "Add server...",
+  "goToSettings": "Go to Settings",
+  "close": "Close",
+  "navigate": "Select",
+  "confirm": "Confirm",
+  "tools": "tools",
+  "connecting": "Connecting",
+  "disconnected": "Disconnected"
+}
 }

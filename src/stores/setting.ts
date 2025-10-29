@@ -198,9 +198,19 @@ interface SettingState {
   // 聊天工具栏配置
   chatToolbarConfig: ChatToolbarItem[]
   setChatToolbarConfig: (config: ChatToolbarItem[]) => Promise<void>
+
+  // 记录工具栏配置
+  recordToolbarConfig: RecordToolbarItem[]
+  setRecordToolbarConfig: (config: RecordToolbarItem[]) => Promise<void>
 }
 
 export interface ChatToolbarItem {
+  id: string
+  enabled: boolean
+  order: number
+}
+
+export interface RecordToolbarItem {
   id: string
   enabled: boolean
   order: number
@@ -850,6 +860,22 @@ const useSettingStore = create<SettingState>((set, get) => ({
     set({ chatToolbarConfig: config })
     const store = await Store.load('store.json');
     await store.set('chatToolbarConfig', config)
+    await store.save()
+  },
+
+  // 记录工具栏配置
+  recordToolbarConfig: [
+    { id: 'text', enabled: true, order: 0 },
+    { id: 'recording', enabled: true, order: 1 },
+    { id: 'scan', enabled: true, order: 2 },
+    { id: 'image', enabled: true, order: 3 },
+    { id: 'link', enabled: true, order: 4 },
+    { id: 'file', enabled: true, order: 5 },
+  ],
+  setRecordToolbarConfig: async (config: RecordToolbarItem[]) => {
+    set({ recordToolbarConfig: config })
+    const store = await Store.load('store.json');
+    await store.set('recordToolbarConfig', config)
     await store.save()
   },
 }))

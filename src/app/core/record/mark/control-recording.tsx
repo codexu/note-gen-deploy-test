@@ -20,10 +20,10 @@ export function ControlRecording() {
   const t = useTranslations();
   const router = useRouter();
   const { sttModel } = useSettingStore();
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const isLongPress = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = isMobileDevice();
+  const lastClickTime = useRef<number>(0);
+  const clickTimer = useRef<NodeJS.Timeout | null>(null);
 
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { fetchMarks, addQueue, removeQueue } = useMarkStore()
@@ -312,36 +312,38 @@ export function ControlRecording() {
     }
   }
 
-  // 长按开始
-  const handleMouseDown = () => {
-    if (isRecording) return
-    
-    isLongPress.current = false
-    longPressTimer.current = setTimeout(() => {
-      isLongPress.current = true
-      handleFileSelect()
-    }, 500) // 500ms 判定为长按
-  }
-
-  // 长按结束
-  const handleMouseUp = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current)
-      longPressTimer.current = null
-    }
-
-    // 如果不是长按，执行正常点击
-    if (!isLongPress.current) {
-      handleClick()
-    }
-  }
-
-  // 点击按钮处理
+  // 处理点击事件（单击录音，双击选择文件）
   const handleClick = () => {
-    if (isRecording) {
-      handleStop()
+    const now = Date.now()
+    const timeSinceLastClick = now - lastClickTime.current
+    
+    // 双击判定：300ms内的第二次点击
+    if (timeSinceLastClick < 300 && timeSinceLastClick > 0) {
+      // 双击：取消单击的延迟执行，直接选择文件
+      if (clickTimer.current) {
+        clearTimeout(clickTimer.current)
+        clickTimer.current = null
+      }
+      lastClickTime.current = 0 // 重置，避免三连击
+      handleFileSelect()
     } else {
-      handleStart()
+      // 单击：延迟执行，等待可能的第二次点击
+      lastClickTime.current = now
+      
+      // 清除之前的定时器
+      if (clickTimer.current) {
+        clearTimeout(clickTimer.current)
+      }
+      
+      // 延迟300ms执行单击操作，如果期间有第二次点击则会被取消
+      clickTimer.current = setTimeout(() => {
+        if (isRecording) {
+          handleStop()
+        } else {
+          handleStart()
+        }
+        clickTimer.current = null
+      }, 300)
     }
   }
   
@@ -350,7 +352,7 @@ export function ControlRecording() {
     if (isRecording) {
       return `${t('recording.recording')} ${formatDuration(recordingDuration)}`
     }
-    return t('record.mark.type.recording')
+    return `${t('record.mark.type.recording')} (${t('recording.doubleClickToSelectFile')})`
   }
 
   return (
@@ -371,16 +373,7 @@ export function ControlRecording() {
         <Button 
           variant="ghost" 
           size="icon"
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={() => {
-            if (longPressTimer.current) {
-              clearTimeout(longPressTimer.current)
-              longPressTimer.current = null
-            }
-          }}
-          onTouchStart={handleMouseDown}
-          onTouchEnd={handleMouseUp}
+          onClick={handleClick}
           className={`relative ${isRecording ? 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950' : ''}`}
         >
           <Mic className="size-4" />
