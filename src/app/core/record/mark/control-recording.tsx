@@ -184,19 +184,7 @@ export function ControlRecording() {
       await fetchTags()
       getCurrentTag()
       
-      // 显示提示
-      if (noContent) {
-        toast({
-          title: t('recording.success'),
-          description: t('recording.noContentDetected'),
-          variant: 'default'
-        })
-      } else {
-        toast({
-          title: t('recording.success'),
-          description: t('recording.transcriptionSuccess')
-        })
-      }
+      // 录制结束后不再显示提示
     } catch (error) {
       console.error('识别失败:', error)
       

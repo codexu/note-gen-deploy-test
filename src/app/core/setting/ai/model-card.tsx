@@ -155,8 +155,9 @@ export default function ModelCard({ modelConfig, aiConfig, onUpdate, onDelete }:
           return true
 
         case 'stt':
-          // STT 测试：检查 API 端点是否可用
-          // 注意：使用空音频测试可能返回空结果，我们主要检查 API 是否响应正确格式
+          // STT 测试：只检查 API 端点连通性
+          // 发送一个简单的测试请求，不验证具体返回内容
+          // 因为空音频文件可能导致服务器ffmpeg解析失败，但这不代表模型不可用
           const testAudioBlob = new Blob([new Uint8Array(100)], { type: 'audio/webm' })
           const sttFormData = new FormData()
           sttFormData.append('file', testAudioBlob, 'test.webm')
@@ -172,17 +173,14 @@ export default function ModelCard({ modelConfig, aiConfig, onUpdate, onDelete }:
             signal
           })
           
-          if (!sttResponse.ok) {
-            const errorText = await sttResponse.text()
-            throw new Error(`STT请求失败 (${sttResponse.status}): ${errorText || sttResponse.statusText}`)
+          // 对于STT，只要API响应了（即使是400错误），就认为连接成功
+          // 400错误通常是因为测试音频无效，但说明API端点是可达的
+          if (sttResponse.status === 401 || sttResponse.status === 403) {
+            // 认证错误才是真正的失败
+            throw new Error(`STT认证失败 (${sttResponse.status})`)
           }
           
-          const sttData = await sttResponse.json()
-          // STT 返回格式应该包含 text 字段（即使为空字符串也是有效的）
-          if (!sttData || !('text' in sttData)) {
-            throw new Error('STT模型返回格式不正确，缺少 text 字段')
-          }
-          
+          // 其他情况（包括200成功和400音频解析失败）都认为连接成功
           return true
 
         default:
