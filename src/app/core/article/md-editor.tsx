@@ -1,8 +1,8 @@
 'use client'
 import useArticleStore from '@/stores/article'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Vditor from 'vditor'
-import { exists, mkdir, writeFile } from '@tauri-apps/plugin-fs'
+import { exists, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import "vditor/dist/index.css"
 import CustomToolbar from './custom-toolbar'
 import './style.scss'
@@ -29,7 +29,7 @@ import useMarkStore from '@/stores/mark'
 
 export function MdEditor() {
   const [editor, setEditor] = useState<Vditor>();
-  const { currentArticle, saveCurrentArticle, loading, activeFilePath, matchPosition, setMatchPosition } = useArticleStore()
+  const { currentArticle, saveCurrentArticle, loading, activeFilePath, matchPosition, setMatchPosition, setActiveFilePath, loadFileTree, setCurrentArticle } = useArticleStore()
   const { assetsPath, contentTextScale } = useSettingStore()
   const { fetchMarks } = useMarkStore()
   const [floatBarPosition, setFloatBarPosition] = useState<{left: number, top: number} | null>(null)
@@ -40,6 +40,8 @@ export function MdEditor() {
   const { currentLocale } = useI18n()
   const [localMode, setLocalMode] = useLocalStorage<'ir' | 'sv' | 'wysiwyg'>('useLocalMode', 'ir')
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const isCreatingFileRef = useRef(false)
+  const activeFilePathRef = useRef(activeFilePath)
 
   function getLang() {
     switch (currentLocale) {
@@ -132,10 +134,19 @@ export function MdEditor() {
         }
         setEditorPadding(vditor)
       },
-      input: (value) => {
-        saveCurrentArticle(value)
-        emitter.emit('editor-input')
-        handleLocalImage(vditor)
+      input: async (value) => {
+        if (!activeFilePathRef.current && !isCreatingFileRef.current) {
+          // 自动创建 untitled.md 文件，并写入当前内容
+          isCreatingFileRef.current = true
+          await createUntitledFile(value)
+          isCreatingFileRef.current = false
+          return // 创建文件后会触发 setActiveFilePath，不需要再次保存
+        }
+        if (activeFilePathRef.current) {
+          saveCurrentArticle(value)
+          emitter.emit('editor-input')
+          handleLocalImage(vditor)
+        }
       },
       mode: localMode,
       upload: {
@@ -189,6 +200,54 @@ export function MdEditor() {
   function resetSelectedText() {
     setSelectedText('')
     setFloatBarPosition(null)
+  }
+
+  // 自动创建 untitled.md 文件
+  async function createUntitledFile(content: string) {
+    try {
+      const workspace = await getWorkspacePath()
+      
+      // 生成唯一的文件名
+      let fileName = 'untitled.md'
+      let counter = 1
+      let filePath = fileName
+      
+      // 检查文件是否存在，如果存在则添加数字后缀
+      while (true) {
+        const pathOptions = await import('@/lib/workspace').then(m => m.getFilePathOptions(filePath))
+        let fileExists = false
+        
+        if (workspace.isCustom) {
+          fileExists = await exists(pathOptions.path)
+        } else {
+          fileExists = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
+        }
+        
+        if (!fileExists) break
+        
+        fileName = `untitled-${counter}.md`
+        filePath = fileName
+        counter++
+      }
+      
+      // 创建文件并写入内容
+      const pathOptions = await import('@/lib/workspace').then(m => m.getFilePathOptions(filePath))
+      if (workspace.isCustom) {
+        await writeTextFile(pathOptions.path, content)
+      } else {
+        await writeTextFile(pathOptions.path, content, { baseDir: pathOptions.baseDir })
+      }
+      
+      // 先更新 store 中的内容，避免后续读取文件时覆盖
+      setCurrentArticle(content)
+      
+      // 设置为当前活动文件
+      await setActiveFilePath(filePath)
+      await loadFileTree()
+      
+    } catch (error) {
+      console.error('Create untitled file error:', error)
+    }
   }
 
   // 设置编辑器 padding
@@ -358,6 +417,11 @@ export function MdEditor() {
     }
   }
 
+  // 同步更新 activeFilePathRef
+  useEffect(() => {
+    activeFilePathRef.current = activeFilePath
+  }, [activeFilePath])
+
   useEffect(() => {
     emitter.on('toolbar-reset-selected-text', resetSelectedText)
     return () => {
@@ -366,21 +430,26 @@ export function MdEditor() {
   }, [editor])
 
   useEffect(() => {
-    if (!activeFilePath) {
-      editor?.destroy()
-      setEditor(undefined)
-    } else {
-      if (!editor) {
-        init()
+    if (!editor) {
+      init()
+      if (activeFilePath) {
         setContent(currentArticle)
+      }
+    } else {
+      // 如果文件被删除或取消选中，清空编辑器
+      if (!activeFilePath) {
+        editor.setValue('', true)
+        setCurrentArticle('')
       }
     }
   }, [activeFilePath])
 
   useEffect(() => {
-    if (activeFilePath) {
-      init()
+    if (editor) {
+      editor.destroy()
+      setEditor(undefined)
     }
+    init()
   }, [currentLocale])
 
   useEffect(() => {
@@ -422,11 +491,13 @@ export function MdEditor() {
   }, [theme, editor])
 
   useEffect(() => {
-    setContent(currentArticle)
-    editor?.clearStack()
-    if (!editor) return
-    handleLocalImage(editor)
-  }, [currentArticle, editor])
+    if (activeFilePath) {
+      setContent(currentArticle)
+      editor?.clearStack()
+      if (!editor) return
+      handleLocalImage(editor)
+    }
+  }, [currentArticle, editor, activeFilePath])
 
   useEffect(() => {
     window.addEventListener('resize', () => {
@@ -668,6 +739,7 @@ export function MdEditor() {
       editorContainer.removeEventListener('drop', handleDrop)
     }
   }, [editor])
+
 
   return <div 
     id="article-editor" 

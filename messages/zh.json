@@ -1385,6 +1385,15 @@
         "needToken": "上传图片需配置 accessToken",
         "uploading": "正在上传图片"
       },
+      "saveDialog": {
+        "title": "保存文件",
+        "emptyContent": "内容为空",
+        "emptyContentDesc": "请先输入内容后再保存",
+        "success": "保存成功",
+        "successDesc": "文件已保存",
+        "error": "保存失败",
+        "errorDesc": "文件保存失败，请重试"
+      },
       "toolbar": {
         "mark": {
           "title": "使用记录",
