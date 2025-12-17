@@ -867,6 +867,27 @@
           "text": "Text"
         },
         "chat": {
+          "modeSelect": {
+            "chat": "Chat",
+            "agent": "Agent"
+          },
+          "agent": {
+            "running": "Agent Running",
+            "thinking": "Thinking",
+            "acting": "Acting",
+            "observation": "Observation",
+            "toolCalls": "Tool Calls",
+            "confirmation": {
+              "title": "Confirm Action",
+              "description": "The agent wants to perform the following action. Please confirm to continue.",
+              "tool": "Tool",
+              "parameters": "Parameters",
+              "cancel": "Cancel",
+              "confirm": "Confirm",
+              "confirmed": "Confirmed",
+              "cancelled": "Cancelled"
+            }
+          },
           "placeholder": {
             "default": "Ask questions or organize your notes into an article...",
             "noApiKey": "API Key not configured, AI chat feature is unavailable..."
@@ -1075,6 +1096,7 @@
         },
         "send": "Send",
         "stop": "Stop",
+        "stopped": "Conversation stopped",
         "terminate": "Terminate",
         "tagLink": {
           "on": "Linked to tag",
@@ -1107,9 +1129,28 @@
         },
         "modeSelect": {
           "tooltip": "Select input mode",
-          "chat": "Chat Mode",
-          "gen": "Organize Mode",
-          "translate": "Translate Mode"
+          "chat": "Chat mode",
+          "gen": "Organize mode",
+          "translate": "Translate mode"
+        },
+        "chatModeSelect": {
+          "chatDescription": "Quick conversation, read-only mode",
+          "agentDescription": "Smart assistant, can execute actions"
+        },
+        "agent": {
+          "running": "Agent Running",
+          "thinking": "Thinking",
+          "acting": "Acting",
+          "observation": "Observation",
+          "toolCalls": "Tool Calls",
+          "confirmation": {
+            "title": "Confirm Action",
+            "description": "The agent wants to perform the following action. Please confirm to continue.",
+            "tool": "Tool",
+            "parameters": "Parameters",
+            "cancel": "Cancel",
+            "confirm": "Confirm"
+          }
         },
         "fileLink": {
           "tooltip": "Link File",
