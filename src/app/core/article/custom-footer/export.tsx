@@ -7,11 +7,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { writeTextFile, writeFile } from "@tauri-apps/plugin-fs";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 import Vditor from "vditor";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
-type ExportFormat = "HTML" | "JSON" | "Markdown";
+type ExportFormat = "HTML" | "JSON" | "Markdown" | "PDF";
 
 export default function ExportFormatSelector({editor}: {editor?: Vditor}) {
 
@@ -28,6 +30,12 @@ export default function ExportFormatSelector({editor}: {editor?: Vditor}) {
     };
 
   const handleFormatSelect = async (format: ExportFormat) => {
+    // PDF 导出使用不同的逻辑
+    if (format === "PDF") {
+      await handlePDFExport();
+      return;
+    }
+
     let content = ''
     switch (format) {
       case "HTML":
@@ -72,6 +80,92 @@ export default function ExportFormatSelector({editor}: {editor?: Vditor}) {
     }
   };
 
+  const handlePDFExport = async () => {
+    try {
+      const htmlContent = editor?.getHTML() || '';
+      const markdownContent = editor?.getValue() || '';
+      const fileName = getFileNameFromContent(markdownContent);
+
+      // 打开保存对话框
+      const selected = await save({
+        defaultPath: `${fileName}.pdf`,
+        filters: [
+          {
+            name: 'PDF',
+            extensions: ['pdf'],
+          },
+        ],
+      });
+
+      if (!selected) return;
+
+      // 创建一个隐藏的容器来渲染 HTML
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '794px'; // A4 宽度 (210mm 转 px 为 72dpi)
+      container.style.padding = '40px';
+      container.style.backgroundColor = 'white';
+      container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+      container.style.fontSize = '14px';
+      container.style.lineHeight = '1.6';
+      container.style.color = '#333';
+      
+      // 添加 markdown 样式
+      container.className = 'markdown-body';
+      container.innerHTML = htmlContent;
+      
+      document.body.appendChild(container);
+
+      // 等待图片加载
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // 使用 html2canvas 将 HTML 转为图片
+      const canvas = await html2canvas(container, {
+        scale: 2, // 提高分辨率
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // 移除临时容器
+      document.body.removeChild(container);
+
+      // 创建 PDF
+      const imgWidth = 210; // A4 宽度 mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      
+      // 如果内容超过一页，需要分页
+      const pageHeight = 297; // A4 高度 mm
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // 将 PDF 转为 ArrayBuffer
+      const pdfArrayBuffer = pdf.output('arraybuffer');
+      
+      // 使用 Tauri 保存文件
+      await writeFile(selected, new Uint8Array(pdfArrayBuffer));
+
+      console.log('PDF 导出成功');
+    } catch (error) {
+      console.error('PDF 导出失败:', error);
+    }
+  };
+
   return (
     <div className="items-center gap-1 hidden md:flex">
       <DropdownMenu>
@@ -97,6 +191,9 @@ export default function ExportFormatSelector({editor}: {editor?: Vditor}) {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleFormatSelect("JSON")}>
             JSON
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleFormatSelect("PDF")}>
+            PDF
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
