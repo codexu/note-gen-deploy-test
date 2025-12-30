@@ -17,6 +17,7 @@ export class ReActAgent {
   private currentIteration = 0
   private toolCallCounter = 0
   private stopped = false
+  private abortController: AbortController | null = null
 
   constructor(config: ReActConfig) {
     this.config = config
@@ -27,6 +28,11 @@ export class ReActAgent {
 
   stop() {
     this.stopped = true
+    // 终止所有正在进行的异步操作
+    if (this.abortController) {
+      this.abortController.abort()
+      this.abortController = null
+    }
   }
 
   async run(userInput: string, context?: string): Promise<string> {
@@ -34,6 +40,8 @@ export class ReActAgent {
     this.currentIteration = 0
     this.toolCallCounter = 0
     this.stopped = false
+    // 创建新的 AbortController
+    this.abortController = new AbortController()
 
     const systemPrompt = this.buildSystemPrompt()
     let finalAnswer = ''
@@ -204,7 +212,13 @@ ${userInput}
       let response = ''
       let lastUpdateLength = 0
       
+      // 传递 AbortSignal 以支持终止
       await fetchAiStream(prompt, (content) => {
+        // 检查是否已终止
+        if (this.stopped) {
+          return
+        }
+        
         response = content
         
         // 实时更新，但只在内容有实质性增长时更新（避免频繁更新）
@@ -212,7 +226,13 @@ ${userInput}
           this.config.onThought?.(content)
           lastUpdateLength = content.length
         }
-      })
+      }, this.abortController?.signal)
+      
+      // 检查是否已终止
+      if (this.stopped) {
+        return `Thought: 用户终止了任务
+Final Answer: 任务已被用户终止`
+      }
       
       // 确保最终内容被更新
       if (response.length !== lastUpdateLength) {
@@ -221,6 +241,12 @@ ${userInput}
       
       return response
     } catch (error) {
+      // 检查是否是因为终止导致的错误
+      if (this.stopped || (error instanceof Error && error.name === 'AbortError')) {
+        return `Thought: 用户终止了任务
+Final Answer: 任务已被用户终止`
+      }
+      
       console.error('LLM API call failed:', error)
       // 如果 API 调用失败，返回错误提示
       return `Thought: 抱歉，AI 服务暂时不可用
