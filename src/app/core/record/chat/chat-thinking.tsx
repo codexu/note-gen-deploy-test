@@ -5,9 +5,8 @@ import { useTranslations } from "next-intl";
 
 export default function ChatThinking({chat}: { chat: Chat }) {
   const t = useTranslations()
-  const thinkingContent = chat.content?.split('<thinking>')[1] || ''
-  const content = chat.content?.includes('thinking') ? chat.content.split('<thinking>')[2] : chat.content
-  const isThinking = !content // 还在思考中
+  const thinkingContent = chat.thinking || ''
+  const isThinking = !chat.content && !!chat.thinking // 还在思考中（有 thinking 但没有 content）
   
   const [isExpanded, setIsExpanded] = useState(isThinking)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -28,7 +27,7 @@ export default function ChatThinking({chat}: { chat: Chat }) {
     }
   }, [thinkingContent, isThinking, isExpanded])
   
-  if (!chat.content?.includes('<thinking>')) return null
+  if (!chat.thinking) return null
   
   // 提取标题（第一行或前50个字符）
   const extractTitle = (text: string): string => {

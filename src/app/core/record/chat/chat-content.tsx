@@ -141,7 +141,7 @@ function AgentExecutionStatusWrapper() {
 function Message({ chat }: { chat: Chat }) {
   const t = useTranslations()
   const { deleteChat, getMcpToolCallsByChatId, agentState } = useChatStore()
-  const content = chat.content?.includes('thinking') ? chat.content.split('<thinking>')[2] : chat.content
+  const content = chat.content
 
   const handleRemoveClearContext = () => {
     deleteChat(chat.id)

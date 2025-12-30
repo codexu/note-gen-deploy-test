@@ -632,6 +632,7 @@ export async function fetchAiStream(
     let fullContent = ''
     const toolCalls: any[] = []
     let hasToolCalls = false
+    let hasAddedThinkingTag = false // 标记是否已添加 <thinking> 开始标签
     
     for await (const chunk of stream) {
       if (abortSignal?.aborted) {
@@ -680,14 +681,24 @@ export async function fetchAiStream(
         continue
       }
       
-      // 处理思考内容（显示内容但隐藏标签）
+      // 处理思考内容（包裹在 <thinking> 标签中）
       if (thinkingContent) {
         thinking += thinkingContent
-        fullContent += thinkingContent  // 显示思考内容，但不显示 <thinking> 标签
+        // 第一次遇到 thinking 内容时，添加开始标签
+        if (!hasAddedThinkingTag) {
+          fullContent += '<thinking>'
+          hasAddedThinkingTag = true
+        }
+        fullContent += thinkingContent
       }
       
       // 处理普通内容
       if (content) {
+        // 如果之前有 thinking 内容，先关闭标签
+        if (hasAddedThinkingTag && thinking.length > 0) {
+          fullContent += '</thinking>'
+          hasAddedThinkingTag = false
+        }
         fullContent += content
       }
       
@@ -820,6 +831,7 @@ export async function fetchAiStream(
         currentToolCalls = []
         thinking = ''
         fullContent = ''
+        let hasAddedThinkingTagInLoop = false // 标记是否已添加 <thinking> 开始标签
         
         // 处理响应
         for await (const chunk of nextStream) {
@@ -865,12 +877,22 @@ export async function fetchAiStream(
             continue
           }
           
-          // 显示普通内容（显示内容但隐藏标签）
+          // 处理思考内容（包裹在 <thinking> 标签中）
           if (thinkingContent) {
             thinking += thinkingContent
-            fullContent += thinkingContent  // 显示思考内容，但不显示 <thinking> 标签
+            // 第一次遇到 thinking 内容时，添加开始标签
+            if (!hasAddedThinkingTagInLoop) {
+              fullContent += '<thinking>'
+              hasAddedThinkingTagInLoop = true
+            }
+            fullContent += thinkingContent
           }
           if (content) {
+            // 如果之前有 thinking 内容，先关闭标签
+            if (hasAddedThinkingTagInLoop && thinking.length > 0) {
+              fullContent += '</thinking>'
+              hasAddedThinkingTagInLoop = false
+            }
             fullContent += content
           }
           onUpdate(fullContent)
