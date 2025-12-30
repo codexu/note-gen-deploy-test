@@ -163,29 +163,50 @@ export function MdEditor() {
             }
             return filesUrls.join('\n')
           } else {
-            // 保存到 activeFilePath/image 目录下
+            // 保存到当前笔记所在文件夹的静态资源目录
             const workspace = await getWorkspacePath()
-            const articlePath = activeFilePath.split('/').slice(0, -1).join('/')
+            
+            // 从持久化存储获取最新的 assetsPath 设置
+            const currentAssetsPath = await store.get<string>('assetsPath') || assetsPath || 'assets'
+            
+            // 使用 ref 中的最新 activeFilePath
+            const currentActiveFilePath = activeFilePathRef.current
+            if (!currentActiveFilePath) {
+              return '请先打开一个笔记文件'
+            }
+            
+            const articlePath = currentActiveFilePath.split('/').slice(0, -1).join('/')
             const appDataDirPath = await appDataDir()
+            
             for (let i = 0; i < files.length; i++) {
               const uint8Array = new Uint8Array(await files[i].arrayBuffer())
               const fileName = `${uuid()}.${files[i].name.split('.')[files[i].name.split('.').length - 1]}`
               let imagesDir = ''
               if (!workspace.isCustom) {
-                imagesDir = `${appDataDirPath}/article/${articlePath}/${assetsPath}`
+                imagesDir = `${appDataDirPath}/article/${articlePath}/${currentAssetsPath}`
               } else {
-                imagesDir = `${workspace.path}/${articlePath}/${assetsPath}`
+                imagesDir = `${workspace.path}/${articlePath}/${currentAssetsPath}`
               }
               if (!await exists(imagesDir)) {
-                await mkdir(imagesDir)
+                await mkdir(imagesDir, { recursive: true })
               }
               const path = `${imagesDir}/${fileName}`
               await writeFile(path, uint8Array)
+              
+              // 直接插入转换后的 asset:// URL，避免浏览器尝试加载相对路径导致控制台报错
               if (typeof vditor.insertValue === 'function') {
-                vditor.insertValue(`![${files[i].name}](/${assetsPath}/${fileName})`)
+                const assetUrl = convertFileSrc(path)
+                vditor.insertValue(`![${files[i].name}](${assetUrl})`)
+                
+                // 同时缓存这个 URL，避免 handleLocalImage 重复处理
+                imageUrlCache.current.set(`/${currentAssetsPath}/${fileName}`, assetUrl)
               }
             }
-            return '图片已保存到本地'
+            
+            // 刷新文件树以显示新创建的静态资源文件夹
+            await loadFileTree()
+            
+            return `图片已保存到: ${articlePath}/${currentAssetsPath}/`
           }
         }
       },
@@ -263,34 +284,64 @@ export function MdEditor() {
     }
   }
 
+  // 缓存已转换的图片 URL，避免重复转换导致闪烁
+  const imageUrlCache = useRef<Map<string, string>>(new Map())
+
   // 处理本地相对路径图片
   async function handleLocalImage(vditor: Vditor) {
     const workspace = await getWorkspacePath()
     const previews = [vditor.vditor.ir?.element, vditor.vditor.sv?.element, vditor.vditor.wysiwyg?.element]
-    previews.forEach(element => {
-      element?.querySelectorAll('img').forEach(async (img) => {
+    
+    for (const element of previews) {
+      if (!element) continue
+      
+      const images = element.querySelectorAll('img')
+      for (const img of images) {
         let src = img.getAttribute('src')
-        if (!src) return
-        if (!src.startsWith('http') && !src.startsWith('asset://')) {
-          const articlePath = activeFilePath.split('/').slice(0, -1).join('/')
-          if (src.startsWith('./')) {
-            src = src.slice(2)
+        if (!src) continue
+        
+        // 如果已经是转换后的 URL，跳过
+        if (src.startsWith('http') || src.startsWith('asset://')) continue
+        
+        // 检查缓存
+        if (imageUrlCache.current.has(src)) {
+          const cachedUrl = imageUrlCache.current.get(src)!
+          if (img.getAttribute('src') !== cachedUrl) {
+            img.setAttribute('src', cachedUrl)
           }
-          if (!src.startsWith('/')) {
-            src = `/${src}`
-          }
-          if (!workspace.isCustom) {
-            const relativePath = `/${workspace.path}/${articlePath}${src}`
-            const tauriSrc = await convertImage(relativePath)
-            img.setAttribute('src', tauriSrc)
-          } else {
-            const relativePath = `${workspace.path}/${articlePath}${src}`
-            const tauriSrc = convertFileSrc(relativePath)
-            img.setAttribute('src', tauriSrc)
-          }
+          continue
         }
-      })
-    })
+        
+        // 转换路径
+        const articlePath = activeFilePath.split('/').slice(0, -1).join('/')
+        if (src.startsWith('./')) {
+          src = src.slice(2)
+        }
+        if (!src.startsWith('/')) {
+          src = `/${src}`
+        }
+        
+        let tauriSrc: string
+        if (!workspace.isCustom) {
+          const relativePath = `/${workspace.path}/${articlePath}${src}`
+          tauriSrc = await convertImage(relativePath)
+        } else {
+          const relativePath = `${workspace.path}/${articlePath}${src}`
+          tauriSrc = convertFileSrc(relativePath)
+        }
+        
+        // 缓存转换后的 URL
+        const originalSrc = img.getAttribute('src')
+        if (originalSrc) {
+          imageUrlCache.current.set(originalSrc, tauriSrc)
+        }
+        
+        // 只在 URL 不同时才设置，避免不必要的重绘
+        if (img.getAttribute('src') !== tauriSrc) {
+          img.setAttribute('src', tauriSrc)
+        }
+      }
+    }
   }
 
   async function uploadImages(files: File[]) {
