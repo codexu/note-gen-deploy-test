@@ -282,7 +282,6 @@ Final Answer: 无法完成任务，请稍后重试或检查 AI 配置`
           params = JSON.parse(jsonStr)
         } catch {
           // JSON 解析失败，尝试修复
-          console.warn('JSON parse failed, attempting repair:', jsonStr)
           
           // 移除末尾可能的不完整内容
           jsonStr = jsonStr.replace(/,\s*$/, '') // 移除末尾的逗号
@@ -341,6 +340,7 @@ Final Answer: 无法完成任务，请稍后重试或检查 AI 配置`
 
     if (tool.requiresConfirmation && this.config.requestConfirmation) {
       const confirmed = await this.config.requestConfirmation(toolName, params)
+      
       if (!confirmed) {
         toolCall.status = 'error'
         toolCall.result = {
@@ -363,7 +363,22 @@ Final Answer: 无法完成任务，请稍后重试或检查 AI 配置`
       this.config.onToolCall?.(toolCall)
 
       if (result.success) {
-        return result.message || `工具 ${toolName} 执行成功。${result.data ? `\n数据：${JSON.stringify(result.data, null, 2)}` : ''}`
+        let observation = result.message || `工具 ${toolName} 执行成功。`
+        
+        // 如果有数据，将其完整添加到观察结果中
+        // AI 需要看到完整数据才能生成准确的笔记
+        if (result.data) {
+          if (Array.isArray(result.data)) {
+            if (result.data.length > 0) {
+              observation += `\n\n数据详情：\n${JSON.stringify(result.data, null, 2)}`
+            }
+          } else {
+            // 对于对象数据，也格式化显示
+            observation += `\n\n数据详情：\n${JSON.stringify(result.data, null, 2)}`
+          }
+        }
+        
+        return observation
       } else {
         return `工具 ${toolName} 执行失败：${result.error}`
       }
