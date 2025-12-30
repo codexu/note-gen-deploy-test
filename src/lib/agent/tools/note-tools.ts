@@ -184,10 +184,13 @@ export const updateMarkdownFileTool: Tool = {
         await writeTextFile(path, params.content, { baseDir })
       }
       
-      // 如果更新的是当前打开的文件，刷新编辑器内容
+      // 如果更新的是当前打开的文件，通过 saveCurrentArticle 刷新编辑器内容
+      // 注意：不要使用 setCurrentArticle，因为它会触发 clearStack 清空撤销历史
       const articleStore = useArticleStore.getState()
       if (articleStore.activeFilePath === params.filePath) {
-        articleStore.setCurrentArticle(params.content)
+        // 使用 emitter 通知编辑器内容已从外部更新
+        const emitter = (await import('@/lib/emitter')).default
+        emitter.emit('external-content-update', params.content)
       }
       
       return {
@@ -356,7 +359,10 @@ export const modifyCurrentNoteTool: Tool = {
         await writeTextFile(path, params.content, { baseDir })
       }
       
-      articleStore.setCurrentArticle(params.content)
+      // 使用 emitter 通知编辑器内容已从外部更新，而不是直接调用 setCurrentArticle
+      // 这样可以保留编辑器的撤销历史
+      const emitter = (await import('@/lib/emitter')).default
+      emitter.emit('external-content-update', params.content)
       
       return {
         success: true,

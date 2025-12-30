@@ -42,6 +42,7 @@ export function MdEditor() {
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const isCreatingFileRef = useRef(false)
   const activeFilePathRef = useRef(activeFilePath)
+  const skipClearStackRef = useRef(false) // 标记是否跳过清空撤销栈
 
   function getLang() {
     switch (currentLocale) {
@@ -493,11 +494,44 @@ export function MdEditor() {
   useEffect(() => {
     if (activeFilePath) {
       setContent(currentArticle)
-      editor?.clearStack()
+      // 只在非外部更新时清空撤销栈
+      if (!skipClearStackRef.current) {
+        editor?.clearStack()
+      } else {
+        skipClearStackRef.current = false // 重置标志
+      }
       if (!editor) return
       handleLocalImage(editor)
     }
   }, [currentArticle, editor, activeFilePath])
+
+  // 监听外部内容更新事件（如 agent 工具修改）
+  useEffect(() => {
+    const handleExternalUpdate = (content: unknown) => {
+      if (editor && activeFilePath && typeof content === 'string') {
+        const currentContent = editor.getValue()
+        
+        // 只有内容真的变化了才更新
+        if (currentContent !== content) {
+          // 使用 setValue(content, false) 保留撤销历史
+          // 这会将新内容作为一个编辑操作添加到撤销栈
+          // 用户可以通过 Ctrl+Z 撤销回到修改前的状态
+          editor.setValue(content, false)
+          // 设置标志，告诉 useEffect 不要清空撤销栈
+          skipClearStackRef.current = true
+          // 更新 store 状态（这会触发 useEffect，但因为标志位，不会清空撤销栈）
+          useArticleStore.setState({ currentArticle: content })
+          handleLocalImage(editor)
+        }
+      }
+    }
+
+    emitter.on('external-content-update', handleExternalUpdate)
+    
+    return () => {
+      emitter.off('external-content-update', handleExternalUpdate)
+    }
+  }, [editor, activeFilePath])
 
   useEffect(() => {
     window.addEventListener('resize', () => {
