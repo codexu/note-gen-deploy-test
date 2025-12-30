@@ -1056,6 +1056,16 @@
           "chatDescription": "クイック会話、読み取り専用モード",
           "agentDescription": "スマートアシスタント、アクション実行可能"
         },
+        "attachImage": "画像を添付",
+        "imageSelector": {
+          "title": "画像を選択",
+          "local": "ローカルファイル",
+          "records": "記録から選択",
+          "selectFiles": "ローカル画像を選択",
+          "noRecords": "利用可能な画像記録がありません",
+          "cancel": "キャンセル",
+          "confirm": "確認"
+        },
         "fileLink": {
           "tooltip": "ファイルをリンク",
           "selectFile": "ファイルを選択",
@@ -1319,14 +1329,6 @@
     "record": "記録"
   }
 },
-"tag": {
-  "add": "添加标签",
-  "edit": "編集タグ",
-  "delete": "削除タグ",
-  "deleteConfirm": "本当に削除しますか？",
-  "placeholder": "入力するタグ名"
-}
-},
 "search": {
   "placeholder": "ノートと記事を検索...",
   "results": "{count} 件の検索結果",
@@ -1343,7 +1345,8 @@
   "root": "画像ホスティング倉庫",
   "noData": {
     "title": "同期機能が有効になっていません",
-    "desc": "システム設定ページに移動して、Github同期を設定してください。",
+    "desc": "システム設定ページに移動して、Github同期を設定してください。"
+  },
   "marks": {
     "types": {
       "screenshot": "スクリーンショット",

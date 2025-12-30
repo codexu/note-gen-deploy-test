@@ -17,14 +17,16 @@ import { getFilePathOptions, getWorkspacePath } from "@/lib/workspace"
 import { useMcpStore } from "@/stores/mcp"
 import { getOpenAIFunctions } from "@/lib/mcp/tools"
 import { AgentHandler } from "@/lib/agent/agent-handler"
+import { ImageAttachment } from "./image-attachments"
 
 interface ChatSendProps {
   inputValue: string;
   onSent?: () => void;
   linkedFile?: MarkdownFile | null;
+  attachedImages?: ImageAttachment[];
 }
 
-export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ inputValue, onSent, linkedFile }, ref) => {
+export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ inputValue, onSent, linkedFile, attachedImages = [] }, ref) => {
   const { primaryModel } = useSettingStore()
   const { currentTagId } = useTagStore()
   const { insert, loading, setLoading, saveChat, chats, chatMode, setAgentState } = useChatStore()
@@ -149,6 +151,7 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
 
     // Chat 模式（原有逻辑）
     setLoading(true)
+    const imageUrls = attachedImages.map(img => img.url)
     await insert({
       tagId: currentTagId,
       role: 'user',
@@ -156,6 +159,7 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
       type: 'chat',
       inserted: false,
       image: undefined,
+      images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : undefined,
     })
 
     const message = await insert({
@@ -278,7 +282,7 @@ ${ragContext}
           ...message,
           content
         }, false)
-      }, signal, mcpTools, t, message.id)
+      }, signal, mcpTools, t, message.id, imageUrls)
     } catch (error: any) {
       // 如果不是中止错误，则记录错误信息
       if (error.name !== 'AbortError') {

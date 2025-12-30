@@ -1140,6 +1140,16 @@
           "chatDescription": "快速对话，只读模式",
           "agentDescription": "智能助手，可执行操作"
         },
+        "attachImage": "附加图片",
+        "imageSelector": {
+          "title": "选择图片",
+          "local": "本地文件",
+          "records": "从记录中选择",
+          "selectFiles": "选择本地图片",
+          "noRecords": "没有可用的图片记录",
+          "cancel": "取消",
+          "confirm": "确认"
+        },
         "agent": {
           "running": "Agent 运行中",
           "thinking": "思考中",

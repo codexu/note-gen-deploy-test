@@ -27,6 +27,12 @@ import { ChatModeSelect } from "./chat-mode-select"
 import { MarkdownFile } from "@/lib/files"
 import emitter from "@/lib/emitter"
 import { useIsMobile } from '@/hooks/use-mobile'
+import { ImageAttachments, ImageAttachment } from "./image-attachments"
+import { ImageIcon } from "lucide-react"
+import { TooltipButton } from "@/components/tooltip-button"
+import { convertFileSrc } from "@tauri-apps/api/core"
+import { writeFile } from "@tauri-apps/plugin-fs"
+import { BaseDirectory } from "@tauri-apps/plugin-fs"
 import {
   DndContext,
   closestCenter,
@@ -57,8 +63,10 @@ export function ChatInput() {
   const [inputHistory, setInputHistory] = useLocalStorage<string[]>('chat-input-history', [])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [linkedFile, setLinkedFile] = useState<MarkdownFile | null>(null)
+  const [attachedImages, setAttachedImages] = useState<ImageAttachment[]>([])
   const chatSendRef = useRef<any>(null)
   const isMobile = useIsMobile()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // 拖拽传感器配置（仅桌面端）
   const sensors = useSensors(
@@ -111,13 +119,86 @@ export function ChatInput() {
     setLinkedFile(null)
   }
 
+  function removeImage(id: string) {
+    setAttachedImages(prev => prev.filter(img => img.id !== id))
+  }
+
+  async function handleSelectLocalImages() {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog')
+      const selected = await open({
+        multiple: true,
+        filters: [{
+          name: 'Images',
+          extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg']
+        }]
+      })
+
+      if (selected && Array.isArray(selected)) {
+        const newImages: ImageAttachment[] = selected.map((path) => ({
+          id: `local-${Date.now()}-${Math.random()}`,
+          url: convertFileSrc(path),
+          name: path.split('/').pop() || path,
+          source: 'file' as const
+        }))
+        
+        setAttachedImages(prev => [...prev, ...newImages])
+      }
+    } catch (error) {
+      console.error('Failed to select files:', error)
+    }
+  }
+
+  async function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    const imageItems = Array.from(items).filter(item => item.type.startsWith('image/'))
+    if (imageItems.length === 0) return
+
+    e.preventDefault()
+
+    const newImages: ImageAttachment[] = []
+    for (const item of imageItems) {
+      const blob = item.getAsFile()
+      if (!blob) continue
+
+      try {
+        const arrayBuffer = await blob.arrayBuffer()
+        const uint8Array = new Uint8Array(arrayBuffer)
+        const fileName = `paste-${Date.now()}-${Math.random().toString(36).substring(7)}.png`
+        const filePath = `screenshot/${fileName}`
+        
+        await writeFile(filePath, uint8Array, { baseDir: BaseDirectory.AppData })
+        
+        const fullPath = await (async () => {
+          const { appDataDir, join } = await import('@tauri-apps/api/path')
+          const appData = await appDataDir()
+          return await join(appData, filePath)
+        })()
+
+        newImages.push({
+          id: `paste-${Date.now()}-${Math.random()}`,
+          url: convertFileSrc(fullPath),
+          name: fileName,
+          source: 'paste'
+        })
+      } catch (error) {
+        console.error('Failed to save pasted image:', error)
+      }
+    }
+
+    if (newImages.length > 0) {
+      setAttachedImages(prev => [...prev, ...newImages])
+    }
+  }
+
   // 处理发送后的清理工作
   function handleSent() {
-    // 添加到历史记录
     addToHistory(text)
     setText('')
     setHistoryIndex(-1)
-    // 重置 textarea 的高度为默认值
+    setAttachedImages([])
     const textarea = document.querySelector('textarea')
     if (textarea) {
       textarea.style.height = 'auto'
@@ -259,9 +340,11 @@ export function ChatInput() {
         linkedFile={linkedFile}
         onFileRemove={removeLinkedFile}
       />
-      <div className="group relative flex flex-col border rounded-xl z-10 gap-2 p-1 w-full bg-background focus-within:border-primary transition-colors">
+      <div className="group relative flex flex-col border rounded-xl z-10 gap-1 p-1 w-full bg-background focus-within:border-primary transition-colors">
+        <ImageAttachments images={attachedImages} onRemove={removeImage} />
         <div className="relative w-full flex items-start">
           <Textarea
+            ref={textareaRef}
             className="flex-1 p-2 relative border-none text-xs placeholder:text-xs md:placeholder:text-sm md:text-sm focus-visible:ring-0 shadow-none min-h-[36px] max-h-[240px] resize-none overflow-y-auto"
             rows={1}
             disabled={!primaryModel || loading}
@@ -301,6 +384,7 @@ export function ChatInput() {
             onCompositionEnd={() => setTimeout(() => {
               setIsComposing(false)
             }, 0)}
+            onPaste={handlePaste}
           />
         </div>
         
@@ -373,8 +457,16 @@ export function ChatInput() {
             )}
           </div>
           <div className="flex items-center justify-end gap-2 pr-1">
+            <TooltipButton
+              variant="link"
+              size="sm"
+              icon={<ImageIcon className="size-4" />}
+              tooltipText={t('record.chat.input.attachImage')}
+              onClick={handleSelectLocalImages}
+              disabled={!primaryModel || loading}
+            />
             <ChatModeSelect />
-            <ChatSend inputValue={text} onSent={handleSent} linkedFile={linkedFile} ref={chatSendRef} />
+            <ChatSend inputValue={text} onSent={handleSent} linkedFile={linkedFile} attachedImages={attachedImages} ref={chatSendRef} />
           </div>
         </div>
 
@@ -389,6 +481,7 @@ export function ChatInput() {
             }}
           />
         )}
+        
       </div>
     </footer>
   )

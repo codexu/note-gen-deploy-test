@@ -3,6 +3,7 @@ import { Store } from "@tauri-apps/plugin-store";
 import OpenAI from 'openai';
 import { AiConfig } from "@/app/core/setting/config";
 import { fetch } from "@tauri-apps/plugin-http";
+import { readFile } from "@tauri-apps/plugin-fs";
 
 /**
  * 获取当前的prompt内容
@@ -89,6 +90,57 @@ async function validateAIService(baseURL: string | undefined): Promise<string | 
     return null
   }
   return baseURL
+}
+
+/**
+ * 将图片 URL 转换为 base64 格式
+ */
+async function convertImageToBase64(imageUrl: string): Promise<string | null> {
+  try {
+    // 如果已经是 base64 格式，直接返回
+    if (imageUrl.startsWith('data:image')) {
+      return imageUrl
+    }
+    
+    // 从 Tauri URL 中提取文件路径
+    // convertFileSrc 生成的 URL 格式类似: tauri://localhost/path 或 asset://localhost/path
+    let filePath = imageUrl
+    
+    // 移除 tauri:// 或 asset:// 协议前缀
+    if (imageUrl.startsWith('tauri://localhost/')) {
+      filePath = imageUrl.replace('tauri://localhost/', '')
+    } else if (imageUrl.startsWith('asset://localhost/')) {
+      filePath = imageUrl.replace('asset://localhost/', '')
+    } else if (imageUrl.startsWith('http://tauri.localhost/')) {
+      filePath = imageUrl.replace('http://tauri.localhost/', '')
+    }
+    
+    // URL 解码
+    filePath = decodeURIComponent(filePath)
+    
+    // 读取文件
+    const fileData = await readFile(filePath)
+    
+    // 转换为 base64
+    const base64 = btoa(
+      new Uint8Array(fileData).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    )
+    
+    // 根据文件扩展名确定 MIME 类型
+    let mimeType = 'image/png'
+    if (filePath.toLowerCase().endsWith('.jpg') || filePath.toLowerCase().endsWith('.jpeg')) {
+      mimeType = 'image/jpeg'
+    } else if (filePath.toLowerCase().endsWith('.gif')) {
+      mimeType = 'image/gif'
+    } else if (filePath.toLowerCase().endsWith('.webp')) {
+      mimeType = 'image/webp'
+    }
+    
+    return `data:${mimeType};base64,${base64}`
+  } catch (error) {
+    console.error('Failed to convert image to base64:', error)
+    return null
+  }
 }
 
 /**
@@ -493,6 +545,7 @@ export async function fetchAi(text: string): Promise<string> {
  * @param mcpTools MCP 工具列表（可选）
  * @param t 翻译函数（可选）
  * @param chatId 当前chat ID，用于关联MCP工具调用记录（可选）
+ * @param imageUrls 图片URL数组（可选）
  */
 export async function fetchAiStream(
   text: string, 
@@ -500,7 +553,8 @@ export async function fetchAiStream(
   abortSignal?: AbortSignal,
   mcpTools?: any[],
   t?: (key: string, params?: Record<string, any>) => string,
-  chatId?: number
+  chatId?: number,
+  imageUrls?: string[]
 ): Promise<string> {
   try {
 
@@ -513,6 +567,44 @@ export async function fetchAiStream(
     
     // 准备消息
     const { messages } = await prepareMessages(text, true)
+    
+    // 如果有图片，将最后一条用户消息转换为多模态格式
+    if (imageUrls && imageUrls.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage && lastMessage.role === 'user') {
+        const content: any[] = []
+        
+        // 添加所有图片（转换为 base64）
+        for (const imageUrl of imageUrls) {
+          try {
+            // 将 Tauri URL 转换为 base64
+            const base64Image = await convertImageToBase64(imageUrl)
+            if (base64Image) {
+              content.push({
+                type: 'image_url',
+                image_url: {
+                  url: base64Image
+                }
+              })
+            }
+          } catch (error) {
+            console.error('Failed to convert image to base64:', error)
+          }
+        }
+        
+        // 添加文本内容
+        content.push({
+          type: 'text',
+          text: typeof lastMessage.content === 'string' ? lastMessage.content : ''
+        })
+        
+        // 替换最后一条消息
+        messages[messages.length - 1] = {
+          role: 'user',
+          content: content
+        }
+      }
+    }
 
     const openai = await createOpenAIClient(aiConfig)
     

@@ -1118,6 +1118,16 @@
           "chatDescription": "Conversa rápida, modo somente leitura",
           "agentDescription": "Assistente inteligente, pode executar ações"
         },
+        "attachImage": "Anexar imagens",
+        "imageSelector": {
+          "title": "Selecionar Imagens",
+          "local": "Arquivos Locais",
+          "records": "Dos Registros",
+          "selectFiles": "Selecionar Imagens Locais",
+          "noRecords": "Nenhum registro de imagem disponível",
+          "cancel": "Cancelar",
+          "confirm": "Confirmar"
+        },
         "fileLink": {
           "tooltip": "Vincular Arquivo",
           "selectFile": "Selecionar Arquivo",

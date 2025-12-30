@@ -1137,6 +1137,16 @@
           "chatDescription": "Quick conversation, read-only mode",
           "agentDescription": "Smart assistant, can execute actions"
         },
+        "attachImage": "Attach images",
+        "imageSelector": {
+          "title": "Select Images",
+          "local": "Local Files",
+          "records": "From Records",
+          "selectFiles": "Select Local Images",
+          "noRecords": "No image records available",
+          "cancel": "Cancel",
+          "confirm": "Confirm"
+        },
         "agent": {
           "running": "Agent Running",
           "thinking": "Thinking",

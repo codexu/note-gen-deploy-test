@@ -1079,6 +1079,16 @@
           "chatDescription": "快速對話，唯讀模式",
           "agentDescription": "智能助手，可執行操作"
         },
+        "attachImage": "附加圖片",
+        "imageSelector": {
+          "title": "選擇圖片",
+          "local": "本地文件",
+          "records": "從記錄中選擇",
+          "selectFiles": "選擇本地圖片",
+          "noRecords": "沒有可用的圖片記錄",
+          "cancel": "取消",
+          "confirm": "確認"
+        },
         "agent": {
           "running": "Agent 運行中",
           "thinking": "思考中",

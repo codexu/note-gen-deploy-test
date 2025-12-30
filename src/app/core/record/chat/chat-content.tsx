@@ -22,6 +22,7 @@ import { RagSources } from './rag-sources'
 import { McpToolCallCard } from './mcp-tool-call'
 import { AgentExecutionStatus } from './agent-execution-status'
 import { AgentHistory } from './agent-history'
+import { ChatImages } from "./chat-images"
 
 export default function ChatContent() {
   const { chats, init, agentState } = useChatStore()
@@ -155,6 +156,15 @@ function Message({ chat }: { chat: Chat }) {
   // 获取该消息关联的 MCP 工具调用
   const mcpToolCalls = getMcpToolCallsByChatId(chat.id)
   
+  // 解析图片数组
+  const images = chat.images ? (() => {
+    try {
+      return JSON.parse(chat.images) as string[]
+    } catch {
+      return []
+    }
+  })() : []
+  
   // 如果是空内容的 AI 消息且 Agent 正在运行，不显示（避免双头像）
   if (chat.role === 'system' && !chat.content && agentState.isRunning) {
     return null
@@ -211,6 +221,10 @@ function Message({ chat }: { chat: Chat }) {
                 <McpToolCallCard key={toolCall.id} toolCall={toolCall} />
               ))}
             </div>
+          )}
+          {/* 显示用户消息中的图片 */}
+          {chat.role === 'user' && images.length > 0 && (
+            <ChatImages images={images} />
           )}
           <ChatThinking chat={chat} />
           <ChatPreview text={content || ''} />
