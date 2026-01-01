@@ -905,20 +905,14 @@
             "error": "失敗"
           },
           "empty": {
-            "features": [
-              {
-                "chat": "與 AI 機器人進行聊天"
-              },
-              {
-                "linked": "與你的紀錄或筆記關聯"
-              },
-              {
-                "clipboard": "識別剪貼簿中的文字和圖片"
-              },
-              {
-                "organize": "將你的紀錄整理為筆記"
-              }
-            ]
+            "title": "開始與 AI 對話",
+            "subtitle": "使用 Chat 或 Agent 模式與 AI 互動",
+            "currentModel": "當前模型",
+            "currentPrompt": "當前 Prompt",
+            "currentMode": "對話模式",
+            "noModel": "未設置模型",
+            "noPrompt": "未設置 Prompt",
+            "configureModel": "配置模型"
           },
           "content": {
             "organize": "將你的紀錄整理為文章："

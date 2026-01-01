@@ -955,20 +955,14 @@
             "error": "失败"
           },
           "empty": {
-            "features": [
-              {
-                "chat": "与 AI 机器人进行聊天"
-              },
-              {
-                "linked": "与你的记录或笔记关联"
-              },
-              {
-                "clipboard": "识别剪贴板中的文字和图片"
-              },
-              {
-                "organize": "将你的记录整理为笔记"
-              }
-            ]
+            "title": "开始与 AI 对话",
+            "subtitle": "使用 Chat 或 Agent 模式与 AI 互动",
+            "currentModel": "当前模型",
+            "currentPrompt": "当前 Prompt",
+            "noModel": "未设置模型",
+            "noPrompt": "未设置 Prompt",
+            "modeHint": "点击输入框左侧的",
+            "modeHintSuffix": "按钮可切换对话模式"
           },
           "content": {
             "organize": "将你的记录整理为文章："
@@ -1061,20 +1055,14 @@
     },
     "chat": {
       "empty": {
-        "features": [
-          {
-            "chat": "与 AI 机器人进行聊天"
-          },
-          {
-            "linked": "已与你的记录或笔记关联"
-          },
-          {
-            "clipboard": "识别剪贴板中的文字和图片"
-          },
-          {
-            "organize": "将你的记录整理为笔记"
-          }
-        ]
+        "title": "开始与 AI 对话",
+        "subtitle": "使用 Chat 或 Agent 模式与 AI 互动",
+        "currentModel": "当前模型",
+        "currentPrompt": "当前 Prompt",
+        "currentMode": "对话模式",
+        "noModel": "未设置模型",
+        "noPrompt": "未设置 Prompt",
+        "configureModel": "配置模型"
       },
       "newChat": "使用新标签开始对话",
       "removeChat": "删除当前标签对话",

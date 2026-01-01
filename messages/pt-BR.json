@@ -909,12 +909,14 @@
             "error": "Falha"
           },
           "empty": {
-            "features": {
-              "linked": "Vinculado aos seus registros ou notas",
-              "chat": "Converse com o bot de IA",
-              "organize": "Organize seus registros em notas",
-              "clipboard": "Reconhecer registros ou imagens da área de transferência"
-            }
+            "title": "Iniciar Conversa com IA",
+            "subtitle": "Use o modo Chat ou Agent para interagir com IA",
+            "currentModel": "Modelo Atual",
+            "currentPrompt": "Prompt Atual",
+            "currentMode": "Modo de Conversa",
+            "noModel": "Nenhum modelo definido",
+            "noPrompt": "Nenhum prompt definido",
+            "configureModel": "Configurar Modelo"
           },
           "content": {
             "organize": "Organize seus registros em um artigo:"
@@ -1022,12 +1024,14 @@
     },
     "chat": {
       "empty": {
-        "features": {
-          "linked": "Vinculado aos seus registros ou notas",
-          "chat": "Converse com o bot de IA",
-          "organize": "Organize seus registros em notas",
-          "clipboard": "Reconhecer registros ou imagens da área de transferência"
-        }
+        "title": "Iniciar Conversa com IA",
+        "subtitle": "Use o modo Chat ou Agent para interagir com IA",
+        "currentModel": "Modelo Atual",
+        "currentPrompt": "Prompt Atual",
+        "noModel": "Nenhum modelo definido",
+        "noPrompt": "Nenhum prompt definido",
+        "modeHint": "Clique no botão",
+        "modeHintSuffix": "à esquerda da caixa de entrada para alternar o modo de conversa"
       },
       "newChat": "Novo Chat com Nova Tag",
       "removeChat": "Remover Chat com Tag Atual",

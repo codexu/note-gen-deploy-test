@@ -68,6 +68,10 @@ interface ChatState {
   resetAgentState: () => void
   addAgentToolCall: (toolCall: ToolCall) => void
   updateAgentToolCall: (id: string, updates: Partial<ToolCall>) => void
+  
+  // Placeholder 状态
+  isPlaceholderEnabled: boolean
+  setPlaceholderEnabled: (enabled: boolean) => void
 }
 
 const useChatStore = create<ChatState>((set, get) => ({
@@ -160,6 +164,11 @@ const useChatStore = create<ChatState>((set, get) => ({
         )
       }
     })
+  },
+
+  isPlaceholderEnabled: true,
+  setPlaceholderEnabled: (enabled: boolean) => {
+    set({ isPlaceholderEnabled: enabled })
   },
 
   chats: [],

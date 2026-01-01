@@ -873,20 +873,14 @@
             "error": "失敗"
           },
           "empty": {
-            "features": [
-              {
-                "chat": "AIボットとチャットする"
-              },
-              {
-                "linked": "あなたの記録と関連付けられています"
-              },
-              {
-                "clipboard": "クリップボードの記録を識別"
-              },
-              {
-                "organize": "あなたの記録をノートに整理"
-              }
-            ]
+            "title": "AI会話を開始",
+            "subtitle": "ChatまたはAgentモードでAIと対話",
+            "currentModel": "現在のモデル",
+            "currentPrompt": "現在のPrompt",
+            "currentMode": "会話モード",
+            "noModel": "モデルが設定されていません",
+            "noPrompt": "Promptが設定されていません",
+            "configureModel": "モデルを設定"
           },
           "content": {
             "organize": "あなたの記録を文章に整理："
@@ -1159,18 +1153,6 @@
       "placeholder": "入力するタグ名"
     }
   },
-  "search": {
-    "placeholder": "ノートと記事を検索...",
-    "results": "{count} 件の検索結果",
-    "noResults": "検索結果がありません",
-    "tryDifferentKeywords": "別のキーワードで検索してみてください",
-    "item": {
-      "record": "記録",
-      "article": "記事",
-      "matches": "{count}件の一致",
-      "scanType": "スキャン"
-    }
-  },
   "image": {
     "root": "画像ホスティング倉庫",
     "noData": {
@@ -1329,28 +1311,17 @@
     "manageTemplate": "管理テンプレート",
     "cancel": "キャンセル"
   },
-  "mark": {
-    "recorded": "記録済み",
-    "record": "記録"
-  }
-},
-"search": {
-  "placeholder": "ノートと記事を検索...",
-  "results": "{count} 件の検索結果",
-  "noResults": "検索結果がありません",
-  "tryDifferentKeywords": "別のキーワードで検索してみてください",
-  "item": {
-    "record": "記録",
-    "article": "記事",
-    "matches": "{count}件の一致",
-    "scanType": "スキャン"
-  }
-},
-"image": {
-  "root": "画像ホスティング倉庫",
-  "noData": {
-    "title": "同期機能が有効になっていません",
-    "desc": "システム設定ページに移動して、Github同期を設定してください。"
+  "search": {
+    "placeholder": "ノートと記事を検索...",
+    "results": "{count} 件の検索結果",
+    "noResults": "検索結果がありません",
+    "tryDifferentKeywords": "別のキーワードで検索してみてください",
+    "item": {
+      "record": "記録",
+      "article": "記事",
+      "matches": "{count}件の一致",
+      "scanType": "スキャン"
+    }
   },
   "marks": {
     "types": {

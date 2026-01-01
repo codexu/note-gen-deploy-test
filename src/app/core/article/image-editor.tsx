@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator'
 import { Toggle } from '@/components/ui/toggle'
 import { ImageFooter } from './image-footer'
 import { TooltipButton } from '@/components/tooltip-button'
+import NextImage from 'next/image'
 
 interface ImageEditorProps {
   filePath: string
@@ -376,15 +377,18 @@ export function ImageEditor({ filePath }: ImageEditorProps) {
             />
           </div>
         ) : (
-          <img 
+          <NextImage 
             src={imageSrc} 
             alt="Preview"
+            width={imageWidth}
+            height={imageHeight}
             style={{
               maxWidth: '100%',
               maxHeight: '100%',
               objectFit: 'contain',
               imageRendering: 'auto'
             }}
+            unoptimized
           />
         )}
       </div>

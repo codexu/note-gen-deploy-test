@@ -930,20 +930,14 @@
             "error": "Failed"
           },
           "empty": {
-            "features": [
-              {
-                "chat": "Chat with AI bot"
-              },
-              {
-                "linked": "Linked with your records or notes"
-              },
-              {
-                "clipboard": "Recognize clipboard records or images"
-              },
-              {
-                "organize": "Organize your records into notes"
-              }
-            ]
+            "title": "Start AI Conversation",
+            "subtitle": "Use Chat or Agent mode to interact with AI",
+            "currentModel": "Current Model",
+            "currentPrompt": "Current Prompt",
+            "currentMode": "Conversation Mode",
+            "noModel": "No model set",
+            "noPrompt": "No prompt set",
+            "configureModel": "Configure Model"
           },
           "content": {
             "organize": "Organize your records into an article:"

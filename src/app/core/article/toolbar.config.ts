@@ -1,5 +1,4 @@
 import { isMobileDevice } from '@/lib/check'
-import emitter from '@/lib/emitter'
 
 export const createToolbarConfig = (t: any, editorWidth?: number) => {
   // 定义工具栏分组
