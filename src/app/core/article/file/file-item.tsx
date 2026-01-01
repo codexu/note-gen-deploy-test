@@ -13,8 +13,6 @@ import { computedParentPath, getCurrentFolder } from "@/lib/path";
 import { toast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
 import useClipboardStore from "@/stores/clipboard";
-import { PhotoProvider, PhotoView } from "react-photo-view";
-import { convertImageByWorkspace } from "@/lib/utils";
 import { appDataDir, join } from '@tauri-apps/api/path';
 import { deleteFile } from "@/lib/sync/github";
 import { deleteFile as deleteGiteeFile } from "@/lib/sync/gitee";
@@ -31,7 +29,6 @@ export function FileItem({ item }: { item: DirTree }) {
   const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree, loadFileTree } = useArticleStore()
   const { setClipboardItem, clipboardItem, clipboardOperation } = useClipboardStore()
   const t = useTranslations('article.file')
-  const [imageUrl, setImageUrl] = useState('')
   const isMobile = useIsMobile()
   
   const path = computedParentPath(item)
@@ -97,17 +94,19 @@ export function FileItem({ item }: { item: DirTree }) {
   }, [])
 
   async function handleSelectFile() {
+    const currentPath = computedParentPath(item)
+    
     if (item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
-      let path = ''
-      if (item.isLocale) {
-        path = computedParentPath(item)
+      // 图片文件：设置 activeFilePath，让 EditorWrapper 显示图片编辑器
+      if (activeFilePath === currentPath) {
+        setActiveFilePath('')
+        setCurrentArticle('')
       } else {
-        path = activeFilePath
+        setActiveFilePath(currentPath)
+        setCurrentArticle('') // 清空文本内容
       }
-      const url = await convertImageByWorkspace(path)
-      setImageUrl(url)
-    } else {
-      const currentPath = computedParentPath(item)
+    } else if (item.name.match(/\.(md|txt|markdown)$/i)) {
+      // Markdown/文本文件：设置 activeFilePath 并读取内容
       if (activeFilePath === currentPath) {
         setActiveFilePath('')
         setCurrentArticle('')
@@ -115,6 +114,10 @@ export function FileItem({ item }: { item: DirTree }) {
         setActiveFilePath(currentPath)
         readArticle(currentPath, item.sha, item.isLocale)
       }
+    } else {
+      // 其他文件类型：清空编辑器
+      setActiveFilePath('')
+      setCurrentArticle('')
     }
   }
 
@@ -509,51 +512,47 @@ export function FileItem({ item }: { item: DirTree }) {
                 />
               </div> :
               item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i) ? 
-              <PhotoProvider>
-                <PhotoView src={imageUrl}>
-                  <span
-                    draggable
-                    onDragStart={handleDragStart}
-                    title={item.name}
-                    className={`${item.isLocale ? '' : 'opacity-50'} flex justify-between flex-1 select-none items-center gap-1 dark:hover:text-white`}>
-                    <div className="flex flex-1 gap-1 select-none relative">
-                      <span className={item.parent ? 'size-0' : 'size-4 ml-1'}></span>
-                      <div className="relative">
-                        <ImageIcon className="size-4" />
-                        { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
-                      </div>
-                      <span className="text-xs flex-1 line-clamp-1">{item.name}</span>
-                    </div>
-                    {isMobile && (
-                      <MobileActionMenu className="ml-1">
-                        <MobileMenuItem onClick={handleShowFileManager}>
-                          {t('context.viewDirectory')}
-                        </MobileMenuItem>
-                        <MobileSeparator />
-                        <MobileMenuItem disabled={!item.isLocale} onClick={handleCutFile}>
-                          {t('context.cut')}
-                        </MobileMenuItem>
-                        <MobileMenuItem onClick={handleCopyFile}>
-                          {t('context.copy')}
-                        </MobileMenuItem>
-                        <MobileMenuItem disabled={!clipboardItem} onClick={handlePasteFile}>
-                          {t('context.paste')}
-                        </MobileMenuItem>
-                        <MobileSeparator />
-                        <MobileMenuItem disabled={!item.isLocale} onClick={handleStartRename}>
-                          {t('context.rename')}
-                        </MobileMenuItem>
-                        <MobileMenuItem disabled={!item.sha} className="text-red-600" onClick={handleDeleteSyncFile}>
-                          {t('context.deleteSyncFile')}
-                        </MobileMenuItem>
-                        <MobileMenuItem disabled={!item.isLocale || item.name === ''} className="text-red-600" onClick={handleDeleteFile}>
-                          {t('context.deleteLocalFile')}
-                        </MobileMenuItem>
-                      </MobileActionMenu>
-                    )}
-                  </span>
-                </PhotoView>
-              </PhotoProvider> :
+              <span
+                draggable
+                onDragStart={handleDragStart}
+                title={item.name}
+                className={`${item.isLocale ? '' : 'opacity-50'} flex justify-between flex-1 select-none items-center gap-1 dark:hover:text-white`}>
+                <div className="flex flex-1 gap-1 select-none relative">
+                  <span className={item.parent ? 'size-0' : 'size-4 ml-1'}></span>
+                  <div className="relative">
+                    <ImageIcon className="size-4" />
+                    { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
+                  </div>
+                  <span className="text-xs flex-1 line-clamp-1">{item.name}</span>
+                </div>
+                {isMobile && (
+                  <MobileActionMenu className="ml-1">
+                    <MobileMenuItem onClick={handleShowFileManager}>
+                      {t('context.viewDirectory')}
+                    </MobileMenuItem>
+                    <MobileSeparator />
+                    <MobileMenuItem disabled={!item.isLocale} onClick={handleCutFile}>
+                      {t('context.cut')}
+                    </MobileMenuItem>
+                    <MobileMenuItem onClick={handleCopyFile}>
+                      {t('context.copy')}
+                    </MobileMenuItem>
+                    <MobileMenuItem disabled={!clipboardItem} onClick={handlePasteFile}>
+                      {t('context.paste')}
+                    </MobileMenuItem>
+                    <MobileSeparator />
+                    <MobileMenuItem disabled={!item.isLocale} onClick={handleStartRename}>
+                      {t('context.rename')}
+                    </MobileMenuItem>
+                    <MobileMenuItem disabled={!item.sha} className="text-red-600" onClick={handleDeleteSyncFile}>
+                      {t('context.deleteSyncFile')}
+                    </MobileMenuItem>
+                    <MobileMenuItem disabled={!item.isLocale || item.name === ''} className="text-red-600" onClick={handleDeleteFile}>
+                      {t('context.deleteLocalFile')}
+                    </MobileMenuItem>
+                  </MobileActionMenu>
+                )}
+              </span> :
               <span
                 draggable
                 onDragStart={handleDragStart}

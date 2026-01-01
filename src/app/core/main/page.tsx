@@ -2,7 +2,7 @@
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { LeftSidebar } from "./left-sidebar"
-import { MdEditor } from '../article/md-editor'
+import { EditorWrapper } from '../article/editor-wrapper'
 import Chat from '../record/chat'
 import dynamic from 'next/dynamic'
 import { useSidebarStore } from "@/stores/sidebar"
@@ -88,9 +88,9 @@ function ResizableWrapper({
       </ResizablePanel>
       <ResizableHandle className={leftSidebarVisible ? 'w-[1px]' : 'w-[0]'} />
       
-      {/* 中间 - Markdown 编辑器 */}
+      {/* 中间 - 编辑器（根据文件类型自动切换） */}
       <ResizablePanel defaultSize={defaultLayout[1]} minSize={minEditorSize}>
-        <MdEditor />
+        <EditorWrapper />
       </ResizablePanel>
       <ResizableHandle className={rightSidebarVisible ? 'w-[1px]' : 'w-[0]'} />
       

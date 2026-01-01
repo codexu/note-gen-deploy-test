@@ -1264,6 +1264,29 @@
     }
   },
   "article": {
+    "emptyState": {
+      "title": "開始創作",
+      "subtitle": "選擇一個文件開始編輯，或創建新的筆記",
+      "tip": "💡 提示：你也可以從左側文件管理器中選擇文件",
+      "actions": {
+        "newNote": {
+          "title": "創建筆記",
+          "desc": "新建一篇 Markdown 筆記"
+        },
+        "newRecord": {
+          "title": "創建記錄",
+          "desc": "打開文本記錄功能"
+        },
+        "globalSearch": {
+          "title": "全局搜索",
+          "desc": "快速查找你的筆記內容"
+        },
+        "openWorkspace": {
+          "title": "打開工作區",
+          "desc": "選擇或切換工作區目錄"
+        }
+      }
+    },
     "file": {
       "toolbar": {
         "accessRepo": "訪問倉庫",

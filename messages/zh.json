@@ -1323,6 +1323,29 @@
     }
   },
   "article": {
+    "emptyState": {
+      "title": "开始创作",
+      "subtitle": "选择一个文件开始编辑，或创建新的笔记",
+      "tip": "💡 提示：你也可以从左侧文件管理器中选择文件",
+      "actions": {
+        "newNote": {
+          "title": "创建笔记",
+          "desc": "新建一篇 Markdown 笔记"
+        },
+        "newRecord": {
+          "title": "创建记录",
+          "desc": "打开文本记录功能"
+        },
+        "globalSearch": {
+          "title": "全局搜索",
+          "desc": "快速查找你的笔记内容"
+        },
+        "openWorkspace": {
+          "title": "打开工作区",
+          "desc": "选择或切换工作区目录"
+        }
+      }
+    },
     "file": {
       "toolbar": {
         "accessRepo": "访问仓库",

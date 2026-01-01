@@ -1375,6 +1375,29 @@
     }
   },
   "article": {
+    "emptyState": {
+      "title": "作成を開始",
+      "subtitle": "ファイルを選択して編集を開始するか、新しいノートを作成してください",
+      "tip": "💡 ヒント：左側のファイルマネージャーからファイルを選択することもできます",
+      "actions": {
+        "newNote": {
+          "title": "ノートを作成",
+          "desc": "新しいMarkdownノートを作成"
+        },
+        "newRecord": {
+          "title": "記録を作成",
+          "desc": "テキスト記録機能を開く"
+        },
+        "globalSearch": {
+          "title": "グローバル検索",
+          "desc": "ノートの内容を素早く検索"
+        },
+        "openWorkspace": {
+          "title": "ワークスペースを開く",
+          "desc": "ワークスペースディレクトリを選択または切り替え"
+        }
+      }
+    },
     "file": {
       "toolbar": {
         "accessRepo": "リポジトリにアクセス",

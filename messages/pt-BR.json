@@ -1256,6 +1256,29 @@
     }
   },
   "article": {
+    "emptyState": {
+      "title": "Começar a Criar",
+      "subtitle": "Selecione um arquivo para começar a editar ou crie uma nova nota",
+      "tip": "💡 Dica: Você também pode selecionar arquivos no gerenciador de arquivos à esquerda",
+      "actions": {
+        "newNote": {
+          "title": "Criar Nota",
+          "desc": "Criar uma nova nota Markdown"
+        },
+        "newRecord": {
+          "title": "Criar Registro",
+          "desc": "Abrir função de registro de texto"
+        },
+        "globalSearch": {
+          "title": "Pesquisa Global",
+          "desc": "Encontre rapidamente o conteúdo de suas notas"
+        },
+        "openWorkspace": {
+          "title": "Abrir Workspace",
+          "desc": "Selecionar ou alternar diretório de workspace"
+        }
+      }
+    },
     "file": {
       "toolbar": {
         "accessRepo": "Acessar Repositório",

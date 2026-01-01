@@ -1294,6 +1294,29 @@
     }
   },
   "article": {
+    "emptyState": {
+      "title": "Start Creating",
+      "subtitle": "Select a file to start editing, or create a new note",
+      "tip": "💡 Tip: You can also select files from the left sidebar",
+      "actions": {
+        "newNote": {
+          "title": "Create Note",
+          "desc": "Create a new Markdown note"
+        },
+        "newRecord": {
+          "title": "Create Record",
+          "desc": "Open text recording feature"
+        },
+        "globalSearch": {
+          "title": "Global Search",
+          "desc": "Quickly find your note content"
+        },
+        "openWorkspace": {
+          "title": "Open Workspace",
+          "desc": "Select or switch workspace directory"
+        }
+      }
+    },
     "file": {
       "toolbar": {
         "accessRepo": "Access Repository",
