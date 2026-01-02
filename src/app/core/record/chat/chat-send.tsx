@@ -75,7 +75,7 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
   }
 
   // Agent 模式处理
-  async function handleAgentMode() {
+  async function handleAgentMode(imageUrls: string[]) {
     // 先创建一个占位的 AI 消息
     const placeholderMessage = await insert({
       tagId: currentTagId,
@@ -134,7 +134,7 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
         context = `## 当前打开的笔记\n文件路径: ${articleStore.activeFilePath}\n\n内容:\n${articleStore.currentArticle}`
       }
       
-      await agentHandler.execute(inputValue, context)
+      await agentHandler.execute(inputValue, context, imageUrls)
     } catch (error) {
       console.error('Agent execution error:', error)
     } finally {
@@ -151,14 +151,17 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
     // Agent 模式
     if (chatMode === 'agent') {
       setLoading(true)
+      const imageUrls = attachedImages.map(img => img.url)
       await insert({
         tagId: currentTagId,
         role: 'user',
         content: inputValue,
         type: 'chat',
         inserted: false,
+        images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : undefined,
+        quoteData: quoteData ? JSON.stringify(quoteData) : undefined,
       })
-      await handleAgentMode()
+      await handleAgentMode(imageUrls)
       setLoading(false)
       return
     }

@@ -35,7 +35,7 @@ export class ReActAgent {
     }
   }
 
-  async run(userInput: string, context?: string): Promise<string> {
+  async run(userInput: string, context?: string, imageUrls?: string[]): Promise<string> {
     this.steps = []
     this.currentIteration = 0
     this.toolCallCounter = 0
@@ -59,7 +59,7 @@ export class ReActAgent {
         this.config.onIterationStart?.()
       }
 
-      const thought = await this.think(userInput, context, systemPrompt)
+      const thought = await this.think(userInput, context, systemPrompt, imageUrls)
       
       // 再次检查是否已停止
       if (this.stopped) {
@@ -184,7 +184,7 @@ Final Answer: 已创建笔记"NoteGen介绍.md"
 现在开始执行任务！`
   }
 
-  private async think(userInput: string, context: string | undefined, systemPrompt: string): Promise<string> {
+  private async think(userInput: string, context: string | undefined, systemPrompt: string, imageUrls?: string[]): Promise<string> {
     const historyContext = this.steps.map((step, i) => 
       `Iteration ${i + 1}:
 Thought: ${step.thought}
@@ -212,7 +212,8 @@ ${userInput}
       let response = ''
       let lastUpdateLength = 0
       
-      // 传递 AbortSignal 以支持终止
+      // 传递 AbortSignal 以支持终止，同时传递图片URL（仅在第一次迭代时）
+      const imagesForThisIteration = this.currentIteration === 1 ? imageUrls : undefined
       await fetchAiStream(prompt, (content) => {
         // 检查是否已终止
         if (this.stopped) {
@@ -226,7 +227,7 @@ ${userInput}
           this.config.onThought?.(content)
           lastUpdateLength = content.length
         }
-      }, this.abortController?.signal)
+      }, this.abortController?.signal, undefined, undefined, undefined, imagesForThisIteration)
       
       // 检查是否已终止
       if (this.stopped) {

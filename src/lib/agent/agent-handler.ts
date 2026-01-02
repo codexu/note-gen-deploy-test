@@ -19,7 +19,7 @@ export class AgentHandler {
     this.config = config
   }
 
-  async execute(userInput: string, context?: string): Promise<string> {
+  async execute(userInput: string, context?: string, imageUrls?: string[]): Promise<string> {
     const store = useChatStore.getState()
     
     store.resetAgentState()
@@ -78,7 +78,7 @@ export class AgentHandler {
     this.agent = new ReActAgent(reactConfig)
 
     try {
-      const result = await this.agent.run(userInput, context)
+      const result = await this.agent.run(userInput, context, imageUrls)
       store.setAgentState({ isRunning: false })
       
       // 如果结果为空字符串，说明被用户终止
