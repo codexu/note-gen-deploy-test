@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Button } from '@/components/ui/button'
 import useSettingStore from '@/stores/setting'
 import useArticleStore from '@/stores/article'
+import useUpdateStore from '@/stores/update'
 import React from 'react'
 import { ControlText } from '@/app/core/record/mark/control-text'
 import { ControlRecording } from '@/app/core/record/mark/control-recording'
@@ -37,6 +38,7 @@ export function TitleBar({ onSearchClick }: TitleBarProps) {
   const { leftSidebarVisible, rightSidebarVisible, toggleLeftSidebar, toggleRightSidebar } = useSidebarStore()
   const { recordToolbarConfig } = useSettingStore()
   const { activeFilePath } = useArticleStore()
+  const { hasUpdate } = useUpdateStore()
   const t = useTranslations()
 
   const getFileName = () => {
@@ -205,7 +207,7 @@ export function TitleBar({ onSearchClick }: TitleBarProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-8 w-8 ${pathname.includes('/core/setting') ? 'bg-accent' : ''}`}
+                className={`h-8 w-8 relative ${pathname.includes('/core/setting') ? 'bg-accent' : ''}`}
                 onClick={() => {
                   if (pathname.includes('/core/setting')) {
                     router.push('/core/main')
@@ -218,6 +220,9 @@ export function TitleBar({ onSearchClick }: TitleBarProps) {
                   <Cog className="h-4 w-4" />
                 ) : (
                   <Settings className="h-4 w-4" />
+                )}
+                {hasUpdate && !pathname.includes('/core/setting') && (
+                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
                 )}
               </Button>
             </TooltipTrigger>

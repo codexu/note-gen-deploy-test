@@ -272,6 +272,8 @@
       "updateDownloading": "更新中 {downloaded} / {contentLength}",
       "updateInstalled": "重啟應用",
       "noUpdate": "當前已是最新版本",
+      "ignoreVersion": "忽略此版本",
+      "ignoreVersionSuccess": "已忽略此版本更新",
       "items": {
         "home": {
           "title": "官網",

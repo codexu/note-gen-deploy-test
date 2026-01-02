@@ -12,6 +12,7 @@ import useVectorStore from "@/stores/vector"
 import useImageStore from "@/stores/imageHosting"
 import useShortcutStore from "@/stores/shortcut"
 import useChatStore from "@/stores/chat"
+import useUpdateStore from "@/stores/update"
 import initQuickRecordText from "@/lib/shortcut/quick-record-text"
 import { useRouter, usePathname } from "next/navigation"
 import initShowWindow from "@/lib/shortcut/show-window"
@@ -32,6 +33,7 @@ export default function RootLayout({
   const { initShortcut } = useShortcutStore()
   const { initVectorDb } = useVectorStore()
   const { initIsLinkMark } = useChatStore()
+  const { initUpdateStore, checkForUpdates } = useUpdateStore()
   const router = useRouter()
   const pathname = usePathname()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -61,6 +63,10 @@ export default function RootLayout({
     initMcp()
     // 上报应用启动事件
     reportAppStart()
+    // 初始化更新检查
+    initUpdateStore().then(() => {
+      checkForUpdates()
+    })
   }, [])
 
   // 应用界面缩放

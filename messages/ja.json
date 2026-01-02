@@ -274,6 +274,8 @@
       "updateDownloading": "Updating {downloaded} / {contentLength}",
       "updateInstalled": "Restart app",
       "noUpdate": "現在已是最新版本",
+      "ignoreVersion": "このバージョンを無視",
+      "ignoreVersionSuccess": "このバージョンの更新を無視しました",
       "items": {
         "home": {
           "title": "公式サイト",

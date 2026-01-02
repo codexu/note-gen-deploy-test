@@ -209,6 +209,8 @@
       "updateDownloading": "Atualizando {downloaded} / {contentLength}",
       "updateInstalled": "Reiniciar aplicativo",
       "noUpdate": "A versão atual é a mais recente",
+      "ignoreVersion": "Ignorar esta versão",
+      "ignoreVersionSuccess": "Esta atualização de versão foi ignorada",
       "items": {
         "home": {
           "title": "Início",

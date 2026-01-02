@@ -209,6 +209,8 @@
       "updateDownloading": "Updating {downloaded} / {contentLength}",
       "updateInstalled": "Restart app",
       "noUpdate": "Current version is the latest",
+      "ignoreVersion": "Ignore this version",
+      "ignoreVersionSuccess": "This version update has been ignored",
       "items": {
         "home": {
           "title": "Home",
