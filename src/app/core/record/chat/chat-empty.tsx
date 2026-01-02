@@ -4,13 +4,16 @@ import { useTranslations } from 'next-intl'
 import useSettingStore from '@/stores/setting'
 import usePromptStore from '@/stores/prompt'
 import { useMemo } from 'react'
-import Link from 'next/link'
 import { Settings } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { isMobileDevice } from '@/lib/check'
 
 export default function ChatEmpty() {
   const t = useTranslations('record.chat.empty')
   const { aiModelList, primaryModel } = useSettingStore()
   const { currentPrompt } = usePromptStore()
+  const router = useRouter()
+  const isMobile = isMobileDevice()
 
   // 获取当前模型名称
   const currentModelName = useMemo(() => {
@@ -95,13 +98,18 @@ export default function ChatEmpty() {
           <div className="h-2"></div>
 
           {/* Settings Link */}
-          <Link 
-            href="/core/setting/ai"
-            className="flex items-center justify-center gap-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors text-xs"
-          >
-            <Settings className="w-3.5 h-3.5" />
-            {t('configureModel')}
-          </Link>
+          <div className='flex w-full justify-center items-center'>
+            <button
+              onClick={() => {
+                const settingPath = isMobile ? '/mobile/setting/pages/ai' : '/core/setting/ai'
+                router.push(settingPath)
+              }}
+              className="flex items-center justify-center gap-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors text-xs cursor-pointer"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              {t('configureModel')}
+            </button>
+          </div>
         </div>
       </div>
     </div>
