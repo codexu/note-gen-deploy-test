@@ -28,6 +28,7 @@ import { delMark } from '@/db/marks'
 import useMarkStore from '@/stores/mark'
 import { useAiCompletion } from '@/hooks/useAiCompletion'
 import { AiCompletionPreview } from './ai-completion-preview'
+import { isMobileDevice } from '@/lib/check'
 
 export function MdEditor() {
   const [editor, setEditor] = useState<Vditor>();
@@ -40,7 +41,9 @@ export function MdEditor() {
   const { theme } = useTheme()
   const t = useTranslations('article.editor')
   const { currentLocale } = useI18n()
-  const [localMode, setLocalMode] = useLocalStorage<'ir' | 'sv' | 'wysiwyg'>('useLocalMode', 'ir')
+  // 移动端强制使用即时渲染模式
+  const defaultMode = isMobileDevice() ? 'ir' : 'ir'
+  const [localMode, setLocalMode] = useLocalStorage<'ir' | 'sv' | 'wysiwyg'>('useLocalMode', defaultMode)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const isCreatingFileRef = useRef(false)
   const activeFilePathRef = useRef(activeFilePath)

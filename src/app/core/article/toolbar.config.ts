@@ -55,7 +55,14 @@ export const createToolbarConfig = (t: any, editorWidth?: number) => {
   let config: any[] = []
   
   if (isMobileDevice()) {
-    config = [...group1, '|', ...groupLast]
+    // 移动端：显示所有编辑工具，但不显示 edit-mode、preview、outline
+    config = [
+      ...group1,
+      '|',
+      ...group3,
+      '|',
+      ...group4,
+    ]
   } else if (editorWidth) {
     // 基础组：始终显示 group1
     config = [...group1]
