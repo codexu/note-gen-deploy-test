@@ -120,6 +120,15 @@ function ResizableWrapper() {
     const result = []
     let savedIndex = 0
     
+    // 特殊处理：只有左右两侧显示时，左侧保持保存的宽度，右侧填满剩余空间
+    if (!centerPanelVisible && leftSidebarVisible && rightSidebarVisible) {
+      const leftSize = savedLayout[savedIndex] // 左右布局时，savedLayout[0] 是左侧的宽度
+      const rightSize = 100 - leftSize
+      result.push(leftSize)
+      result.push(rightSize)
+      return result
+    }
+    
     // 左侧：如果可见使用保存的值，否则为0
     result.push(leftSidebarVisible ? savedLayout[savedIndex++] : 0)
     
