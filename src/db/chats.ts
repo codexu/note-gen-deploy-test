@@ -167,3 +167,33 @@ export async function deleteChat(id: number) {
     "delete from chats where id = $1",
     [id])
 }
+
+export async function updateChats(chats: Chat[]) {
+  const db = await getDb()
+  try {
+    for (const chat of chats) {
+      await db.execute(
+        "update chats set content = $1, role = $2, type = $3, image = $4, images = $5, inserted = $6, ragSources = $7, agentHistory = $8, thinking = $9, quoteData = $10 where id = $11",
+        [chat.content, chat.role, chat.type, chat.image, chat.images, chat.inserted ? 1 : 0, chat.ragSources, chat.agentHistory, chat.thinking, chat.quoteData, chat.id]
+      )
+    }
+  } catch (error) {
+    console.error('Error updating chats:', error);
+    throw error;
+  }
+}
+
+export async function deleteChats(ids: number[]) {
+  const db = await getDb()
+  try {
+    for (const id of ids) {
+      await db.execute(
+        "delete from chats where id = $1",
+        [id]
+      )
+    }
+  } catch (error) {
+    console.error('Error deleting chats:', error);
+    throw error;
+  }
+}

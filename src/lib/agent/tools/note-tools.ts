@@ -378,6 +378,141 @@ export const modifyCurrentNoteTool: Tool = {
   },
 }
 
+export const readMarkdownFilesBatchTool: Tool = {
+  name: 'read_markdown_files_batch',
+  description: '批量读取多个 Markdown 笔记文件的内容，避免循环调用。适用于需要一次性读取多个文件的场景。',
+  category: 'note',
+  requiresConfirmation: false,
+  parameters: [
+    {
+      name: 'filePaths',
+      type: 'array',
+      description: 'Markdown 文件路径数组',
+      required: true,
+    },
+  ],
+  execute: async (params): Promise<ToolResult> => {
+    try {
+      if (!Array.isArray(params.filePaths) || params.filePaths.length === 0) {
+        return {
+          success: false,
+          error: '参数 filePaths 必须是非空数组',
+        }
+      }
+
+      const workspace = await getWorkspacePath()
+      const results = []
+      const errors = []
+
+      for (const filePath of params.filePaths) {
+        try {
+          let content = ''
+          
+          if (workspace.isCustom) {
+            content = await readTextFile(filePath)
+          } else {
+            const { path, baseDir } = await getFilePathOptions(filePath)
+            content = await readTextFile(path, { baseDir })
+          }
+          
+          results.push({ filePath, content })
+        } catch (error) {
+          errors.push({ filePath, error: String(error) })
+        }
+      }
+
+      return {
+        success: results.length > 0,
+        data: { 
+          files: results, 
+          failed: errors,
+          successCount: results.length,
+          failCount: errors.length,
+        },
+        message: `成功读取 ${results.length} 个文件${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `批量读取文件失败: ${error}`,
+      }
+    }
+  },
+}
+
+export const deleteMarkdownFilesBatchTool: Tool = {
+  name: 'delete_markdown_files_batch',
+  description: '批量删除多个 Markdown 笔记文件，避免循环调用。',
+  category: 'note',
+  requiresConfirmation: true,
+  parameters: [
+    {
+      name: 'filePaths',
+      type: 'array',
+      description: '要删除的 Markdown 文件路径数组',
+      required: true,
+    },
+  ],
+  execute: async (params): Promise<ToolResult> => {
+    try {
+      if (!Array.isArray(params.filePaths) || params.filePaths.length === 0) {
+        return {
+          success: false,
+          error: '参数 filePaths 必须是非空数组',
+        }
+      }
+
+      const workspace = await getWorkspacePath()
+      const articleStore = useArticleStore.getState()
+      const results = []
+      const errors = []
+      let currentFileDeleted = false
+
+      for (const filePath of params.filePaths) {
+        try {
+          if (articleStore.activeFilePath === filePath) {
+            currentFileDeleted = true
+          }
+
+          if (workspace.isCustom) {
+            await remove(filePath)
+          } else {
+            const { path, baseDir } = await getFilePathOptions(filePath)
+            await remove(path, { baseDir })
+          }
+          
+          results.push(filePath)
+        } catch (error) {
+          errors.push({ filePath, error: String(error) })
+        }
+      }
+
+      await articleStore.loadFileTree()
+
+      if (currentFileDeleted) {
+        await articleStore.setActiveFilePath('')
+        articleStore.setCurrentArticle('')
+      }
+
+      return {
+        success: results.length > 0,
+        data: { 
+          deleted: results, 
+          failed: errors,
+          successCount: results.length,
+          failCount: errors.length,
+        },
+        message: `成功删除 ${results.length} 个文件${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `批量删除文件失败: ${error}`,
+      }
+    }
+  },
+}
+
 export const noteTools: Tool[] = [
   listMarkdownFilesTool,
   readMarkdownFileTool,
@@ -386,4 +521,6 @@ export const noteTools: Tool[] = [
   deleteMarkdownFileTool,
   searchMarkdownFilesTool,
   modifyCurrentNoteTool,
+  readMarkdownFilesBatchTool,
+  deleteMarkdownFilesBatchTool,
 ]

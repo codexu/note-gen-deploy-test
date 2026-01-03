@@ -240,8 +240,156 @@ export const listFoldersTool: Tool = {
   },
 }
 
+export const createFoldersBatchTool: Tool = {
+  name: 'create_folders_batch',
+  description: '批量创建多个文件夹，避免循环调用。适用于需要一次性创建多个文件夹的场景。',
+  category: 'note',
+  requiresConfirmation: false,
+  parameters: [
+    {
+      name: 'folderPaths',
+      type: 'array',
+      description: '要创建的文件夹路径数组',
+      required: true,
+    },
+  ],
+  execute: async (params): Promise<ToolResult> => {
+    try {
+      if (!Array.isArray(params.folderPaths) || params.folderPaths.length === 0) {
+        return {
+          success: false,
+          error: '参数 folderPaths 必须是非空数组',
+        }
+      }
+
+      const workspace = await getWorkspacePath()
+      const results = []
+      const errors = []
+
+      for (const folderPath of params.folderPaths) {
+        try {
+          if (workspace.isCustom) {
+            const fullPath = await join(workspace.path, folderPath)
+            const folderExists = await exists(fullPath)
+            if (folderExists) {
+              errors.push({ path: folderPath, error: '文件夹已存在' })
+              continue
+            }
+            await mkdir(fullPath, { recursive: true })
+          } else {
+            const { path, baseDir } = await getFilePathOptions(folderPath)
+            const folderExists = await exists(path, { baseDir })
+            if (folderExists) {
+              errors.push({ path: folderPath, error: '文件夹已存在' })
+              continue
+            }
+            await mkdir(path, { baseDir, recursive: true })
+          }
+          results.push(folderPath)
+        } catch (error) {
+          errors.push({ path: folderPath, error: String(error) })
+        }
+      }
+
+      const articleStore = useArticleStore.getState()
+      await articleStore.loadFileTree()
+
+      return {
+        success: results.length > 0,
+        data: { 
+          created: results, 
+          failed: errors,
+          successCount: results.length,
+          failCount: errors.length,
+        },
+        message: `成功创建 ${results.length} 个文件夹${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `批量创建文件夹失败: ${error}`,
+      }
+    }
+  },
+}
+
+export const deleteFoldersBatchTool: Tool = {
+  name: 'delete_folders_batch',
+  description: '批量删除多个文件夹（会删除文件夹内的所有内容），避免循环调用。',
+  category: 'note',
+  requiresConfirmation: true,
+  parameters: [
+    {
+      name: 'folderPaths',
+      type: 'array',
+      description: '要删除的文件夹路径数组',
+      required: true,
+    },
+  ],
+  execute: async (params): Promise<ToolResult> => {
+    try {
+      if (!Array.isArray(params.folderPaths) || params.folderPaths.length === 0) {
+        return {
+          success: false,
+          error: '参数 folderPaths 必须是非空数组',
+        }
+      }
+
+      const workspace = await getWorkspacePath()
+      const results = []
+      const errors = []
+
+      for (const folderPath of params.folderPaths) {
+        try {
+          if (workspace.isCustom) {
+            const fullPath = await join(workspace.path, folderPath)
+            const folderExists = await exists(fullPath)
+            if (!folderExists) {
+              errors.push({ path: folderPath, error: '文件夹不存在' })
+              continue
+            }
+            await remove(fullPath, { recursive: true })
+          } else {
+            const { path, baseDir } = await getFilePathOptions(folderPath)
+            const folderExists = await exists(path, { baseDir })
+            if (!folderExists) {
+              errors.push({ path: folderPath, error: '文件夹不存在' })
+              continue
+            }
+            await remove(path, { baseDir, recursive: true })
+          }
+          results.push(folderPath)
+        } catch (error) {
+          errors.push({ path: folderPath, error: String(error) })
+        }
+      }
+
+      const articleStore = useArticleStore.getState()
+      await articleStore.loadFileTree()
+
+      return {
+        success: results.length > 0,
+        data: { 
+          deleted: results, 
+          failed: errors,
+          successCount: results.length,
+          failCount: errors.length,
+        },
+        message: `成功删除 ${results.length} 个文件夹${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `批量删除文件夹失败: ${error}`,
+      }
+    }
+  },
+}
+
 export const folderTools: Tool[] = [
   createFolderTool,
   deleteFolderTool,
   listFoldersTool,
+  createFoldersBatchTool,
+  deleteFoldersBatchTool,
 ]
