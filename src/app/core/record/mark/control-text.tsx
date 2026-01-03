@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { insertMark } from "@/db/marks"
 import useMarkStore from "@/stores/mark"
 import useTagStore from "@/stores/tag"
+import { useSidebarStore } from "@/stores/sidebar"
 import { CopySlash } from "lucide-react"
 import { useEffect, useState } from "react"
 import emitter from "@/lib/emitter"
@@ -25,6 +26,7 @@ export function ControlText() {
 
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { fetchMarks } = useMarkStore()
+  const { setLeftSidebarTab } = useSidebarStore()
 
   async function handleSuccess() {
     const resetText = text.replace(/'/g, '')
@@ -32,6 +34,10 @@ export function ControlText() {
     await fetchMarks()
     await fetchTags()
     getCurrentTag()
+    
+    // 切换到记录标签页
+    await setLeftSidebarTab('notes')
+    
     setText('')
     setOpen(false)
   }

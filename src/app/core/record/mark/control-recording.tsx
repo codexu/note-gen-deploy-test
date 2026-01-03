@@ -3,6 +3,7 @@ import useMarkStore from "@/stores/mark"
 import useTagStore from "@/stores/tag"
 import useSettingStore from "@/stores/setting"
 import useRecordingStore from "@/stores/recording"
+import { useSidebarStore } from "@/stores/sidebar"
 import { Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -29,6 +30,7 @@ export function ControlRecording() {
 
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { fetchMarks, addQueue, removeQueue } = useMarkStore()
+  const { setLeftSidebarTab } = useSidebarStore()
   
   // 大模型录音
   const {
@@ -76,6 +78,9 @@ export function ControlRecording() {
     
     try {
       await startRecording()
+      
+      // 切换到记录标签页
+      await setLeftSidebarTab('notes')
     } catch (error) {
       toast({
         title: t('recording.error'),

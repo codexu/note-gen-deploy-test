@@ -6,6 +6,7 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 import useTagStore from "@/stores/tag";
 import useMarkStore from "@/stores/mark";
 import { insertMark } from "@/db/marks";
+import { useSidebarStore } from "@/stores/sidebar";
 import { useEffect } from 'react'
 import emitter from '@/lib/emitter'
 
@@ -29,6 +30,7 @@ export function ControlFile() {
   const t = useTranslations();
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { fetchMarks } = useMarkStore()
+  const { setLeftSidebarTab } = useSidebarStore()
 
   useEffect(() => {
     emitter.on('toolbar-shortcut-file', () => {
@@ -49,6 +51,10 @@ export function ControlFile() {
       }]
     });
     if (!filePath) return
+    
+    // 切换到记录标签页（在耗时操作之前）
+    await setLeftSidebarTab('notes')
+    
     await readFileByPath(filePath)
   }
 

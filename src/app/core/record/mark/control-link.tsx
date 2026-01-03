@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { insertMark } from "@/db/marks"
 import useMarkStore from "@/stores/mark"
 import useTagStore from "@/stores/tag"
+import { useSidebarStore } from "@/stores/sidebar"
 import { Link } from "lucide-react"
 import { useState, useEffect } from "react"
 import { fetch } from '@tauri-apps/plugin-http'
@@ -28,6 +29,7 @@ export function ControlLink() {
 
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { fetchMarks, addQueue, setQueue, removeQueue } = useMarkStore()
+  const { setLeftSidebarTab } = useSidebarStore()
 
   useEffect(() => {
     emitter.on('toolbar-shortcut-link', () => {
@@ -57,6 +59,9 @@ export function ControlLink() {
       progress: '0%',
       startTime: Date.now()
     })
+    
+    // 切换到记录标签页（在耗时操作之前）
+    await setLeftSidebarTab('notes')
     
     try {
       setQueue(queueId, { progress: '30%' });

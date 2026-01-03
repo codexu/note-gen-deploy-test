@@ -31,6 +31,7 @@ import useSettingStore from "@/stores/setting"
 import ocr from "@/lib/ocr"
 import { fetchAiDesc, fetchAiDescByImage } from "@/lib/ai/description"
 import { insertMark } from "@/db/marks"
+import { useSidebarStore } from "@/stores/sidebar"
 import emitter from '@/lib/emitter'
 
 export function ControlScan() {
@@ -42,6 +43,7 @@ export function ControlScan() {
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { fetchMarks, addQueue, removeQueue, setQueue } = useMarkStore()
   const { primaryModel, primaryImageMethod, enableImageRecognition } = useSettingStore()
+  const { setLeftSidebarTab } = useSidebarStore()
 
   function initCropper() {
     if (cropperRef.current) {
@@ -96,6 +98,10 @@ export function ControlScan() {
       await writeFile(`screenshot/${queueId}.png`, uint8Array, {
         baseDir: BaseDirectory.AppData
       })
+      
+      // 切换到记录标签页（在耗时操作之前）
+      await setLeftSidebarTab('notes')
+      
       let content = ''
       let desc = ''
       

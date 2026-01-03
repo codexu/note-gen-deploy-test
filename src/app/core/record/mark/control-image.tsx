@@ -5,6 +5,7 @@ import { fetchAiDesc, fetchAiDescByImage } from "@/lib/ai/description"
 import ocr from "@/lib/ocr"
 import useMarkStore from "@/stores/mark"
 import useTagStore from "@/stores/tag"
+import { useSidebarStore } from "@/stores/sidebar"
 import { BaseDirectory, copyFile, exists, mkdir, readFile, writeFile } from "@tauri-apps/plugin-fs"
 import { ImagePlus } from "lucide-react"
 import useSettingStore from "@/stores/setting"
@@ -20,6 +21,7 @@ export function ControlImage() {
   const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
   const { primaryModel, primaryImageMethod, enableImageRecognition } = useSettingStore()
   const { fetchMarks, addQueue, setQueue, removeQueue } = useMarkStore()
+  const { setLeftSidebarTab } = useSidebarStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isMobile = isMobileDevice()
 
@@ -58,6 +60,10 @@ export function ControlImage() {
         }]
       });
       if (!filePaths) return
+      
+      // 切换到记录标签页（在耗时操作之前）
+      await setLeftSidebarTab('notes')
+      
       filePaths.forEach(async (path) => {
         await upload(path)
       })
@@ -77,6 +83,10 @@ export function ControlImage() {
       }
 
       console.log(`Selected ${files.length} files`)
+      
+      // 切换到记录标签页（在耗时操作之前）
+      await setLeftSidebarTab('notes')
+      
       for (let i = 0; i < files.length; i++) {
         console.log(`Processing file ${i + 1}:`, files[i].name)
         await uploadMobileFile(files[i])
@@ -171,6 +181,7 @@ export function ControlImage() {
       await fetchMarks()
       await fetchTags()
       getCurrentTag()
+      
       console.log('Upload completed successfully')
     } catch (error) {
       console.error('Error in uploadMobileFile:', error)
