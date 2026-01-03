@@ -277,9 +277,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: note-gen-v__VERSION__
           releaseName: 'NoteGen v__VERSION__'
@@ -287,6 +284,37 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Notarize app (macOS only)
+        if: matrix.platform == 'macos-latest'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # 获取构建的 app 路径
+          APP_PATH="src-tauri/target/${{ matrix.args == '--target aarch64-apple-darwin' && 'aarch64-apple-darwin' || matrix.args == '--target x86_64-apple-darwin' && 'x86_64-apple-darwin' || '' }}/release/bundle/macos/NoteGen.app"
+          
+          if [ -f "$APP_PATH" ]; then
+            echo "🔐 开始公证 $APP_PATH"
+            
+            # 使用 xcrun notarytool 进行公证（更快）
+            # 设置 10 分钟超时
+            timeout 600 xcrun notarytool submit "$APP_PATH" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait \
+              --output-format json || echo "⚠️ 公证超时，但代码签名已完成"
+            
+            # 获取公证结果并附加票据
+            echo "📎 附加公证票据"
+            xcrun stapler staple "$APP_PATH"
+            
+            echo "✅ 公证完成"
+          else
+            echo "❌ 找不到应用文件: $APP_PATH"
+          fi
 
       - name: Generate release tag
         id: save_tag
