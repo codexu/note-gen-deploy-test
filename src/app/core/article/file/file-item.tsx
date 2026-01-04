@@ -184,8 +184,11 @@ export function FileItem({ item }: { item: DirTree }) {
           }
         }
         setFileTree(cacheTree)
-        setActiveFilePath('')
-        setCurrentArticle('')
+        // 只有删除的是当前选中的文件时，才清空选中状态
+        if (activeFilePath === path) {
+          setActiveFilePath('')
+          setCurrentArticle('')
+        }
       } catch (error) {
         console.error('Delete file failed:', error)
         toast({
@@ -503,7 +506,6 @@ export function FileItem({ item }: { item: DirTree }) {
           <div
             className={`${path === activeFilePath ? 'file-manange-item active' : 'file-manange-item'} ${!isRoot && 'translate-x-5 !w-[calc(100%-22px)]'}`}
             onClick={handleSelectFile}
-            onContextMenu={handleSelectFile}
           >
             {
               isEditing ? 
