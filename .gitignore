@@ -5,7 +5,8 @@ node_modules
 
 ./dist
 dist-ssr
-src-tauri/gen
+src-tauri/gen/*
+!src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset/
 *.local
 target/*
 
