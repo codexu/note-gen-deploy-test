@@ -62,6 +62,7 @@ export default function AppStatus({ inTitlebar = false }: AppStatusProps) {
           if (res) {
             setGiteeUserInfo(res)
           }
+          // 注意：checkGiteeRepos 内部已经包含了 getUserInfo 调用，但这里保留以确保用户信息及时更新
           await checkGiteeRepos()
         }
       } else if (primaryBackupMethod === 'gitlab') {
@@ -165,7 +166,10 @@ export default function AppStatus({ inTitlebar = false }: AppStatusProps) {
   // 检查 Gitee 仓库状态（仅检查，不创建）
   async function checkGiteeRepos() {
     try {
-      const { checkSyncRepoState } = await import('@/lib/sync/gitee')
+      const { checkSyncRepoState, getUserInfo } = await import('@/lib/sync/gitee')
+      
+      // 先获取用户信息，确保 giteeUsername 已设置
+      await getUserInfo();
       
       // 检查同步仓库状态
       const giteeRepo = await getSyncRepoName('gitee')
@@ -213,7 +217,7 @@ export default function AppStatus({ inTitlebar = false }: AppStatusProps) {
   // 以下代码保留但不执行，用于未来可能的恢复
   /* eslint-disable no-unreachable */
   const avatarContent: React.ReactNode = (
-    <div className="relative flex items-center gap-2 cursor-pointer" onClick={openUserHome}>
+    <>
       <Avatar className="size-8 rounded overflow-hidden">
           {primaryBackupMethod === 'github' ? (
             <>
@@ -270,19 +274,19 @@ export default function AppStatus({ inTitlebar = false }: AppStatusProps) {
             </div>
           ) : null
         }
-    </div>
+    </>
   )
 
   if (inTitlebar) {
     return (
-      <Button variant="ghost" size="icon" className="h-8 w-8 p-0" asChild>
+      <Button variant="ghost" size="icon" className="h-8 w-8 p-0" onClick={openUserHome}>
         {avatarContent}
       </Button>
     )
   }
 
   return (
-    <SidebarMenuButton size="lg" asChild className="md:size-8 p-0">
+    <SidebarMenuButton size="lg" className="md:size-8 p-0" onClick={openUserHome}>
       {avatarContent}
     </SidebarMenuButton>
   )

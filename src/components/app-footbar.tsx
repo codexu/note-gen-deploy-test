@@ -70,6 +70,7 @@ export function AppFootbar() {
           if (res) {
             setGiteeUserInfo(res)
           }
+          await checkGiteeRepos()
         }
       } else if (primaryBackupMethod === 'gitlab') {
         if (gitlabAccessToken) {
@@ -90,6 +91,30 @@ export function AppFootbar() {
       }
     } catch (err) {
       console.error('Failed to get user info:', err)
+    }
+  }
+  
+  // 检查 Gitee 仓库状态（仅检查，不创建）
+  async function checkGiteeRepos() {
+    try {
+      const { checkSyncRepoState, getUserInfo } = await import('@/lib/sync/gitee')
+      
+      // 先获取用户信息，确保 giteeUsername 已设置
+      await getUserInfo();
+      
+      // 检查同步仓库状态
+      const giteeRepo = await import('@/lib/sync/repo-utils').then(module => module.getSyncRepoName('gitee'))
+      const syncRepo = await checkSyncRepoState(giteeRepo)
+      if (syncRepo) {
+        setGiteeSyncRepoInfo(syncRepo)
+        setGiteeSyncRepoState(SyncStateEnum.success)
+      } else {
+        setGiteeSyncRepoInfo(undefined)
+        setGiteeSyncRepoState(SyncStateEnum.fail)
+      }
+    } catch (err) {
+      console.error('Failed to check Gitee repos:', err)
+      setGiteeSyncRepoState(SyncStateEnum.fail)
     }
   }
   
