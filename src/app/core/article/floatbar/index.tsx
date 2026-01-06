@@ -30,6 +30,7 @@ export default function FloatBar({left, top, value, editor}: {left?: number, top
   return (
     <div
       ref={floatBarRef}
+      data-float-bar="true"
       className={`${(left && top ) ? 'block': 'hidden'} absolute shadow rounded-lg bg-primary text-primary-foreground p-1`}
       style={{left: adjustedLeft + 'px', top: (top || 0) < 64 ? (top || 0) + 82 + 'px' : (top || 0) + 'px'}}>
       <div className="flex items-center justify-between">

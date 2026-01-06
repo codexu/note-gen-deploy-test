@@ -228,6 +228,17 @@ export function MdEditor() {
             }
           }
           
+          // 剪切、删除操作：隐藏浮动工具栏
+          if (['x', 'X'].includes(e.key) && (e.ctrlKey || e.metaKey)) {
+            // Ctrl/Cmd + X 剪切
+            resetSelectedText()
+          }
+          
+          if (['Delete', 'Backspace'].includes(e.key)) {
+            // 删除键
+            resetSelectedText()
+          }
+          
           // Tab 键：接受补全
           if (e.key === 'Tab') {
             const currentCompletion = completionRef.current
@@ -272,6 +283,17 @@ export function MdEditor() {
         }
         editorElement?.addEventListener('click', handleClick)
         
+        // 监听失焦事件，隐藏浮动工具栏
+        const handleBlur = (e: FocusEvent) => {
+          // 检查失焦是否不是因为点击了浮动工具栏本身
+          const floatBarElement = document.querySelector('[data-float-bar="true"]')
+          if (floatBarElement && floatBarElement.contains(e.relatedTarget as Node)) {
+            return // 如果焦点移动到浮动工具栏，不隐藏
+          }
+          resetSelectedText()
+        }
+        editorElement?.addEventListener('blur', handleBlur, true)
+        
         // 监听 beforeinput 事件，在输入前就清除补全预览
         const handleBeforeInput = () => {
           const previews = document.querySelectorAll('.ai-completion-preview, [data-ai-preview="true"]')
@@ -286,6 +308,7 @@ export function MdEditor() {
         return () => {
           editorElement?.removeEventListener('keydown', handleKeyDown)
           editorElement?.removeEventListener('click', handleClick)
+          editorElement?.removeEventListener('blur', handleBlur, true)
           editorElement?.removeEventListener('beforeinput', handleBeforeInput)
         }
       },
@@ -894,14 +917,37 @@ export function MdEditor() {
                     setEditor(vditor)
                     setEditorPadding(vditor)
                     
-                    // 监听方向键，隐藏浮动工具栏
+                    // 监听键盘事件，包含剪切、删除等操作
                     const editorElement = vditor.vditor.element
                     const handleKeyDown = (e: KeyboardEvent) => {
+                      // 方向键：隐藏浮动工具栏
                       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        resetSelectedText()
+                      }
+                      
+                      // 剪切、删除操作：隐藏浮动工具栏
+                      if (['x', 'X'].includes(e.key) && (e.ctrlKey || e.metaKey)) {
+                        // Ctrl/Cmd + X 剪切
+                        resetSelectedText()
+                      }
+                      
+                      if (['Delete', 'Backspace'].includes(e.key)) {
+                        // 删除键
                         resetSelectedText()
                       }
                     }
                     editorElement?.addEventListener('keydown', handleKeyDown)
+                    
+                    // 监听失焦事件，隐藏浮动工具栏
+                    const handleBlur = (e: FocusEvent) => {
+                      // 检查失焦是否不是因为点击了浮动工具栏本身
+                      const floatBarElement = document.querySelector('[data-float-bar="true"]')
+                      if (floatBarElement && floatBarElement.contains(e.relatedTarget as Node)) {
+                        return // 如果焦点移动到浮动工具栏，不隐藏
+                      }
+                      resetSelectedText()
+                    }
+                    editorElement?.addEventListener('blur', handleBlur, true)
                   },
                   input: (value) => {
                     saveCurrentArticle(value)
