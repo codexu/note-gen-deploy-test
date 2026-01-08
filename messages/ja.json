@@ -1572,6 +1572,30 @@
       }
     }
   },
+  "mobile": {
+    "chat": {
+      "drawer": {
+        "settings": {
+          "title": "チャット設定"
+        },
+        "tools": {
+          "title": "ツール",
+          "clearContext": "コンテキストをクリア",
+          "clearContextDesc": "会話のコンテキストをクリアし、チャット履歴を保持",
+          "clearChat": "チャットをクリア",
+          "clearChatDesc": "すべてのチャット記録を削除",
+          "clear": "クリア"
+        },
+        "attachments": {
+          "title": "添付ファイル",
+          "gallery": "ギャラリー",
+          "camera": "カメラ",
+          "file": "ファイル",
+          "linkNote": "ノートをリンク"
+        }
+      }
+    }
+  },
   "mcp": {
     "selectServers": "MCP Servers",
     "searchServers": "サーバーを検索...",
