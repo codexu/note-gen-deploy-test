@@ -60,6 +60,7 @@ export function ChatInput() {
   const t = useTranslations()
   const [inputHistory, setInputHistory] = useLocalStorage<string[]>('chat-input-history', [])
   const [historyIndex, setHistoryIndex] = useState(-1)
+  const [tempInput, setTempInput] = useState('')
   const [linkedFile, setLinkedFile] = useState<MarkdownFile | null>(null)
   const [attachedImages, setAttachedImages] = useState<ImageAttachment[]>([])
   const [quoteData, setQuoteData] = useState<{
@@ -98,11 +99,15 @@ export function ChatInput() {
   }
 
   // 处理历史记录导航
-  function navigateHistory(direction: 'up' | 'down') {
+  function navigateHistory(direction: 'up' | 'down', currentText: string) {
     if (!inputHistory || inputHistory.length === 0) return
 
     let newIndex: number
     if (direction === 'up') {
+      // 保存当前输入内容（第一次向上时）
+      if (historyIndex === -1) {
+        setTempInput(currentText)
+      }
       newIndex = historyIndex + 1
       if (newIndex >= inputHistory.length) {
         newIndex = inputHistory.length - 1
@@ -115,9 +120,10 @@ export function ChatInput() {
     }
 
     setHistoryIndex(newIndex)
-    
+
     if (newIndex === -1) {
-      setText('')
+      // 恢复到原本输入的内容
+      setText(tempInput)
     } else {
       setText(inputHistory[newIndex])
     }
@@ -484,6 +490,11 @@ export function ChatInput() {
             }}
             placeholder={placeholder}
             onKeyDown={(e) => {
+              const textarea = e.target as HTMLTextAreaElement
+              const cursorPosition = textarea.selectionStart
+              const isAtStart = cursorPosition === 0
+              const isAtEnd = cursorPosition === text.length
+
               if (e.key === "Enter" && !isComposing && !e.shiftKey && e.keyCode === 13) {
                 e.preventDefault()
                 chatSendRef.current?.sendChat()
@@ -493,12 +504,24 @@ export function ChatInput() {
                 insertPlaceholder()
               }
               if (e.key === "ArrowUp" && !isComposing) {
-                e.preventDefault()
-                navigateHistory('up')
+                if (isAtStart) {
+                  e.preventDefault()
+                  navigateHistory('up', text)
+                } else if (isAtEnd) {
+                  e.preventDefault()
+                  // 移动光标到开头
+                  textarea.setSelectionRange(0, 0)
+                }
               }
               if (e.key === "ArrowDown" && !isComposing) {
-                e.preventDefault()
-                navigateHistory('down')
+                if (isAtStart) {
+                  e.preventDefault()
+                  navigateHistory('down', text)
+                } else if (isAtEnd) {
+                  e.preventDefault()
+                  // 移动光标到开头
+                  textarea.setSelectionRange(0, 0)
+                }
               }
               if (e.key === "Backspace") {
                 if (text === '') {
