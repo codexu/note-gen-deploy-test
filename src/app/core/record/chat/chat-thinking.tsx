@@ -45,10 +45,10 @@ export default function ChatThinking({chat}: { chat: Chat }) {
   const title = extractTitle(thinkingContent)
   
   return (
-    <div className="w-full space-y-1 mb-2 bg-accent border rounded overflow-hidden">
+    <div className="w-full space-y-1 mb-2 bg-muted/30 border border-border/50 rounded-lg overflow-hidden">
       {/* 思考卡片 - 单行 */}
-      <div 
-        className={`flex items-center gap-2 py-1.5 px-3 rounded cursor-pointer min-w-0 ${isThinking ? 'bg-muted' : 'hover:bg-muted/50'}`}
+      <div
+        className={`flex items-center gap-2 py-1.5 px-3 cursor-pointer min-w-0 transition-colors ${isThinking ? 'bg-muted/50' : 'hover:bg-muted/40'}`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isThinking ? (
@@ -61,12 +61,12 @@ export default function ChatThinking({chat}: { chat: Chat }) {
         </span>
         <ChevronRight className={`size-4 text-muted-foreground flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
       </div>
-      
+
       {/* 展开的详细内容 */}
       {isExpanded && (
-        <div 
+        <div
           ref={contentRef}
-          className="pl-6 pr-3 pb-2 text-xs text-muted-foreground whitespace-pre-wrap max-h-[250px] overflow-y-auto break-words"
+          className="pl-6 pr-3 pb-2 text-xs text-muted-foreground whitespace-pre-wrap max-h-[250px] overflow-y-auto break-words bg-muted/20"
         >
           {thinkingContent}
         </div>

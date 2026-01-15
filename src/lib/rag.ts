@@ -1,8 +1,8 @@
 import { readTextFile, readDir, BaseDirectory, DirEntry } from "@tauri-apps/plugin-fs";
 import { fetchEmbedding, rerankDocuments } from "./ai";
-import { 
-  upsertVectorDocument, 
-  deleteVectorDocumentsByFilename, 
+import {
+  upsertVectorDocument,
+  deleteVectorDocumentsByFilename,
   getSimilarDocuments,
   initVectorDb
 } from "@/db/vector";
@@ -15,6 +15,75 @@ import { DirTree } from "@/stores/article";
 import { toast } from "@/hooks/use-toast";
 import { join } from "@tauri-apps/api/path";
 import { Store } from "@tauri-apps/plugin-store";
+import { createHash } from 'crypto';
+
+/**
+ * 统一错误处理函数
+ */
+function handleRAGError(error: unknown, context: string, showToast: boolean = true): void {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  console.error(`[RAG Error] ${context}:`, errorMessage);
+
+  if (showToast) {
+    toast({
+      title: 'RAG 功能错误',
+      description: `${context}: ${errorMessage}`,
+      variant: 'destructive',
+    });
+  }
+}
+
+/**
+ * 生成内容哈希值，用于去重
+ */
+function generateContentHash(content: string): string {
+  return createHash('sha256').update(content.trim()).digest('hex');
+}
+
+/**
+ * 并发控制函数 - 限制同时执行的任务数量
+ */
+async function runWithConcurrencyLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number,
+  onProgress?: (completed: number, total: number) => void
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  const executing: Promise<void>[] = [];
+  let completed = 0;
+
+  for (const [index, task] of tasks.entries()) {
+    const promise = task()
+      .then(result => {
+        results[index] = result;
+        completed++;
+        if (onProgress) {
+          onProgress(completed, tasks.length);
+        }
+      })
+      .catch(error => {
+        results[index] = error as T;
+        completed++;
+        if (onProgress) {
+          onProgress(completed, tasks.length);
+        }
+        throw error;
+      });
+
+    executing.push(promise);
+
+    if (executing.length >= limit) {
+      await Promise.race(executing);
+      executing.splice(
+        executing.findIndex(p => p === promise),
+        1
+      );
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
+}
 
 /**
  * 文本分块函数，用于将大文本分成小块
@@ -212,49 +281,81 @@ async function getWorkspaceFiles(): Promise<DirTree[]> {
 }
 
 /**
- * 处理工作区中的所有Markdown文件
+ * 处理工作区中的所有Markdown文件（支持并行处理）
  */
-export async function processAllMarkdownFiles(): Promise<{
+export async function processAllMarkdownFiles(onProgress?: (current: number, total: number, fileName: string) => void): Promise<{
   total: number;
   success: number;
   failed: number;
+  failedFiles: Array<{fileName: string, error: string}>;
 }> {
   try {
     // 获取工作区中的所有文件
     const fileTree = await getWorkspaceFiles();
-    
-    // 统计结果
-    const result = {
-      total: 0,
-      success: 0,
-      failed: 0
-    };
-    
-    // 递归处理文件树
-    async function processTree(tree: DirTree[]): Promise<void> {
+
+    // 收集所有需要处理的文件
+    const filesToProcess: Array<{name: string, path: string}> = [];
+
+    async function collectFiles(tree: DirTree[]): Promise<void> {
       for (const item of tree) {
         if (item.isFile && item.name.endsWith('.md')) {
-          result.total++;
-          // 获取完整路径
           const filePath = await getFilePath(item);
-          const success = await processMarkdownFile(filePath);
-          if (success) {
-            result.success++;
-          } else {
-            result.failed++;
-          }
+          filesToProcess.push({ name: item.name, path: filePath });
         }
-        
+
         // 递归处理子目录
         if (item.children && item.children.length > 0) {
-          await processTree(item.children);
+          await collectFiles(item.children);
         }
       }
     }
-    await processTree(fileTree);
-    return result;
+
+    await collectFiles(fileTree);
+
+    // 使用并发控制处理文件（限制并发数为 3）
+    const results = await runWithConcurrencyLimit(
+      filesToProcess.map(file => async () => {
+        try {
+          const success = await processMarkdownFile(file.path);
+          return { success, fileName: file.name, error: null };
+        } catch (error) {
+          handleRAGError(error, `处理文件 ${file.name} 失败`, false);
+          return { success: false, fileName: file.name, error: String(error) };
+        }
+      }),
+      3, // 并发限制为 3，避免过多 API 调用
+      (completed, total) => {
+        if (onProgress && completed > 0) {
+          const currentFile = filesToProcess[completed - 1]?.name || '';
+          onProgress(completed, total, currentFile);
+        }
+      }
+    );
+
+    // 统计结果
+    const failedFiles: Array<{fileName: string, error: string}> = [];
+    let success = 0;
+    let failed = 0;
+
+    for (const result of results) {
+      if (result.success) {
+        success++;
+      } else {
+        failed++;
+        if (result.error) {
+          failedFiles.push({ fileName: result.fileName, error: result.error });
+        }
+      }
+    }
+
+    return {
+      total: filesToProcess.length,
+      success,
+      failed,
+      failedFiles
+    };
   } catch (error) {
-    console.error('处理工作区Markdown文件失败:', error);
+    handleRAGError(error, '处理工作区Markdown文件失败');
     throw error;
   }
 }
@@ -451,7 +552,7 @@ export async function getContextForQuery(keywords: Keyword[]): Promise<{ context
         }
       }
     } catch (error) {
-      console.error('模糊搜索失败:', error);
+      handleRAGError(error, '模糊搜索失败', false);
     }
 
     // 2. 使用向量搜索找到相关文档
@@ -463,11 +564,11 @@ export async function getContextForQuery(keywords: Keyword[]): Promise<{ context
         if (queryEmbedding) {
           // 查询最相关的文档
           let similarDocs = await getSimilarDocuments(queryEmbedding, resultCount, similarityThreshold);
-          
+
           if (similarDocs.length > 0) {
             // 如果配置了重排序模型，使用它进一步优化结果
             similarDocs = await rerankDocuments(keyword.text, similarDocs);
-            
+
             // 添加到结果集，考虑关键词权重
             for (const doc of similarDocs) {
               allContexts.push({
@@ -482,32 +583,90 @@ export async function getContextForQuery(keywords: Keyword[]): Promise<{ context
         }
       }
     } catch (error) {
-      console.error('向量搜索失败:', error);
+      handleRAGError(error, '向量搜索失败', false);
     }
 
     // 如果没有找到任何相关上下文，返回空结果
     if (allContexts.length === 0) {
       return { context: '', sources: [] };
     }
-    
-    // 对结果进行去重（同一文件的同一段落可能被多个关键词匹配）
-    const uniqueContexts = [];
-    const seen = new Set();
-    
+
+    // 改进的去重逻辑：使用哈希 + 内容相似度去重
+    const uniqueContexts: typeof allContexts = [];
+    const seenHashes = new Set<string>();
+
+    // 第一阶段：使用精确哈希去重完全相同的内容
     for (const ctx of allContexts) {
-      // 使用文件名和内容前100字符作为标识符
-      const identifier = `${ctx.filename}-${ctx.content.substring(0, 100)}`;
-      if (!seen.has(identifier)) {
-        seen.add(identifier);
+      const contentHash = generateContentHash(ctx.content);
+      const hashWithFile = `${ctx.filename}-${contentHash}`;
+
+      if (!seenHashes.has(hashWithFile)) {
+        seenHashes.add(hashWithFile);
         uniqueContexts.push(ctx);
+      } else {
+        // 如果哈希已存在，检查是否有更高的分数，如果有则更新
+        const existingIndex = uniqueContexts.findIndex(
+          existing => {
+            const existingHash = generateContentHash(existing.content);
+            return existing.filename === ctx.filename && existingHash === contentHash;
+          }
+        );
+        if (existingIndex >= 0 && ctx.score > uniqueContexts[existingIndex].score) {
+          uniqueContexts[existingIndex] = ctx;
+        }
       }
     }
-    
+
+    // 第二阶段：对相似内容进行合并（使用余弦相似度判断）
+    // 这里我们简化处理，只合并同一文件中高度重叠的内容
+    const finalUniqueContexts: typeof allContexts = [];
+    const mergedIndices = new Set<number>();
+
+    for (let i = 0; i < uniqueContexts.length; i++) {
+      if (mergedIndices.has(i)) continue;
+
+      const current = uniqueContexts[i];
+      let bestScore = current.score;
+      let bestContent = current.content;
+      let mergedKeywords = [current.keyword];
+
+      // 查找同一文件中高度重叠的内容
+      for (let j = i + 1; j < uniqueContexts.length; j++) {
+        if (mergedIndices.has(j)) continue;
+
+        const other = uniqueContexts[j];
+        if (other.filename !== current.filename) continue;
+
+        // 计算内容重叠度
+        const overlap = calculateContentOverlap(current.content, other.content);
+
+        // 如果重叠度超过 70%，认为是重复内容，合并它们
+        if (overlap > 0.7) {
+          mergedIndices.add(j);
+          // 保留分数更高的
+          if (other.score > bestScore) {
+            bestScore = other.score;
+            bestContent = other.content;
+          }
+          if (other.keyword && !mergedKeywords.includes(other.keyword)) {
+            mergedKeywords.push(other.keyword);
+          }
+        }
+      }
+
+      finalUniqueContexts.push({
+        ...current,
+        content: bestContent,
+        score: bestScore,
+        keyword: mergedKeywords.join(', ')
+      });
+    }
+
     // 对所有上下文按相关性得分排序
-    uniqueContexts.sort((a, b) => b.score - a.score);
-    
+    finalUniqueContexts.sort((a, b) => b.score - a.score);
+
     // 限制结果数量
-    const finalContexts = uniqueContexts.slice(0, resultCount);
+    const finalContexts = finalUniqueContexts.slice(0, resultCount);
 
     // 提取唯一的文件名
     const sources = Array.from(new Set(finalContexts.map(ctx => ctx.filename)));
@@ -521,9 +680,32 @@ ${ctx.content}
 
     return { context, sources };
   } catch (error) {
-    console.error('获取查询上下文失败:', error);
+    handleRAGError(error, '获取查询上下文失败', false);
     return { context: '', sources: [] };
   }
+}
+
+/**
+ * 计算两个文本的重叠度（基于字符级的最长公共子序列简化版本）
+ */
+function calculateContentOverlap(content1: string, content2: string): number {
+  const normalized1 = content1.trim().toLowerCase();
+  const normalized2 = content2.trim().toLowerCase();
+
+  // 如果任一内容为空，返回 0
+  if (!normalized1 || !normalized2) return 0;
+
+  // 简化的重叠度计算：计算共同字符的比例
+  const set1 = new Set(normalized1.split(''));
+  const set2 = new Set(normalized2.split(''));
+
+  const intersection = new Set([...set1].filter(char => set2.has(char)));
+  const union = new Set([...set1, ...set2]);
+
+  if (union.size === 0) return 0;
+
+  // Jaccard 相似度
+  return intersection.size / union.size;
 }
 
 /**
@@ -531,11 +713,11 @@ ${ctx.content}
  */
 export async function handleFileUpdate(filename: string, content: string): Promise<void> {
   if (!filename.endsWith('.md')) return;
-  
+
   try {
     await processMarkdownFile(filename, content);
   } catch (error) {
-    console.error(`更新文件 ${filename} 的向量失败:`, error);
+    handleRAGError(error, `更新文件 ${filename} 的向量失败`, false);
   }
 }
 
@@ -548,7 +730,7 @@ export async function checkEmbeddingModelAvailable(): Promise<boolean> {
     const embedding = await fetchEmbedding('测试嵌入模型');
     return !!embedding;
   } catch (error) {
-    console.error('嵌入模型检查失败:', error);
+    handleRAGError(error, '嵌入模型检查失败', false);
     return false;
   }
 }
