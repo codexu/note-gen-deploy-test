@@ -110,10 +110,26 @@ export class ReActAgent {
           break
         }
 
-        // 检查是否连续执行相同类型的操作（如多次搜索）
-        if (lastStep.action.tool === action.tool && this.currentIteration > 3) {
-          console.warn(`检测到多次执行相同类型的操作: ${action.tool}`)
-          finalAnswer = `已完成多次操作，请确认是否达到预期效果。最后操作结果：${lastStep.observation}`
+        // 检查是否连续多次执行完全相同的操作（超过 5 次且工具和参数都相同）
+        // 只检查参数完全相同的情况，避免误判合法的批量操作
+        let sameActionCount = 0
+        for (let i = this.steps.length - 1; i >= 0; i--) {
+          const step = this.steps[i]
+          if (step.action && step.action.tool === action.tool) {
+            const stepParamsSame = JSON.stringify(step.action.params) === JSON.stringify(action.params)
+            if (stepParamsSame) {
+              sameActionCount++
+            } else {
+              break
+            }
+          } else {
+            break
+          }
+        }
+
+        if (sameActionCount >= 5) {
+          console.warn(`检测到连续多次执行相同操作: ${action.tool}, 次数: ${sameActionCount}`)
+          finalAnswer = `检测到连续多次执行相同操作，已自动停止。最后操作结果：${lastStep.observation}`
           break
         }
       }
