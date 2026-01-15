@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { computedParentPath } from "@/lib/path";
 import useClipboardStore from "@/stores/clipboard";
 import { toast } from "@/hooks/use-toast";
+import { Folder } from "lucide-react"
 
 interface CutFolderProps {
   item: DirTree;
@@ -25,12 +26,13 @@ export function CutFolder({ item }: CutFolderProps) {
   }
 
   return (
-    <ContextMenuItem 
-      inset 
-      disabled={!item.isLocale} 
+    <ContextMenuItem
+      inset
+      disabled={!item.isLocale}
       onClick={handleCutFolder}
       menuType="file"
     >
+      <Folder className="mr-2 h-4 w-4" />
       {t('context.cut')}
     </ContextMenuItem>
   );

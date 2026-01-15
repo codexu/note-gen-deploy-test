@@ -2,7 +2,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { Input } from "@/components/ui/input";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { BaseDirectory, exists, readTextFile, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
-import { Cloud, CloudDownload, File, ImageIcon } from "lucide-react"
+import { Cloud, CloudDownload, Copy, Database, File, FolderOpen, ImageIcon, RefreshCwOff, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react";
 import { ask } from '@tauri-apps/plugin-dialog';
 import { Store } from '@tauri-apps/plugin-store';
@@ -21,17 +21,23 @@ import { generateUniqueFilename } from "@/lib/default-filename";
 import { MobileActionMenu, MobileMenuItem, MobileSeparator } from "./mobile-action-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import useSettingStore from "@/stores/setting";
+import { VectorKnowledgeMenu } from "./vector-knowledge-menu";
 
 export function FileItem({ item }: { item: DirTree }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
   const [name, setName] = useState(item.name)
   const [isComposing, setIsComposing] = useState(false) // 追踪输入法合成状态
   const inputRef = useRef<HTMLInputElement>(null)
-  const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree, loadFileTree } = useArticleStore()
+  const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree, loadFileTree, vectorIndexedFiles, checkFileVectorIndexed } = useArticleStore()
   const { setClipboardItem, clipboardItem, clipboardOperation } = useClipboardStore()
   const { fileManagerTextSize } = useSettingStore()
   const t = useTranslations('article.file')
   const isMobile = useIsMobile()
+
+  // 向量状态更新回调
+  const handleVectorUpdated = useCallback(() => {
+    checkFileVectorIndexed(item.name)
+  }, [item.name, checkFileVectorIndexed])
 
   // 根据文字大小映射图标大小
   const getIconSize = (textSize: string) => {
@@ -46,7 +52,10 @@ export function FileItem({ item }: { item: DirTree }) {
   }
 
   const iconSize = getIconSize(fileManagerTextSize)
-  
+
+  // 检查文件是否已计算向量
+  const hasVector = item.isFile && vectorIndexedFiles.has(item.name)
+
   const path = computedParentPath(item)
   const isRoot = path.split('/').length === 1
   const folderPath = path.includes('/') ? path.split('/').slice(0, -1).join('/') : ''
@@ -671,7 +680,7 @@ export function FileItem({ item }: { item: DirTree }) {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            className={`${path === activeFilePath ? 'file-manange-item active' : 'file-manange-item'} ${!isRoot && 'translate-x-5 !w-[calc(100%-22px)]'}`}
+            className={`${path === activeFilePath ? 'file-manange-item active' : 'file-manange-item'} ${!isRoot && 'translate-x-5 !w-[calc(100%-20px)]'}`}
             onClick={handleSelectFile}
           >
             {
@@ -696,7 +705,7 @@ export function FileItem({ item }: { item: DirTree }) {
                   }}
                 />
               </div> :
-              item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i) ? 
+              item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i) ?
               <span
                 draggable
                 onDragStart={handleDragStart}
@@ -709,6 +718,7 @@ export function FileItem({ item }: { item: DirTree }) {
                     { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
+                  {path === activeFilePath && hasVector && <Database className={`${iconSize} text-muted-foreground mr-2 opacity-60`} />}
                 </div>
                 {isMobile && (
                   <MobileActionMenu className="ml-1">
@@ -750,6 +760,7 @@ export function FileItem({ item }: { item: DirTree }) {
                     { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
+                  {path === activeFilePath && hasVector && <Database className={`${iconSize} text-muted-foreground mr-2 opacity-60`} />}
                 </div>
                 {isMobile && (
                   <MobileActionMenu className="ml-1">
@@ -784,26 +795,39 @@ export function FileItem({ item }: { item: DirTree }) {
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem inset onClick={handleShowFileManager} menuType="file">
+            <FolderOpen className="mr-2 h-4 w-4" />
             {t('context.viewDirectory')}
           </ContextMenuItem>
           <ContextMenuSeparator />
+          <VectorKnowledgeMenu
+            item={item}
+            hasVector={hasVector}
+            onVectorUpdated={handleVectorUpdated}
+          />
+          <ContextMenuSeparator />
           <ContextMenuItem inset disabled={!item.isLocale} onClick={handleCutFile} menuType="file">
+            <File className="mr-2 h-4 w-4" />
             {t('context.cut')}
           </ContextMenuItem>
           <ContextMenuItem inset onClick={handleCopyFile} menuType="file">
+            <Copy className="mr-2 h-4 w-4" />
             {t('context.copy')}
           </ContextMenuItem>
           <ContextMenuItem inset disabled={!clipboardItem} onClick={handlePasteFile} menuType="file">
+            <File className="mr-2 h-4 w-4" />
             {t('context.paste')}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem disabled={!item.isLocale} inset onClick={handleStartRename} menuType="file">
+            <File className="mr-2 h-4 w-4" />
             {t('context.rename')}
           </ContextMenuItem>
           <ContextMenuItem disabled={!item.sha} inset className="text-red-900" onClick={handleDeleteSyncFile} menuType="file">
+            <RefreshCwOff className="mr-2 h-4 w-4" />
             {t('context.deleteSyncFile')}
           </ContextMenuItem>
           <ContextMenuItem disabled={!item.isLocale || item.name === ''} inset className="text-red-900" onClick={handleDeleteFile} menuType="file">
+            <Trash2 className="mr-2 h-4 w-4" />
             {t('context.deleteLocalFile')}
           </ContextMenuItem>
         </ContextMenuContent>

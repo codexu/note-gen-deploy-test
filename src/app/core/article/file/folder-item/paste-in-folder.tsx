@@ -6,6 +6,7 @@ import useClipboardStore from "@/stores/clipboard";
 import { toast } from "@/hooks/use-toast";
 import { BaseDirectory, exists, mkdir, readDir, readTextFile, remove, writeTextFile } from "@tauri-apps/plugin-fs";
 import { ask } from '@tauri-apps/plugin-dialog';
+import { FileSymlink } from "lucide-react"
 
 interface PasteInFolderProps {
   item: DirTree;
@@ -96,12 +97,13 @@ export function PasteInFolder({ item }: PasteInFolderProps) {
   }
 
   return (
-    <ContextMenuItem 
-      inset 
-      disabled={!clipboardItem} 
+    <ContextMenuItem
+      inset
+      disabled={!clipboardItem}
       onClick={handlePasteInFolder}
       menuType="file"
     >
+      <FileSymlink className="mr-2 h-4 w-4" />
       {t('context.paste')}
     </ContextMenuItem>
   );

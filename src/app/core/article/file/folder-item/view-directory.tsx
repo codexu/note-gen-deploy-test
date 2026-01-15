@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { computedParentPath } from "@/lib/path";
 import { appDataDir } from '@tauri-apps/api/path';
 import { openPath } from "@tauri-apps/plugin-opener";
+import { FolderOpen } from "lucide-react"
 
 interface ViewDirectoryProps {
   item: DirTree;
@@ -32,6 +33,7 @@ export function ViewDirectory({ item }: ViewDirectoryProps) {
 
   return (
     <ContextMenuItem inset onClick={handleShowFileManager} menuType="file">
+      <FolderOpen className="mr-2 h-4 w-4" />
       {t('context.viewDirectory')}
     </ContextMenuItem>
   );

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { computedParentPath } from "@/lib/path";
 import useClipboardStore from "@/stores/clipboard";
 import { toast } from "@/hooks/use-toast";
+import { Copy } from "lucide-react"
 
 interface CopyFolderProps {
   item: DirTree;
@@ -26,6 +27,7 @@ export function CopyFolder({ item }: CopyFolderProps) {
 
   return (
     <ContextMenuItem inset onClick={handleCopyFolder} menuType="file">
+      <Copy className="mr-2 h-4 w-4" />
       {t('context.copy')}
     </ContextMenuItem>
   );

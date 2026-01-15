@@ -167,7 +167,7 @@ export default function SyncFolder({ item }: { item: DirTree }) {
   }
 
   return <ContextMenuItem inset disabled={isSyncing || !item.isLocale} onClick={handleSyncFolder} menuType="file">
-    {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
+    {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
     {t('context.syncFolder')}
   </ContextMenuItem>
 }
