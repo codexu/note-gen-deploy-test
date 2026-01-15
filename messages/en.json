@@ -986,6 +986,8 @@
             "thinking": "Thinking",
             "acting": "Acting",
             "observation": "Observation",
+            "thought": "Thought",
+            "action": "Action",
             "toolCalls": "Tool Calls",
             "confirmation": {
               "title": "Confirm Action",
@@ -1257,8 +1259,11 @@
         "agent": {
           "running": "Agent Running",
           "thinking": "Thinking",
+          "analyzingRequest": "Agent is analyzing your request...",
           "acting": "Acting",
           "observation": "Observation",
+          "thought": "Thought",
+          "action": "Action",
           "toolCalls": "Tool Calls",
           "confirmation": {
             "title": "Confirm Action",

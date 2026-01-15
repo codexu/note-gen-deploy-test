@@ -874,6 +874,8 @@
             "acting": "執行中",
             "observation": "觀察結果",
             "toolCalls": "工具調用",
+            "thought": "思考",
+            "action": "行動",
             "confirmation": {
               "title": "確認操作",
               "description": "Agent 想要執行以下操作，請確認後繼續。",
@@ -1115,9 +1117,12 @@
         "agent": {
           "running": "Agent 運行中",
           "thinking": "思考中",
+          "analyzingRequest": "Agent 正在分析您的請求...",
           "acting": "執行中",
           "observation": "觀察結果",
           "toolCalls": "工具調用",
+          "thought": "思考",
+          "action": "行動",
           "confirmation": {
             "title": "確認操作",
             "description": "Agent 想要執行以下操作，請確認後繼續。",

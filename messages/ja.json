@@ -874,6 +874,8 @@
             "acting": "実行中",
             "observation": "観察結果",
             "toolCalls": "ツール呼び出し",
+            "thought": "思考",
+            "action": "行動",
             "confirmation": {
               "title": "操作の確認",
               "description": "エージェントが以下の操作を実行しようとしています。続行するには確認してください。",
@@ -1113,9 +1115,12 @@
         "agent": {
           "running": "エージェント実行中",
           "thinking": "思考中",
+          "analyzingRequest": "Agent がリクエストを分析しています...",
           "acting": "実行中",
           "observation": "観察結果",
           "toolCalls": "ツール呼び出し",
+          "thought": "思考",
+          "action": "行動",
           "confirmation": {
             "title": "操作の確認",
             "description": "エージェントが以下の操作を実行しようとしています。続行するには確認してください。",

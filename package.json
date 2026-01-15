@@ -66,6 +66,7 @@
     "dayjs": "^1.11.13",
     "diff": "^7.0.0",
     "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.26.2",
     "github-markdown-css": "^5.8.1",
     "highlight.js": "^11.11.1",
     "hotkeys-js": "^3.13.15",

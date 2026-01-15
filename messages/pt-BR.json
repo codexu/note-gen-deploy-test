@@ -901,6 +901,8 @@
             "acting": "Agindo",
             "observation": "Observação",
             "toolCalls": "Chamadas de Ferramenta",
+            "thought": "Pensamento",
+            "action": "Ação",
             "confirmation": {
               "title": "Confirmar Ação",
               "description": "O agente deseja executar a seguinte ação. Por favor, confirme para continuar.",
@@ -1174,9 +1176,12 @@
         "agent": {
           "running": "Agente em Execução",
           "thinking": "Pensando",
+          "analyzingRequest": "O agente está analisando sua solicitação...",
           "acting": "Agindo",
           "observation": "Observação",
           "toolCalls": "Chamadas de Ferramenta",
+          "thought": "Pensamento",
+          "action": "Ação",
           "confirmation": {
             "title": "Confirmar Ação",
             "description": "O agente deseja executar a seguinte ação. Por favor, confirme para continuar.",
