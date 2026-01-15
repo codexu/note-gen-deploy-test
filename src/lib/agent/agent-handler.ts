@@ -6,7 +6,7 @@ export interface AgentHandlerConfig {
   onThought?: (thought: string) => void
   onAction?: (action: string, params: Record<string, any>) => void
   onObservation?: (observation: string) => void
-  onComplete?: (result: string, steps?: any[]) => void
+  onComplete?: (result: string, steps?: any[], stopped?: boolean) => void
   onError?: (error: string) => void
   requestConfirmation?: (toolName: string, params: Record<string, any>) => Promise<boolean>
 }
@@ -80,19 +80,23 @@ export class AgentHandler {
     try {
       const result = await this.agent.run(userInput, context, imageUrls)
       store.setAgentState({ isRunning: false })
-      
-      // 如果结果为空字符串，说明被用户终止
-      if (result === '') {
-        // 不调用 onComplete，让 handleStop 处理终止消息
-        return ''
-      }
-      
+
       // 获取完整的 ReAct 步骤
       const steps = this.agent.getSteps()
-      this.config.onComplete?.(result, steps)
+      this.config.onComplete?.(result, steps, false)
       return result
     } catch (error) {
       store.setAgentState({ isRunning: false })
+
+      // 检查是否是用户终止
+      if (error instanceof Error && error.message === 'USER_STOPPED') {
+        // 获取已产生的步骤
+        const steps = this.agent.getSteps()
+        // 调用 onComplete，传入空结果和已产生的步骤，标记为已停止
+        this.config.onComplete?.('', steps, true)
+        return ''
+      }
+
       const errorMessage = error instanceof Error ? error.message : String(error)
       this.config.onError?.(errorMessage)
       throw error
@@ -102,9 +106,8 @@ export class AgentHandler {
   stop() {
     if (this.agent) {
       this.agent.stop()
-      this.agent = null
+      // 不立即清空 agent，等待 run 方法中的错误处理完成
+      // 不调用 resetAgentState，让 onComplete 回调保存已产生的内容
     }
-    const store = useChatStore.getState()
-    store.resetAgentState()
   }
 }

@@ -35,6 +35,10 @@ export class ReActAgent {
     }
   }
 
+  isStopped(): boolean {
+    return this.stopped
+  }
+
   async run(userInput: string, context?: string, imageUrls?: string[]): Promise<string> {
     this.steps = []
     this.currentIteration = 0
@@ -49,7 +53,8 @@ export class ReActAgent {
     while (this.currentIteration < this.config.maxIterations) {
       // 检查是否已停止
       if (this.stopped) {
-        return '' // 返回空字符串表示被用户终止
+        // 返回特殊标记表示被用户终止，但保留已产生的步骤
+        throw new Error('USER_STOPPED')
       }
 
       this.currentIteration++
@@ -60,10 +65,11 @@ export class ReActAgent {
       }
 
       const thought = await this.think(userInput, context, systemPrompt, imageUrls)
-      
+
       // 再次检查是否已停止
       if (this.stopped) {
-        return '' // 返回空字符串表示被用户终止
+        // 返回特殊标记表示被用户终止，但保留已产生的步骤
+        throw new Error('USER_STOPPED')
       }
 
       // 检查是否包含 Final Answer（支持多种格式）
@@ -137,10 +143,11 @@ export class ReActAgent {
       this.config.onAction?.(action.tool, action.params)
 
       const observation = await this.act(action.tool, action.params)
-      
+
       // 检查是否已停止
       if (this.stopped) {
-        return '' // 返回空字符串表示被用户终止
+        // 返回特殊标记表示被用户终止，但保留已产生的步骤
+        throw new Error('USER_STOPPED')
       }
       
       this.config.onObservation?.(observation)
@@ -280,7 +287,7 @@ ${userInput}
       const { fetchAiStream } = await import('@/lib/ai')
       let response = ''
       let lastUpdateLength = 0
-      
+
       // 传递 AbortSignal 以支持终止，同时传递图片URL（仅在第一次迭代时）
       const imagesForThisIteration = this.currentIteration === 1 ? imageUrls : undefined
       await fetchAiStream(prompt, (content) => {
@@ -288,9 +295,9 @@ ${userInput}
         if (this.stopped) {
           return
         }
-        
+
         response = content
-        
+
         // 实时更新，但只在内容有实质性增长时更新（避免频繁更新）
         if (content.length - lastUpdateLength > 10 || content.includes('Action:') || content.includes('Final Answer:')) {
           this.config.onThought?.(content)

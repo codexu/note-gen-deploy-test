@@ -135,7 +135,8 @@ export function AgentPlan({
               step.observation.includes("错误")
                 ? "failed"
                 : "completed";
-          } else {
+          } else if (!step.action) {
+            // 只有思考没有动作和观察，说明是未完成的步骤
             status = "pending";
           }
 
@@ -307,14 +308,45 @@ export function AgentPlan({
 
   // Extract title from step content (prioritize observation result, then action, then thought)
   const extractTitle = (step: DisplayStep): string => {
+    // Helper to extract meaningful text from content
+    const extractFromContent = (content: string): string => {
+      const lines = content.split("\n").map(l => l.trim()).filter(l => l);
+
+      // 尝试从第一行获取
+      for (let i = 0; i < Math.min(lines.length, 5); i++) {
+        const line = lines[i];
+        const cleaned = cleanMarkdown(line);
+
+        // 跳过纯代码块标记行（只有 ``` 的情况）
+        if (cleaned === '' || cleaned === '```') {
+          continue;
+        }
+
+        // 如果是代码块开始，尝试获取下一行作为标题
+        if (line === '```' || line.startsWith('```')) {
+          if (i + 1 < lines.length) {
+            const nextLine = cleanMarkdown(lines[i + 1]);
+            if (nextLine && nextLine !== '```') {
+              return nextLine.length > 50 ? nextLine.substring(0, 50) + "..." : nextLine;
+            }
+          }
+          continue;
+        }
+
+        // 如果有有效内容，返回
+        if (cleaned.length > 0) {
+          return cleaned.length > 50 ? cleaned.substring(0, 50) + "..." : cleaned;
+        }
+      }
+
+      // 如果都没找到，返回第一行（即使是空的）
+      return lines[0] || '';
+    };
+
     // Use observation first - this contains the actual result of tool execution
     if (step.observation && step.observation.trim()) {
-      const firstLine = step.observation.split("\n")[0].trim();
-      const cleaned = cleanMarkdown(firstLine);
-      if (cleaned.length > 50) {
-        return cleaned.substring(0, 50) + "...";
-      }
-      return cleaned;
+      const title = extractFromContent(step.observation);
+      if (title) return title;
     }
 
     // Use action if available
@@ -328,12 +360,8 @@ export function AgentPlan({
 
     // Use thought if available
     if (step.thought && step.thought.trim()) {
-      const firstLine = step.thought.split("\n")[0].trim();
-      const cleaned = cleanMarkdown(firstLine);
-      if (cleaned.length > 50) {
-        return cleaned.substring(0, 50) + "...";
-      }
-      return cleaned;
+      const title = extractFromContent(step.thought);
+      if (title) return title;
     }
 
     return t("thinking");
