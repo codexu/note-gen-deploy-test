@@ -35,6 +35,21 @@ export interface Article {
   path: string
 }
 
+// 查找文件夹节点
+export const findFolderInTree = (path: string, tree: DirTree[]): DirTree | null => {
+  for (const item of tree) {
+    const itemPath = computedParentPath(item)
+    if (itemPath === path && item.isDirectory) {
+      return item
+    }
+    if (item.children && item.children.length > 0) {
+      const found = findFolderInTree(path, item.children)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 interface NoteState {
   loading: boolean
   setLoading: (loading: boolean) => void
@@ -937,11 +952,23 @@ const useArticleStore = create<NoteState>((set, get) => ({
     const store = await Store.load('store.json');
     const res = await store.get<string[]>('collapsibleList')
     const activeFilePath = await store.get<string>('activeFilePath')
+    set({ collapsibleList: res ? uniq(res.filter(item => !item.includes('.md'))) : [] })
+
     if (activeFilePath) {
       set({ activeFilePath })
-      get().readArticle(activeFilePath)
+
+      // 检查是否是文件夹（没有 .md 扩展名）
+      if (!activeFilePath.endsWith('.md') && !activeFilePath.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
+        // 文件夹：确保展开并加载内容
+        if (!get().collapsibleList.includes(activeFilePath)) {
+          await get().setCollapsibleList(activeFilePath, true)
+        }
+        await get().loadCollapsibleFiles(activeFilePath)
+      } else {
+        // 文件：读取内容
+        get().readArticle(activeFilePath)
+      }
     }
-    set({ collapsibleList: res ? uniq(res.filter(item => !item.includes('.md'))) : [] })
   },
   
   setCollapsibleList: async (path: string, value: boolean) => {

@@ -1,49 +1,63 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import useArticleStore from '@/stores/article'
+import useArticleStore, { findFolderInTree } from '@/stores/article'
 import { MdEditor } from './md-editor'
 import { ImageEditor } from './image-editor'
 import { EmptyState } from './empty-state'
+import { FolderView } from './folder-view'
 
 export function EditorWrapper() {
-  const { activeFilePath } = useArticleStore()
-  const [fileType, setFileType] = useState<'markdown' | 'image' | 'unknown'>('unknown')
+  const { activeFilePath, fileTree } = useArticleStore()
+  const [itemType, setItemType] = useState<'markdown' | 'image' | 'folder' | 'unknown'>('unknown')
 
   useEffect(() => {
     if (!activeFilePath) {
-      setFileType('unknown')
+      setItemType('unknown')
       return
     }
 
+    // 首先检查是否是文件夹
+    const folder = findFolderInTree(activeFilePath, fileTree)
+    if (folder) {
+      setItemType('folder')
+      return
+    }
+
+    // 检查文件扩展名
     const extension = activeFilePath.split('.').pop()?.toLowerCase()
-    
+
     if (!extension) {
-      setFileType('unknown')
+      setItemType('unknown')
       return
     }
 
     if (extension === 'md' || extension === 'txt' || extension === 'markdown') {
-      setFileType('markdown')
+      setItemType('markdown')
     } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension)) {
-      setFileType('image')
+      setItemType('image')
     } else {
-      setFileType('unknown')
+      setItemType('unknown')
     }
-  }, [activeFilePath])
+  }, [activeFilePath, fileTree])
 
   // 没有文件时显示空白状态页面
   if (!activeFilePath) {
     return <EmptyState />
   }
 
+  // 文件夹
+  if (itemType === 'folder') {
+    return <FolderView folderPath={activeFilePath} />
+  }
+
   // 图片文件
-  if (fileType === 'image') {
+  if (itemType === 'image') {
     return <ImageEditor filePath={activeFilePath} />
   }
 
   // Markdown/文本文件
-  if (fileType === 'markdown') {
+  if (itemType === 'markdown') {
     return <MdEditor />
   }
 

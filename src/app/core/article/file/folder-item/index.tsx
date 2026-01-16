@@ -54,6 +54,7 @@ export function FolderItem({ item }: { item: DirTree }) {
     setActiveFilePath,
     collapsibleList,
     setCollapsibleList,
+    loadCollapsibleFiles,
     fileTree,
     setFileTree,
     vectorIndexedFiles
@@ -364,6 +365,19 @@ export function FolderItem({ item }: { item: DirTree }) {
     setIsDragging(false)
   }
 
+  async function handleSelectFolder(e: React.MouseEvent) {
+    // 设置选中状态
+    await setActiveFilePath(path)
+
+    // 自动展开文件夹（如果未展开）
+    if (!collapsibleList.includes(path)) {
+      await setCollapsibleList(path, true)
+    }
+
+    // 加载文件夹内容
+    await loadCollapsibleFiles(path)
+  }
+
 
 
   function handleEditEnd() {
@@ -394,7 +408,8 @@ export function FolderItem({ item }: { item: DirTree }) {
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
-            className={`${isDragging ? 'file-on-drop' : ''} group file-manange-item flex select-none`}
+            className={`${isDragging ? 'file-on-drop' : ''} ${path === activeFilePath ? 'active' : ''} group file-manange-item flex select-none`}
+            onClick={handleSelectFolder}
             onContextMenu={(e) => {
               // 右键打开菜单时阻止冒泡，防止触发折叠/展开
               e.stopPropagation();
