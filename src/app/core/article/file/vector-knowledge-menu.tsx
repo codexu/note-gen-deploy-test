@@ -6,7 +6,6 @@ import { toast } from "@/hooks/use-toast"
 import useArticleStore from "@/stores/article"
 import useVectorStore from "@/stores/vector"
 import { readTextFile } from "@tauri-apps/plugin-fs"
-import { computedParentPath } from "@/lib/path"
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
@@ -21,7 +20,7 @@ interface VectorKnowledgeMenuProps {
 
 export function VectorKnowledgeMenu({ item, hasVector, onVectorUpdated }: VectorKnowledgeMenuProps) {
   const t = useTranslations('article.file')
-  const { vectorIndexedFiles, clearFileVector, checkFileVectorIndexed } = useArticleStore()
+  const { clearFileVector, checkFileVectorIndexed } = useArticleStore()
   const [autoCalcEnabled, setAutoCalcEnabled] = useState(true)
   const [excludeFromKB, setExcludeFromKB] = useState(false)
 
@@ -43,22 +42,20 @@ export function VectorKnowledgeMenu({ item, hasVector, onVectorUpdated }: Vector
 
     try {
       // 读取文件内容
-      const { getFilePathOptions, getWorkspacePath } = await import('@/lib/workspace')
-      const workspace = await getWorkspacePath()
-      const path = computedParentPath(item)
-      const pathOptions = await getFilePathOptions(path)
+      const { getFilePathOptions } = await import('@/lib/workspace')
+      const pathOptions = await getFilePathOptions(item.name)
 
       let content = ''
-      if (workspace.isCustom) {
-        content = await readTextFile(pathOptions.path)
-      } else {
+      if (pathOptions.baseDir) {
         content = await readTextFile(pathOptions.path, { baseDir: pathOptions.baseDir })
+      } else {
+        content = await readTextFile(pathOptions.path)
       }
 
       // 执行向量计算
       const vectorStore = useVectorStore.getState()
       if (vectorStore.isVectorDbEnabled) {
-        await vectorStore.processDocument(path, content)
+        await vectorStore.processDocument(pathOptions.path, content)
 
         // 更新向量索引状态
         await checkFileVectorIndexed(item.name)

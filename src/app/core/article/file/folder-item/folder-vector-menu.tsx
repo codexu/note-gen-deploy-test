@@ -7,7 +7,6 @@ import useArticleStore, { DirTree } from "@/stores/article";
 import { computedParentPath } from "@/lib/path";
 import { collectMarkdownFiles } from "@/lib/files";
 import { readTextFile, exists } from "@tauri-apps/plugin-fs";
-import { BaseDirectory } from "@tauri-apps/plugin-fs";
 import { getFilePathOptions } from "@/lib/workspace";
 
 interface FolderVectorMenuProps {
@@ -16,7 +15,7 @@ interface FolderVectorMenuProps {
 
 export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
   const t = useTranslations('article.file');
-  const { loadFileTree, checkFileVectorIndexed, clearFileVector, vectorIndexedFiles } = useArticleStore();
+  const { loadFileTree, checkFileVectorIndexed, clearFileVector } = useArticleStore();
   const path = computedParentPath(item);
 
   const [isCalculating, setIsCalculating] = useState(false);
