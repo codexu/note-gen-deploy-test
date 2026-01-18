@@ -127,8 +127,6 @@
     "mcp": {
       "title": "MCP",
       "desc": "Model Context Protocol により、AI は外部ツールを呼び出してリソースにアクセスでき、AI の能力を拡張します。",
-      "enableTitle": "MCP を有効にする",
-      "enableDesc": "有効にすると、AI は設定された MCP サーバーが提供するツールを呼び出すことができます。",
       "servers": "サーバーリスト",
       "serversDesc": "MCP サーバー設定を管理します。各サーバーは異なるツールとリソースを提供できます。",
       "addServer": "サーバーを追加",
@@ -177,7 +175,23 @@
       "testAllFailed": "接続テストに失敗しました",
       "save": "保存",
       "cancel": "キャンセル",
-      "delete": "削除"
+      "delete": "削除",
+      "importJson": "JSON をインポート",
+      "jsonImportTitle": "JSON からサーバー設定をインポート",
+      "jsonImportDesc": "MCP サーバーの mcpServers 設定形式を貼り付けます",
+      "jsonInput": "JSON 設定",
+      "jsonInputHelp": "mcpServers 形式をサポート、サーバー名が自動的に key として使用されます",
+      "jsonRequired": "JSON 設定を入力してください",
+      "jsonEmpty": "JSON 設定は空にできません",
+      "jsonInvalidJson": "JSON 形式が無効です",
+      "jsonInvalidFormat": "設定形式が無効です、name と type フィールドを含む必要があります",
+      "jsonInvalidType": "サーバータイプは stdio または http である必要があります",
+      "jsonMissingCommand": "stdio タイプのサーバーは command を指定する必要があります",
+      "jsonMissingUrl": "http タイプのサーバーは url を指定する必要があります",
+      "jsonImportSuccess": "{count} 個のサーバーを正常にインポートしました",
+      "jsonImportSkipped": "{count} 個の既存サーバーをスキップしました",
+      "jsonImportNoServers": "サーバーがインポートされませんでした",
+      "import": "インポート"
     },
     "editor": {
       "title": "Markdown エディタ",

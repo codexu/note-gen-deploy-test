@@ -121,8 +121,6 @@
     "mcp": {
       "title": "MCP",
       "desc": "Model Context Protocol 允許 AI 調用外部工具和訪問資源，擴展 AI 的能力邊界。",
-      "enableTitle": "啟用 MCP 功能",
-      "enableDesc": "啟用後，AI 可以調用配置的 MCP 伺服器提供的工具。",
       "servers": "伺服器列表",
       "serversDesc": "管理 MCP 伺服器配置，每個伺服器可以提供不同的工具和資源。",
       "addServer": "添加伺服器",
@@ -171,7 +169,23 @@
       "testAllFailed": "連接測試失敗",
       "save": "保存",
       "cancel": "取消",
-      "delete": "刪除"
+      "delete": "刪除",
+      "importJson": "導入 JSON",
+      "jsonImportTitle": "從 JSON 導入伺服器配置",
+      "jsonImportDesc": "粘貼 MCP 伺服器的 mcpServers 配置格式",
+      "jsonInput": "JSON 配置",
+      "jsonInputHelp": "支持 mcpServers 格式，會自動使用伺服器名稱作為 key",
+      "jsonRequired": "請輸入 JSON 配置",
+      "jsonEmpty": "JSON 配置不能為空",
+      "jsonInvalidJson": "JSON 格式錯誤",
+      "jsonInvalidFormat": "配置格式無效，必須包含 name 和 type 字段",
+      "jsonInvalidType": "伺服器類型必須是 stdio 或 http",
+      "jsonMissingCommand": "stdio 類型伺服器必須指定 command",
+      "jsonMissingUrl": "http 類型伺服器必須指定 url",
+      "jsonImportSuccess": "成功導入 {count} 個伺服器",
+      "jsonImportSkipped": "跳過 {count} 個已存在的伺服器",
+      "jsonImportNoServers": "沒有導入任何伺服器",
+      "import": "導入"
     },
     "editor": {
       "title": "Markdown 編輯器",

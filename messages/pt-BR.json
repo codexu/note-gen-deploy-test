@@ -129,8 +129,6 @@
     "mcp": {
       "title": "MCP",
       "desc": "O Protocolo de Contexto de Modelo (MCP) permite que a IA chame ferramentas externas e acesse recursos, expandindo as capacidades da IA.",
-      "enableTitle": "Habilitar MCP",
-      "enableDesc": "Quando habilitado, a IA pode chamar ferramentas fornecidas pelos servidores MCP configurados.",
       "servers": "Lista de Servidores",
       "serversDesc": "Gerencie as configurações do servidor MCP. Cada servidor pode fornecer diferentes ferramentas e recursos.",
       "addServer": "Adicionar Servidor",
@@ -179,7 +177,23 @@
       "testAllFailed": "Falha no teste de conexão",
       "save": "Salvar",
       "cancel": "Cancelar",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "importJson": "Importar JSON",
+      "jsonImportTitle": "Importar Configuração do Servidor de JSON",
+      "jsonImportDesc": "Cole o formato de configuração mcpServers dos servidores MCP",
+      "jsonInput": "Configuração JSON",
+      "jsonInputHelp": "Suporta formato mcpServers, usa automaticamente o nome do servidor como chave",
+      "jsonRequired": "Por favor, insira a configuração JSON",
+      "jsonEmpty": "A configuração JSON não pode estar vazia",
+      "jsonInvalidJson": "Formato JSON inválido",
+      "jsonInvalidFormat": "Formato de configuração inválido, deve conter campos name e type",
+      "jsonInvalidType": "O tipo de servidor deve ser stdio ou http",
+      "jsonMissingCommand": "Servidor tipo stdio deve especificar command",
+      "jsonMissingUrl": "Servidor tipo http deve especificar url",
+      "jsonImportSuccess": "Importado com sucesso {count} servidor(es)",
+      "jsonImportSkipped": "Ignorado {count} servidor(es) existente(s)",
+      "jsonImportNoServers": "Nenhum servidor foi importado",
+      "import": "Importar"
     },
     "editor": {
       "title": "Editor Markdown",
