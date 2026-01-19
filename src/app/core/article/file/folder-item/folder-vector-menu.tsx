@@ -15,7 +15,7 @@ interface FolderVectorMenuProps {
 
 export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
   const t = useTranslations('article.file');
-  const { loadFileTree, checkFileVectorIndexed, clearFileVector } = useArticleStore();
+  const { loadFileTree, checkFileVectorIndexed, clearFileVector, setVectorCalcStatus } = useArticleStore();
   const path = computedParentPath(item);
 
   const [isCalculating, setIsCalculating] = useState(false);
@@ -26,6 +26,7 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
     if (isCalculating) return;
 
     setIsCalculating(true);
+    setVectorCalcStatus(path, 'calculating');
 
     try {
       const markdownFiles = await collectMarkdownFiles(path);
@@ -36,6 +37,7 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
           variant: 'destructive'
         });
         setIsCalculating(false);
+        setVectorCalcStatus(path, 'idle');
         return;
       }
 
@@ -47,6 +49,9 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
           const hasVector = await checkFileVectorIndexed(file.name);
 
           if (!hasVector) {
+            // 设置文件为计算中状态
+            setVectorCalcStatus(file.path, 'calculating');
+
             // 读取文件内容
             const pathOptions = await getFilePathOptions(file.path);
             let content = '';
@@ -55,6 +60,7 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
             if (!fileExists) {
               console.warn(`文件不存在: ${file.path}`);
               failedCount++;
+              setVectorCalcStatus(file.path, 'idle');
               continue;
             }
 
@@ -67,12 +73,16 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
             // 计算向量 - 直接从 RAG 库导入
             const { processMarkdownFile } = await import('@/lib/rag');
             await processMarkdownFile(file.name, content);
+
+            // 设置文件为完成状态
+            setVectorCalcStatus(file.path, 'completed');
             successCount++;
           } else {
             successCount++; // 已有向量，跳过
           }
         } catch (error) {
           console.error(`计算文件 ${file.name} 向量失败:`, error);
+          setVectorCalcStatus(file.path, 'idle');
           failedCount++;
         }
       }
@@ -92,6 +102,9 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
       for (const file of markdownFiles) {
         await checkFileVectorIndexed(file.name);
       }
+
+      // 设置文件夹为完成状态
+      setVectorCalcStatus(path, 'completed');
       loadFileTree();
     } catch (error) {
       console.error('批量计算向量失败:', error);
@@ -99,6 +112,7 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
         title: t('context.batchCalcFailed'),
         variant: 'destructive'
       });
+      setVectorCalcStatus(path, 'idle');
     } finally {
       setIsCalculating(false);
     }

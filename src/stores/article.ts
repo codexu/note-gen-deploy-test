@@ -31,6 +31,7 @@ export interface DirTree extends DirEntry {
   createdAt?: string
   modifiedAt?: string
   loading?: boolean  // 文件夹正在加载中
+  vectorCalcStatus?: 'idle' | 'calculating' | 'completed'  // 向量计算状态
 }
 
 export interface Article {
@@ -57,7 +58,7 @@ interface NoteState {
   loading: boolean
   setLoading: (loading: boolean) => void
 
-  activeFilePath: string 
+  activeFilePath: string
   setActiveFilePath: (name: string) => void
 
   matchPosition: number | null
@@ -121,6 +122,8 @@ interface NoteState {
   checkFileVectorIndexed: (filename: string) => Promise<boolean>
   clearFileVector: (filename: string) => Promise<void>
   initVectorIndexedFiles: () => Promise<void> // 初始化向量索引状态
+  // 向量计算状态更新
+  setVectorCalcStatus: (path: string, status: 'idle' | 'calculating' | 'completed') => void
 
   allArticle: Article[]
   loadAllArticle: () => Promise<void>
@@ -1549,6 +1552,29 @@ const useArticleStore = create<NoteState>((set, get) => ({
     })
 
     await get().executeVectorCalculation()
+  },
+
+  // 设置向量计算状态
+  setVectorCalcStatus: (path: string, status: 'idle' | 'calculating' | 'completed') => {
+    const fileTree = get().fileTree
+
+    // 递归查找并更新文件/文件夹的状态
+    const updateStatus = (items: DirTree[]): boolean => {
+      for (const item of items) {
+        const itemPath = computedParentPath(item)
+        if (itemPath === path) {
+          item.vectorCalcStatus = status
+          return true
+        }
+        if (item.children && updateStatus(item.children)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    updateStatus(fileTree)
+    set({ fileTree: [...fileTree] })
   },
 
   allArticle: [],

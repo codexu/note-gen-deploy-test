@@ -2,7 +2,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuSeparator, ContextMenuTrigg
 import { Input } from "@/components/ui/input";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { BaseDirectory, exists, mkdir, rename } from "@tauri-apps/plugin-fs";
-import { ChevronRight, Cloud, Folder, FolderDot, FolderDown, FolderOpen, FolderOpenDot, Loader2, Database, Sparkles } from "lucide-react"
+import { ChevronRight, Cloud, Folder, FolderDot, FolderDown, FolderOpen, FolderOpenDot, Loader2, LoaderCircle, Database, Sparkles } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react";
 import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
@@ -104,6 +104,32 @@ export function FolderItem({ item }: { item: DirTree }) {
       isComplete: totalCount > 0 && indexedCount === totalCount
     }
   }, [item, vectorIndexedFiles])
+
+  // 渲染文件夹的向量状态图标
+  const renderFolderVectorIcon = () => {
+    if (isInSkillsFolder(path)) return null
+
+    const status = item.vectorCalcStatus
+    const vectorStatus = folderVectorStatus()
+
+    if (status === 'calculating') {
+      return (
+        <div className="flex items-center mr-2">
+          <LoaderCircle className={`${iconSize} animate-spin`} />
+        </div>
+      )
+    } else if (status === 'completed' || vectorStatus.hasVector) {
+      return (
+        <div className="flex items-center mr-2">
+          <span className={`text-xs text-muted-foreground ${vectorStatus.isComplete ? 'opacity-100' : 'opacity-60'}`}>
+            {vectorStatus.indexedCount}/{vectorStatus.totalCount}
+          </span>
+          <Database className={`${iconSize} text-muted-foreground ml-1 ${vectorStatus.isComplete ? 'opacity-100' : 'opacity-60'}`} />
+        </div>
+      )
+    }
+    return null
+  }
 
   // 移动端处理函数
   function handleNewFile() {
@@ -505,14 +531,7 @@ export function FolderItem({ item }: { item: DirTree }) {
                     <span className={`text-${fileManagerTextSize} line-clamp-1 ${item.loading ? 'text-muted-foreground' : ''}`}>{item.name}</span>
                   </div>
                   {/* 向量状态指示器 - 放在最右侧，skills 文件夹及其子内容不显示 */}
-                  {!isInSkillsFolder(path) && folderVectorStatus().hasVector && (
-                    <div className="flex items-center mr-2">
-                      <span className={`text-xs text-muted-foreground ${folderVectorStatus().isComplete ? 'opacity-100' : 'opacity-60'}`}>
-                        {folderVectorStatus().indexedCount}/{folderVectorStatus().totalCount}
-                      </span>
-                      <Database className={`${iconSize} text-muted-foreground ml-1 ${folderVectorStatus().isComplete ? 'opacity-100' : 'opacity-60'}`} />
-                    </div>
-                  )}
+                  {renderFolderVectorIcon()}
                   {isMobile && (
                     <MobileActionMenu className="ml-1">
                       <MobileMenuItem onClick={handleNewFile} disabled={!!item.sha && !item.isLocale}>

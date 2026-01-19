@@ -2,7 +2,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { Input } from "@/components/ui/input";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { BaseDirectory, exists, readTextFile, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
-import { Cloud, CloudDownload, Copy, Database, File, FolderOpen, ImageIcon, RefreshCwOff, Trash2 } from "lucide-react"
+import { Cloud, CloudDownload, Copy, Database, File, FolderOpen, ImageIcon, LoaderCircle, RefreshCwOff, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react";
 import { ask } from '@tauri-apps/plugin-dialog';
 import { Store } from '@tauri-apps/plugin-store';
@@ -64,6 +64,20 @@ export function FileItem({ item }: { item: DirTree }) {
 
   // 检查文件是否已计算向量（skills 文件夹下的文件不显示）
   const hasVector = item.isFile && !isInSkillsFolder(path) && vectorIndexedFiles.has(item.name)
+
+  // 向量计算状态图标
+  const renderVectorIcon = () => {
+    if (isInSkillsFolder(path)) return null
+
+    const status = item.vectorCalcStatus
+
+    if (status === 'calculating') {
+      return <LoaderCircle className={`${iconSize} mr-2 animate-spin`} />
+    } else if (status === 'completed' || hasVector) {
+      return <Database className={`${iconSize} text-muted-foreground mr-2 opacity-60`} />
+    }
+    return null
+  }
 
   const isRoot = path.split('/').length === 1
   const folderPath = path.includes('/') ? path.split('/').slice(0, -1).join('/') : ''
@@ -728,7 +742,7 @@ export function FileItem({ item }: { item: DirTree }) {
                     { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
-                  {path === activeFilePath && hasVector && <Database className={`${iconSize} text-muted-foreground mr-2 opacity-60`} />}
+                  {path === activeFilePath && renderVectorIcon()}
                 </div>
                 {isMobile && (
                   <MobileActionMenu className="ml-1">
@@ -770,7 +784,7 @@ export function FileItem({ item }: { item: DirTree }) {
                     { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
-                  {path === activeFilePath && hasVector && <Database className={`${iconSize} text-muted-foreground mr-2 opacity-60`} />}
+                  {path === activeFilePath && renderVectorIcon()}
                 </div>
                 {isMobile && (
                   <MobileActionMenu className="ml-1">
