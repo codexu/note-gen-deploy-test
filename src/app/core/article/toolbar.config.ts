@@ -23,13 +23,12 @@ export const createToolbarConfig = () => {
     // 注意：editor-search 是动态添加的自定义按钮，不在这里定义
     // 实际的按钮会在 MdEditor 组件中动态添加到工具栏
     { name: 'preview', tipPosition: 's' },
-    { name: 'outline', tipPosition: 's' },
   ]
 
   if (isMobileDevice()) {
-    // 移动端：显示所有编辑工具，但不显示 edit-mode、preview、outline
-    return allTools.filter(tool => 
-      !['edit-mode', 'preview', 'outline'].includes(tool.name)
+    // 移动端：显示所有编辑工具，但不显示 edit-mode、preview
+    return allTools.filter(tool =>
+      !['edit-mode', 'preview'].includes(tool.name)
     )
   }
 

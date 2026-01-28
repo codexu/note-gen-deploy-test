@@ -1450,6 +1450,7 @@
     "logout": "Logout",
     "setting": "Settings",
     "files": "Notes",
+    "outline": "Outline",
     "showLeftSidebar": "Show Left Sidebar",
     "hideLeftSidebar": "Hide Left Sidebar",
     "showCenterPanel": "Show Editor",

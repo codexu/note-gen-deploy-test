@@ -187,6 +187,10 @@ export function MdEditor() {
       after: () => {
         setEditor(vditor);
         editorRef.current = vditor;
+        // 保存编辑器实例到全局，供其他组件使用
+        (window as any).vditorInstance = vditor;
+        emitter.emit('vditor:ready', vditor);
+        emitter.emit('editor-mode-changed', localMode);
 
         // 切换记录编辑模式
         const editModeButtons = vditor.vditor.element.querySelectorAll('.edit-mode-button .vditor-hint button')
@@ -195,6 +199,7 @@ export function MdEditor() {
             const mode = button.getAttribute('data-mode')
             if (!mode) return
             setLocalMode(mode as 'ir' | 'sv' | 'wysiwyg')
+            emitter.emit('editor-mode-changed', mode)
           })
         })
 

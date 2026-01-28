@@ -1,9 +1,10 @@
 'use client'
 
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Files, Highlighter } from "lucide-react"
+import { Files, Highlighter, ListTree } from "lucide-react"
 import { FileSidebar } from "../article/file"
 import { NoteSidebar } from "../record/mark"
+import { OutlineSidebar } from "./outline-sidebar"
 import { FileActions } from "../article/file/file-actions"
 import { MarkActions } from "../record/mark/mark-actions"
 import { useTranslations } from "next-intl"
@@ -14,6 +15,7 @@ import { AnimatePresence, motion } from "framer-motion"
 const SIDEBAR_TABS = [
   { title: "files", icon: Files },
   { title: "notes", icon: Highlighter },
+  { title: "outline", icon: ListTree },
 ] as const
 
 export function LeftSidebar() {
@@ -33,7 +35,11 @@ export function LeftSidebar() {
   // Prepare tabs with translated titles
   const tabs = SIDEBAR_TABS.map(tab => ({
     ...tab,
-    title: t(`navigation.${tab.title === 'notes' ? 'record' : tab.title}`),
+    title: t(`navigation.${
+      tab.title === 'notes' ? 'record' :
+      tab.title === 'outline' ? 'outline' :
+      tab.title
+    }`),
   }))
 
   return (
@@ -77,6 +83,9 @@ export function LeftSidebar() {
         </TabsContent>
         <TabsContent value="notes" className="flex-1 m-0 overflow-hidden">
           <NoteSidebar />
+        </TabsContent>
+        <TabsContent value="outline" className="flex-1 m-0 overflow-hidden">
+          <OutlineSidebar />
         </TabsContent>
       </Tabs>
     </div>
