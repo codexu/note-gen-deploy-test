@@ -1278,7 +1278,8 @@
         "copied": "Copiado"
       },
       "ragSources": {
-        "label": "Arquivos Referenciados"
+        "label": "Encontrado {count} notas na base de conhecimento",
+        "openFile": "Abrir arquivo"
       },
       "preview": {
         "close": "Fechar",

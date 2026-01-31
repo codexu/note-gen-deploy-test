@@ -142,8 +142,16 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
 
         // 更新占位消息，保留 RAG 相关字段
         await saveChat({
-          ...placeholderMessage,
-          ...(currentMessage || {}), // 保留当前消息的所有字段（包括 ragSources 等）
+          id: placeholderMessage.id,
+          tagId: placeholderMessage.tagId,
+          role: placeholderMessage.role,
+          type: placeholderMessage.type,
+          inserted: placeholderMessage.inserted,
+          createdAt: placeholderMessage.createdAt,
+          // 保留来自 currentMessage 的 RAG 相关字段
+          ragSources: currentMessage?.ragSources,
+          ragSourceDetails: currentMessage?.ragSourceDetails,
+          // 设置新的内容
           content: finalContent,
           agentHistory: JSON.stringify(agentHistory),
         }, true)
@@ -158,8 +166,15 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
 
         // 更新占位消息为错误信息，保留 RAG 相关字段
         await saveChat({
-          ...placeholderMessage,
-          ...(currentMessage || {}), // 保留当前消息的所有字段（包括 ragSources 等）
+          id: placeholderMessage.id,
+          tagId: placeholderMessage.tagId,
+          role: placeholderMessage.role,
+          type: placeholderMessage.type,
+          inserted: placeholderMessage.inserted,
+          createdAt: placeholderMessage.createdAt,
+          // 保留来自 currentMessage 的 RAG 相关字段
+          ragSources: currentMessage?.ragSources,
+          ragSourceDetails: currentMessage?.ragSourceDetails,
           content: `Error: ${error}`,
         }, true)
 
@@ -211,6 +226,12 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
 
             ragSources = ragResult.sources
             ragSourceDetails = ragResult.sourceDetails
+
+            // 设置到 agentState，用于实时显示
+            setAgentState({
+              ragSources,
+              ragSourceDetails,
+            })
 
             if (ragResult.context) {
               // 找到相关内容

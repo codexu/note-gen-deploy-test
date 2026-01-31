@@ -48,6 +48,7 @@ interface ReActStep {
     params: Record<string, any>;
   };
   observation?: string;
+  duration?: number;
 }
 
 // Props for the unified AgentPlan component
@@ -80,6 +81,9 @@ interface AgentPlanProps {
 
   // i18n namespace (optional, defaults to 'record.chat.input.agent')
   i18nNs?: string;
+
+  // Embedded mode: render without outer container (for use in combined panels)
+  embedded?: boolean;
 }
 
 // Internal step representation for unified display
@@ -114,6 +118,7 @@ export function AgentPlan({
   onConfirm,
   onCancel,
   i18nNs = "record.chat.input.agent",
+  embedded = false,
 }: AgentPlanProps) {
   const t = useTranslations(i18nNs);
   const [expandedTasks, setExpandedTasks] = React.useState<string[]>([]);
@@ -468,6 +473,178 @@ export function AgentPlan({
     return `${minutes}m ${seconds}s`;
   };
 
+  // 渲染步骤列表内容（用于 embedded 和非 embedded 模式）
+  const renderSteps = () => (
+    <>
+      {displaySteps.map((step, index) => {
+        const isExpanded = expandedTasks.includes(step.id);
+        const isCompleted = step.status === "completed";
+
+        return (
+          <li
+            key={step.id}
+            className={`${index !== 0 ? "mt-1 pt-2" : ""}`}
+          >
+            {/* Step row */}
+            <div className="group flex items-center gap-2 py-1">
+              <div
+                className="shrink-0 cursor-pointer"
+                onClick={() => toggleStepExpansion(step.id)}
+              >
+                <div className="cursor-pointer">
+                  {getStatusIcon(step.status)}
+                </div>
+              </div>
+
+              <div
+                className="flex min-w-0 grow cursor-pointer items-center justify-between"
+                onClick={() => toggleStepExpansion(step.id)}
+              >
+                <div className="flex-1 truncate">
+                  <span
+                    className={`${
+                      isCompleted ? "text-muted-foreground" : ""
+                    }`}
+                  >
+                    {extractTitle(step)}
+                  </span>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* 耗时显示 */}
+                  {step.duration !== undefined && (
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {formatDuration(step.duration)}
+                    </span>
+                  )}
+                  <ChevronRight
+                    className={`size-4 text-muted-foreground shrink-0 transition-transform ${
+                      isExpanded ? "rotate-90" : ""
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Expanded details */}
+            {isExpanded && (
+              <div className="border-muted mt-1 mr-2 mb-1.5 ml-6 space-y-2">
+                {/* Thought */}
+                {step.thought && (
+                  <div className="text-muted-foreground border-foreground/20 border-l border-dashed pl-3 text-xs">
+                    <div className="flex items-center gap-2 py-1">
+                      <Brain className="size-3.5 text-blue-500 shrink-0" />
+                      <span className="font-medium text-xs">
+                        {t("thought")}
+                      </span>
+                    </div>
+                    <p className="whitespace-pre-wrap wrap-break-word py-1">
+                      {step.thought}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action */}
+                {step.action && (
+                  <div className="text-muted-foreground border-foreground/20 border-l border-dashed pl-3 text-xs">
+                    <div className="flex items-center gap-2 py-1">
+                      <Zap className="size-3.5 text-yellow-500 shrink-0" />
+                      <span className="font-medium text-xs">
+                        {t("action")}
+                      </span>
+                    </div>
+                    <div className="text-xs font-mono truncate" title={JSON.stringify(step.action.params)}>
+                      {step.action.tool}
+                      {Object.keys(step.action.params).length > 0 ? '(...)' : '()'}
+                    </div>
+                  </div>
+                )}
+
+                {/* Observation */}
+                {step.observation && (
+                  <div className="text-muted-foreground border-foreground/20 border-l border-dashed pl-3 text-xs">
+                    <div className="flex items-center gap-2 py-1">
+                      <Eye className="size-3.5 text-green-500 shrink-0" />
+                      <span className="font-medium text-xs">
+                        {t("observation")}
+                      </span>
+                    </div>
+                    <p className="whitespace-pre-wrap wrap-break-word py-1">
+                      {step.observation}
+                    </p>
+                  </div>
+                )}
+
+                {/* Confirmation record */}
+                {step.confirmation && (
+                  <div className="flex items-center gap-2 py-1.5 px-3 border-t">
+                    {step.confirmation.status === "confirmed" ? (
+                      <CheckCircle className="size-4 text-green-500 shrink-0" />
+                    ) : (
+                      <XCircle className="size-4 text-red-500 shrink-0" />
+                    )}
+                    <code className="text-sm text-muted-foreground flex-1 wrap-break-word font-mono">
+                      {step.confirmation.toolName}
+                    </code>
+                  </div>
+                )}
+
+                {/* Tools */}
+                {step.tools && step.tools.length > 0 && (
+                  <div className="mt-0.5 mb-1 flex flex-wrap items-center gap-1.5 pl-3">
+                    <span className="text-muted-foreground font-medium text-xs">
+                      Tools:
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {step.tools.map((tool, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-secondary/40 text-secondary-foreground rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm"
+                        >
+                          {tool}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </li>
+        );
+      })}
+
+      {/* Current step confirmation (live mode only) */}
+      {mode === "live" && pendingConfirmation && (
+        <li className="mt-1 pt-2">
+          <div className="group flex items-center px-3 py-1.5 rounded-md border border-border/50 bg-muted/30">
+            <Clock className="mr-2 size-4.5 text-orange-500 shrink-0 animate-pulse" />
+            <code className="text-sm text-muted-foreground flex-1 truncate min-w-0 font-mono">
+              {pendingConfirmation.toolName}
+            </code>
+            <div className="flex gap-1 shrink-0">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                onClick={handleCancel}
+              >
+                <XCircle className="size-4 text-red-500" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                onClick={handleConfirm}
+              >
+                <CheckCircle className="size-4 text-green-500" />
+              </Button>
+            </div>
+          </div>
+        </li>
+      )}
+    </>
+  );
+
   // Show loading state in live mode
   if (mode === "live" && isRunning && displaySteps.length === 0) {
     return (
@@ -501,177 +678,18 @@ export function AgentPlan({
     );
   }
 
+  // Embedded 模式：只返回 <li> 元素
+  if (embedded) {
+    return <>{renderSteps()}</>
+  }
+
+  // 标准模式：返回完整的容器
   return (
     <div className="w-full mb-4">
       {/* 步骤列表 */}
       <div className="overflow-hidden" ref={contentRef}>
         <ul className="space-y-1">
-          {displaySteps.map((step, index) => {
-            const isExpanded = expandedTasks.includes(step.id);
-            const isCompleted = step.status === "completed";
-
-            return (
-              <li
-                key={step.id}
-                className={`${index !== 0 ? "mt-1 pt-2" : ""}`}
-              >
-                  {/* Step row */}
-                  <div className="group flex items-center gap-2 py-1">
-                    <div
-                      className="flex-shrink-0 cursor-pointer"
-                      onClick={() => toggleStepExpansion(step.id)}
-                    >
-                      <div className="cursor-pointer">
-                        {getStatusIcon(step.status)}
-                      </div>
-                    </div>
-
-                    <div
-                      className="flex min-w-0 flex-grow cursor-pointer items-center justify-between"
-                      onClick={() => toggleStepExpansion(step.id)}
-                    >
-                      <div className="flex-1 truncate">
-                        <span
-                          className={`${
-                            isCompleted ? "text-muted-foreground" : ""
-                          }`}
-                        >
-                          {extractTitle(step)}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-shrink-0 items-center gap-2">
-                        {/* 耗时显示 */}
-                        {step.duration !== undefined && (
-                          <span className="text-xs text-muted-foreground tabular-nums">
-                            {formatDuration(step.duration)}
-                          </span>
-                        )}
-                        <ChevronRight
-                          className={`size-4 text-muted-foreground flex-shrink-0 transition-transform ${
-                            isExpanded ? "rotate-90" : ""
-                          }`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expanded details */}
-                  {isExpanded && (
-                    <div className="border-muted mt-1 mr-2 mb-1.5 ml-6 space-y-2">
-                      {/* Thought */}
-                      {step.thought && (
-                        <div className="text-muted-foreground border-foreground/20 border-l border-dashed pl-3 text-xs">
-                          <div className="flex items-center gap-2 py-1">
-                            <Brain className="size-3.5 text-blue-500 flex-shrink-0" />
-                            <span className="font-medium text-xs">
-                              {t("thought")}
-                            </span>
-                          </div>
-                          <p className="whitespace-pre-wrap break-words py-1">
-                            {step.thought}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Action */}
-                      {step.action && (
-                        <div className="text-muted-foreground border-foreground/20 border-l border-dashed pl-3 text-xs">
-                          <div className="flex items-center gap-2 py-1">
-                            <Zap className="size-3.5 text-yellow-500 flex-shrink-0" />
-                            <span className="font-medium text-xs">
-                              {t("action")}
-                            </span>
-                          </div>
-                          <div className="text-xs font-mono truncate" title={JSON.stringify(step.action.params)}>
-                            {step.action.tool}
-                            {Object.keys(step.action.params).length > 0 ? '(...)' : '()'}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Observation */}
-                      {step.observation && (
-                        <div className="text-muted-foreground border-foreground/20 border-l border-dashed pl-3 text-xs">
-                          <div className="flex items-center gap-2 py-1">
-                            <Eye className="size-3.5 text-green-500 flex-shrink-0" />
-                            <span className="font-medium text-xs">
-                              {t("observation")}
-                            </span>
-                          </div>
-                          <p className="whitespace-pre-wrap break-words py-1">
-                            {step.observation}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Confirmation record */}
-                      {step.confirmation && (
-                        <div className="flex items-center gap-2 py-1.5 px-3 border-t">
-                          {step.confirmation.status === "confirmed" ? (
-                            <CheckCircle className="size-4 text-green-500 flex-shrink-0" />
-                          ) : (
-                            <XCircle className="size-4 text-red-500 flex-shrink-0" />
-                          )}
-                          <code className="text-sm text-muted-foreground flex-1 break-words font-mono">
-                            {step.confirmation.toolName}
-                          </code>
-                        </div>
-                      )}
-
-                      {/* Tools */}
-                      {step.tools && step.tools.length > 0 && (
-                        <div className="mt-0.5 mb-1 flex flex-wrap items-center gap-1.5 pl-3">
-                          <span className="text-muted-foreground font-medium text-xs">
-                            Tools:
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {step.tools.map((tool, idx) => (
-                              <span
-                                key={idx}
-                                className="bg-secondary/40 text-secondary-foreground rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm"
-                              >
-                                {tool}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-              </li>
-            );
-          })}
-
-          {/* Current step confirmation (live mode only) */}
-          {mode === "live" && pendingConfirmation && (
-            <li className="mt-1 pt-2">
-              <div className="group flex items-center px-3 py-1.5 rounded-md border border-border/50 bg-muted/30">
-                <Clock className="mr-2 size-4.5 text-orange-500 flex-shrink-0 animate-pulse" />
-                <code className="text-sm text-muted-foreground flex-1 truncate min-w-0 font-mono">
-                  {pendingConfirmation.toolName}
-                </code>
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={handleCancel}
-                  >
-                    <XCircle className="size-4 text-red-500" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={handleConfirm}
-                  >
-                    <CheckCircle className="size-4 text-green-500" />
-                  </Button>
-                </div>
-              </div>
-            </li>
-          )}
+          {renderSteps()}
         </ul>
       </div>
     </div>

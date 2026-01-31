@@ -113,6 +113,8 @@ const useChatStore = create<ChatState>((set, get) => ({
     loadedSkills: undefined,
     selectedSkills: undefined,
     currentStepStartTime: undefined,
+    ragSources: undefined,
+    ragSourceDetails: undefined,
   },
 
   setAgentState: (state: Partial<AgentState>) => {
@@ -120,6 +122,7 @@ const useChatStore = create<ChatState>((set, get) => ({
   },
 
   resetAgentState: () => {
+    const currentState = get().agentState
     set({
       agentState: {
         isRunning: false,
@@ -137,6 +140,9 @@ const useChatStore = create<ChatState>((set, get) => ({
         loadedSkills: undefined,
         selectedSkills: undefined,
         currentStepStartTime: undefined,
+        // 保留 RAG 字段，因为它们应该在整个 Agent 执行期间显示
+        ragSources: currentState.ragSources,
+        ragSourceDetails: currentState.ragSourceDetails,
       }
     })
   },

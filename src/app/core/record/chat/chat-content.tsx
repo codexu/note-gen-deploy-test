@@ -16,10 +16,9 @@ import ChatThinking from './chat-thinking'
 import { Separator } from '@/components/ui/separator'
 import { scrollToBottom } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { RagSources } from './rag-sources'
 import { McpToolCallCard } from './mcp-tool-call'
 import { AgentExecutionStatus } from './agent-execution-status'
-import { AgentHistory } from './agent-history'
+import { AgentPanelWithRag } from './agent-panel-with-rag'
 import { ChatImages } from "./chat-images"
 
 const ChatContent = React.memo(function ChatContent() {
@@ -275,65 +274,63 @@ const Message = React.memo(function Message({ chat }: { chat: Chat }) {
 
     default:
       return <MessageWrapper chat={chat}>
-        <div className="w-full">
-          {/* RAG 来源 - 显示在 AI 消息的最上方，在 Agent 执行历史之前 */}
-          {chat.role === 'system' && ragSources.length > 0 && (
-            <RagSources sources={ragSources} sourceDetails={ragSourceDetails} />
-          )}
+        {chat.role === 'system' ? (
+          // AI 消息：所有内容放在一个容器中
+          <div className="w-full space-y-4">
+            {/* 合并的 RAG 和 Agent 面板 - 只在有 agentHistory 时显示（历史模式） */}
+            {/* 实时执行时，RAG 和 Agent 步骤在 AgentExecutionStatusWrapper 中统一显示 */}
+            {chat.agentHistory && (
+              <AgentPanelWithRag
+                ragSources={ragSources}
+                ragSourceDetails={ragSourceDetails}
+                agentHistoryJson={chat.agentHistory}
+              />
+            )}
 
-          {/* Agent 执行历史 - 显示保存的历史记录 */}
-          {chat.role === 'system' && chat.agentHistory && (
-            <div className="flex w-full min-w-0">
-              <div className='text-sm leading-6 flex-1 wrap-break-word min-w-0 overflow-hidden'>
-                <AgentHistory historyJson={chat.agentHistory} />
+            {/* MCP 工具调用展示 */}
+            {mcpToolCalls.length > 0 && (
+              <div className="space-y-4">
+                {mcpToolCalls.map(toolCall => (
+                  <McpToolCallCard key={toolCall.id} toolCall={toolCall} />
+                ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* MCP 工具调用展示 */}
-          {mcpToolCalls.length > 0 && (
-            <div className="space-y-4 mb-4">
-              {mcpToolCalls.map(toolCall => (
-                <McpToolCallCard key={toolCall.id} toolCall={toolCall} />
-              ))}
-            </div>
-          )}
-          {/* 显示用户消息中的图片 */}
-          {chat.role === 'user' && images.length > 0 && (
-            <ChatImages images={images} />
-          )}
-          {/* 显示用户消息中的引用 */}
-          {chat.role === 'user' && quoteData && (
-            <div className="mb-2 p-2 border-l-2 border-primary bg-muted/50 rounded">
-              <div className="text-xs text-primary-foreground/80 mb-1 font-medium">
-                {quoteData.startLine !== -1 && quoteData.endLine !== -1 ? (
-                  quoteData.startLine === quoteData.endLine ? (
-                    `引用自 ${quoteData.fileName} 第 ${quoteData.startLine} 行`
+            <ChatThinking chat={chat} />
+            <ChatPreview text={content || ''} />
+            <MessageControl chat={chat}>
+              <MarkText chat={chat} />
+            </MessageControl>
+          </div>
+        ) : (
+          // 用户消息
+          <div className="w-full space-y-3">
+            {/* 显示用户消息中的图片 */}
+            {images.length > 0 && <ChatImages images={images} />}
+            {/* 显示用户消息中的引用 */}
+            {quoteData && (
+              <div className="p-2 border-l-2 border-primary bg-muted/50 rounded">
+                <div className="text-xs text-primary-foreground/80 mb-1 font-medium">
+                  {quoteData.startLine !== -1 && quoteData.endLine !== -1 ? (
+                    quoteData.startLine === quoteData.endLine ? (
+                      `引用自 ${quoteData.fileName} 第 ${quoteData.startLine} 行`
+                    ) : (
+                      `引用自 ${quoteData.fileName} 第 ${quoteData.startLine}-${quoteData.endLine} 行`
+                    )
                   ) : (
-                    `引用自 ${quoteData.fileName} 第 ${quoteData.startLine}-${quoteData.endLine} 行`
-                  )
-                ) : (
-                  `引用自 ${quoteData.fileName}`
-                )}
+                    `引用自 ${quoteData.fileName}`
+                  )}
+                </div>
+                <div className="text-xs text-primary-foreground/70 line-clamp-3 whitespace-pre-wrap">
+                  {quoteData.fullContent}
+                </div>
               </div>
-              <div className="text-xs text-primary-foreground/70 line-clamp-3 whitespace-pre-wrap">
-                {quoteData.fullContent}
-              </div>
-            </div>
-          )}
-          {chat.role === 'user' && content && (
-            <div className="whitespace-pre-wrap">{content}</div>
-          )}
-          {chat.role === 'system' && (
-            <>
-              <ChatThinking chat={chat} />
-              <ChatPreview text={content || ''} />
-              <MessageControl chat={chat}>
-                <MarkText chat={chat} />
-              </MessageControl>
-            </>
-          )}
-        </div>
+            )}
+            {content && (
+              <div className="whitespace-pre-wrap">{content}</div>
+            )}
+          </div>
+        )}
       </MessageWrapper>
   }
 })

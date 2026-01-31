@@ -1218,7 +1218,8 @@
         "copied": "コピーしました"
       },
       "ragSources": {
-        "label": "参照ファイル"
+        "label": "ナレッジベースで {count} 件のメモを検索",
+        "openFile": "ファイルを開く"
       },
       "preview": {
         "close": "閉じる",

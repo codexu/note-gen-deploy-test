@@ -1217,7 +1217,8 @@
         "copied": "已複製"
       },
       "ragSources": {
-        "label": "引用文件"
+        "label": "知識庫檢索到 {count} 篇筆記",
+        "openFile": "打開文件"
       },
       "preview": {
         "close": "關閉",

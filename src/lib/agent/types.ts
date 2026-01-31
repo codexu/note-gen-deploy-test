@@ -63,6 +63,13 @@ export interface AgentState {
   }> // 当前对话加载的 Skills 列表
   selectedSkills?: string[] // AI 选择的 Skill ID 列表
   currentStepStartTime?: number // 当前步骤开始时间戳（用于实时计算耗时）
+  // RAG 相关字段（实时执行时显示）
+  ragSources?: string[] // RAG 检索到的来源文件列表
+  ragSourceDetails?: Array<{
+    filepath: string
+    filename: string
+    content: string
+  }> // RAG 检索到的来源文件详情
 }
 
 export interface ReActStep {

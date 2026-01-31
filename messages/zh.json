@@ -1416,7 +1416,8 @@
         "copied": "已复制"
       },
       "ragSources": {
-        "label": "引用文件"
+        "label": "知识库检索到 {count} 篇笔记",
+        "openFile": "打开文件"
       },
       "preview": {
         "close": "关闭",

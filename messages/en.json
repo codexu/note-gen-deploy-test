@@ -1419,7 +1419,8 @@
         "copied": "Copied"
       },
       "ragSources": {
-        "label": "Referenced Files"
+        "label": "Found {count} notes in knowledge base",
+        "openFile": "Open file"
       },
       "preview": {
         "close": "Close",

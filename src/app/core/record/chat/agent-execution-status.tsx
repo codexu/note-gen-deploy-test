@@ -1,10 +1,10 @@
 import * as React from "react"
 import useChatStore from "@/stores/chat"
-import { AgentPlan } from "@/components/ui/agent-plan"
+import { AgentPanelWithRag } from "./agent-panel-with-rag"
 
 /**
  * Agent execution status component - displays real-time agent execution state
- * This component now uses the unified AgentPlan component for consistent styling
+ * This component uses AgentPanelWithRag to show both RAG sources and Agent steps together
  */
 export function AgentExecutionStatus() {
   const { agentState, setAgentState } = useChatStore()
@@ -47,8 +47,9 @@ export function AgentExecutionStatus() {
   }
 
   return (
-    <AgentPlan
-      mode="live"
+    <AgentPanelWithRag
+      ragSources={agentState.ragSources || []}
+      ragSourceDetails={agentState.ragSourceDetails || []}
       isRunning={agentState.isRunning}
       isThinking={agentState.isThinking}
       currentThought={agentState.currentThought}
