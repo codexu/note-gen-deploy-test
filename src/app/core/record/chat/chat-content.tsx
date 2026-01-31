@@ -25,11 +25,26 @@ const ChatContent = React.memo(function ChatContent() {
   const { chats, init, agentState, loading } = useChatStore()
   const { currentTagId } = useTagStore()
   const [isOnBottom, setIsOnBottom] = useState(true)
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true)
 
   const handleScroll = useCallback(() => {
     const md = document.querySelector('#chats-wrapper')
     if (!md) return
-    setIsOnBottom(md.scrollHeight - md.scrollTop - md.clientHeight < 1)
+    const onBottom = md.scrollHeight - md.scrollTop - md.clientHeight < 1
+    setIsOnBottom(onBottom)
+
+    // 当用户滚动到顶部时，禁用自动滚动；滚动到底部时，启用自动滚动
+    if (onBottom) {
+      setAutoScrollEnabled(true)
+    } else {
+      setAutoScrollEnabled(false)
+    }
+  }, [])
+
+  // 手动滚动到底部并启用自动滚动
+  const handleScrollToBottom = useCallback(() => {
+    scrollToBottom()
+    setAutoScrollEnabled(true)
   }, [])
 
   useEffect(() => {
@@ -45,26 +60,26 @@ const ChatContent = React.memo(function ChatContent() {
     init(currentTagId)
   }, [currentTagId, init])
 
-  // 监听消息变化，在底部时自动滚动
+  // 监听消息变化，仅在启用自动滚动时才滚动
   useEffect(() => {
-    if (isOnBottom) {
+    if (autoScrollEnabled) {
       scrollToBottom()
     }
-  }, [chats, isOnBottom])
+  }, [chats, autoScrollEnabled])
 
-  // Agent 执行时自动滚动到底部
+  // Agent 执行时，仅在启用自动滚动时才滚动到底部
   useEffect(() => {
-    if (agentState.isRunning) {
+    if (autoScrollEnabled && agentState.isRunning) {
       scrollToBottom()
     }
-  }, [agentState.currentThought, agentState.thoughtHistory, agentState.pendingConfirmation, agentState.isRunning])
+  }, [agentState.currentThought, agentState.thoughtHistory, agentState.pendingConfirmation, agentState.isRunning, autoScrollEnabled])
 
-  // Loading 状态变化时自动滚动到底部
+  // Loading 状态变化时，仅在启用自动滚动时才滚动到底部
   useEffect(() => {
-    if (loading) {
+    if (autoScrollEnabled && loading) {
       scrollToBottom()
     }
-  }, [loading])
+  }, [loading, autoScrollEnabled])
 
   // 判断是否应该显示 loading：loading=true 且最后一个 AI 消息还没有内容
   const shouldShowLoading = useMemo(() => {
@@ -101,7 +116,7 @@ const ChatContent = React.memo(function ChatContent() {
     )}
 
     {
-      !isOnBottom && <Button variant="outline" className='sticky bottom-0 size-8 right-0' onClick={scrollToBottom}>
+      !isOnBottom && <Button variant="outline" className='sticky bottom-0 size-8 right-0' onClick={handleScrollToBottom}>
         <ArrowDownToLine className='size-4' />
       </Button>
     }
