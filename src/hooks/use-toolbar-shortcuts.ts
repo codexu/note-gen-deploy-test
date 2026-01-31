@@ -57,7 +57,7 @@ export function useToolbarShortcuts() {
         try {
           await register(shortcutKey, (event) => {
             if (event.state === 'Pressed') {
-              emitter.emit(`toolbar-shortcut-${item.id}`)
+              emitter.emit(`toolbar-shortcut-${item.id}` as any)
             }
           })
           registeredShortcutsRef.current.push(shortcutKey)

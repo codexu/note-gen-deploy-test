@@ -22,11 +22,11 @@ export default function AutoCompletionToggle() {
 
   // 同步初始状态
   useEffect(() => {
-    emitter.emit('auto-completion-enabled-changed', isEnabled);
+    emitter.emit('auto-completion-enabled-changed', isEnabled ?? true);
   }, []);
 
   const handleToggle = () => {
-    const newValue = !isEnabled;
+    const newValue = !(isEnabled ?? true);
     setIsEnabled(newValue);
     // 立即通过 emitter 发送状态变化
     emitter.emit('auto-completion-enabled-changed', newValue);
@@ -34,16 +34,16 @@ export default function AutoCompletionToggle() {
 
   return (
     <div className="items-center gap-1 hidden md:flex">
-      <Button 
+      <Button
         variant="ghost"
-        size="icon" 
+        size="icon"
         className="outline-none"
         onClick={handleToggle}
-        title={isEnabled ? "关闭 AI 自动补全" : "开启 AI 自动补全"}
+        title={(isEnabled ?? true) ? "关闭 AI 自动补全" : "开启 AI 自动补全"}
       >
         {isLoading ? (
           <Loader2 className="!size-3.5 animate-spin" />
-        ) : isEnabled ? (
+        ) : (isEnabled ?? true) ? (
           <Zap className="!size-3.5" />
         ) : (
           <Zap className="!size-3.5 text-muted-foreground" />

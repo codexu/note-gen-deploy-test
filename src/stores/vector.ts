@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { initVectorDb, processAllMarkdownFiles, processMarkdownFile, checkEmbeddingModelAvailable } from '@/lib/rag';
+import { initVectorDb, processAllMarkdownFiles, processMarkdownFile, checkEmbeddingModelAvailable, initBM25Search } from '@/lib/rag';
 import { checkRerankModelAvailable } from '@/lib/ai/embedding';
 import { Store } from "@tauri-apps/plugin-store";
 import { toast } from '@/hooks/use-toast';
@@ -41,7 +41,10 @@ const useVectorStore = create<VectorState>((set, get) => ({
   initVectorDb: async () => {
     try {
       await initVectorDb();
-      
+
+      // 初始化 BM25 索引
+      await initBM25Search();
+
       // 读取用户设置
       const store = await Store.load('store.json');
       const isVectorDbEnabled = await store.get<boolean>('isVectorDbEnabled') || false;
@@ -164,6 +167,9 @@ const useVectorStore = create<VectorState>((set, get) => ({
         lastProcessTime: currentTime,
         documentCount: result.success
       });
+
+      // 重新初始化 BM25 索引
+      await initBM25Search();
 
       // 显示处理结果
       let description = `成功处理 ${result.success} 个文档`;

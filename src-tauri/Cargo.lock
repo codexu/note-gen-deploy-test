@@ -3408,6 +3408,7 @@ dependencies = [
  "openssl",
  "percent-encoding",
  "rayon",
+ "regex",
  "reqwest_dav",
  "serde",
  "serde_json",

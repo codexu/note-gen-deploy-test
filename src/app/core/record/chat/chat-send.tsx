@@ -49,6 +49,32 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
   const agentHandlerRef = useRef<AgentHandler | null>(null)
   const t = useTranslations()
 
+  // RAG 关键词停用词过滤
+  // 过滤掉没有实际检索意义的虚词
+  const filterRAGKeywords = (keywords: {text: string, weight: number}[]) => {
+    const stopWords = new Set([
+      // 中文虚词/系动词
+      '的', '了', '是', '在', '有', '和', '就', '不', '人', '都', '一', '一个',
+      '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看',
+      '好', '自己', '这', '那', '里', '就是', '为', '与', '之', '用', '可以',
+      '但', '而', '或', '及', '等', '对', '把', '被', '让', '给', '从', '向',
+      '什么', '怎么', '怎样', '如何', '为什么', '哪些', '多少',
+
+      // 英文停用词
+      'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+      'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
+      'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+      'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those',
+      'what', 'how', 'why', 'where', 'when', 'who', 'which'
+    ])
+
+    return keywords.filter(k => {
+      const text = k.text.trim().toLowerCase()
+      // 过滤掉停用词和单字
+      return !stopWords.has(text) && text.length > 1
+    })
+  }
+
   useImperativeHandle(ref, () => ({
     sendChat: handleSubmit
   }))
@@ -159,7 +185,10 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
       if (isRagEnabled) {
         try {
           // 基于 TextRank 算法提取前 5 个关键词
-          const keywords = await invoke<{text: string, weight: number}[]>('rank_keywords', { text: inputValue, topK: 5 })
+          let keywords = await invoke<{text: string, weight: number}[]>('rank_keywords', { text: inputValue, topK: 5 })
+          // 过滤掉停用词（如"是"、"的"等没有检索意义的虚词）
+          keywords = filterRAGKeywords(keywords)
+          console.log('[RAG Chat] 过滤后关键词:', keywords.map(k => `${k.text}(${k.weight.toFixed(2)})`).join(', '))
 
           // 根据关联资源类型选择检索方式
           let ragResult: { context: string; sources: string[]; sourceDetails: RagSource[] }
@@ -347,7 +376,10 @@ ${linkedFileContent}
     if (isRagEnabled) {
       try {
         // 基于TextRank算法提取前3个关键词
-        const keywords = await invoke<{text: string, weight: number}[]>('rank_keywords', { text: inputValue, topK: 5 })
+        let keywords = await invoke<{text: string, weight: number}[]>('rank_keywords', { text: inputValue, topK: 5 })
+        // 过滤掉停用词（如"是"、"的"等没有检索意义的虚词）
+        keywords = filterRAGKeywords(keywords)
+        console.log('[RAG Chat] 过滤后关键词:', keywords.map(k => `${k.text}(${k.weight.toFixed(2)})`).join(', '))
 
         // 根据关联资源类型选择检索方式
         let ragResult: { context: string; sources: string[]; sourceDetails: RagSource[] }

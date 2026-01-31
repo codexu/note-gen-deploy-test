@@ -190,7 +190,7 @@ export function MdEditor() {
         // 保存编辑器实例到全局，供其他组件使用
         (window as any).vditorInstance = vditor;
         emitter.emit('vditor:ready', vditor);
-        emitter.emit('editor-mode-changed', localMode);
+        emitter.emit('editor-mode-changed', localMode ?? defaultMode);
 
         // 切换记录编辑模式
         const editModeButtons = vditor.vditor.element.querySelectorAll('.edit-mode-button .vditor-hint button')
