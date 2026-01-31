@@ -90,9 +90,11 @@ export const createFolderTool: Tool = {
         // 检查文件夹是否已存在
         const folderExists = await exists(fullPath)
         if (folderExists) {
+          // 文件夹已存在，视为成功
           return {
-            success: false,
-            error: `文件夹已存在: ${params.folderPath}`,
+            success: true,
+            data: { folderPath: params.folderPath, alreadyExists: true },
+            message: `文件夹已存在: ${params.folderPath}`,
           }
         }
 
@@ -105,9 +107,11 @@ export const createFolderTool: Tool = {
         // 检查文件夹是否已存在
         const folderExists = await exists(path, { baseDir })
         if (folderExists) {
+          // 文件夹已存在，视为成功
           return {
-            success: false,
-            error: `文件夹已存在: ${params.folderPath}`,
+            success: true,
+            data: { folderPath: params.folderPath, alreadyExists: true },
+            message: `文件夹已存在: ${params.folderPath}`,
           }
         }
 
@@ -323,8 +327,9 @@ export const createFoldersBatchTool: Tool = {
       }
 
       const workspace = await getWorkspacePath()
-      const results = []
-      const errors = []
+      const created = []
+      const skipped = []  // 已存在，跳过创建
+      const errors = []   // 真正的错误
 
       for (const folderPath of params.folderPaths) {
         try {
@@ -332,7 +337,7 @@ export const createFoldersBatchTool: Tool = {
             const fullPath = await join(workspace.path, folderPath)
             const folderExists = await exists(fullPath)
             if (folderExists) {
-              errors.push({ path: folderPath, error: '文件夹已存在' })
+              skipped.push({ path: folderPath, reason: '文件夹已存在' })
               continue
             }
             await mkdir(fullPath, { recursive: true })
@@ -340,12 +345,12 @@ export const createFoldersBatchTool: Tool = {
             const { path, baseDir } = await getFilePathOptions(folderPath)
             const folderExists = await exists(path, { baseDir })
             if (folderExists) {
-              errors.push({ path: folderPath, error: '文件夹已存在' })
+              skipped.push({ path: folderPath, reason: '文件夹已存在' })
               continue
             }
             await mkdir(path, { baseDir, recursive: true })
           }
-          results.push(folderPath)
+          created.push(folderPath)
         } catch (error) {
           errors.push({ path: folderPath, error: String(error) })
         }
@@ -354,15 +359,20 @@ export const createFoldersBatchTool: Tool = {
       const articleStore = useArticleStore.getState()
       await articleStore.loadFileTree()
 
+      // 只要有创建或跳过的，就算成功
+      const success = created.length > 0 || skipped.length > 0
+
       return {
-        success: results.length > 0,
-        data: { 
-          created: results, 
-          failed: errors,
-          successCount: results.length,
-          failCount: errors.length,
+        success,
+        data: {
+          created,
+          skipped,
+          errors,
+          createdCount: created.length,
+          skippedCount: skipped.length,
+          errorCount: errors.length,
         },
-        message: `成功创建 ${results.length} 个文件夹${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
+        message: `创建 ${created.length} 个，跳过 ${skipped.length} 个${errors.length > 0 ? `，${errors.length} 个失败` : ''}`,
       }
     } catch (error) {
       return {
