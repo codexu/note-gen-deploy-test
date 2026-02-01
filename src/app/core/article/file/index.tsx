@@ -181,13 +181,21 @@ function useFileManagerShortcuts() {
     }
   }, [])
 
-  const handleFocusOut = useCallback(() => {
-    // 延迟检查，因为 focusOut 会在新元素获得焦点前触发
-    setTimeout(() => {
-      if (sidebarRef.current && !sidebarRef.current.contains(document.activeElement)) {
+  const handleFocusOut = useCallback((e: FocusEvent) => {
+    // 检查焦点是否移到了 sidebar 外部
+    // relatedTarget 是即将获得焦点的元素
+    const newFocusedElement = e.relatedTarget as Node
+
+    if (sidebarRef.current && newFocusedElement) {
+      // 如果新焦点元素不在 sidebar 内，才设置 isFocused = false
+      if (!sidebarRef.current.contains(newFocusedElement)) {
         setIsFocused(false)
       }
-    }, 0)
+    } else if (!newFocusedElement) {
+      // 如果 relatedTarget 为 null（焦点移到了文档外），设置 isFocused = false
+      setIsFocused(false)
+    }
+    // 否则，焦点还在 sidebar 内，保持 isFocused = true
   }, [])
 
   useEffect(() => {
@@ -202,12 +210,21 @@ function useFileManagerShortcuts() {
     }
   }, [handleFocusIn, handleFocusOut])
 
-  return { sidebarRef, isFocused }
+  // 主动设置焦点到文件管理器
+  const focusSidebar = useCallback(() => {
+    setIsFocused(true)
+    // 使用 requestAnimationFrame 确保 DOM 更新后再设置焦点
+    requestAnimationFrame(() => {
+      sidebarRef.current?.focus()
+    })
+  }, [])
+
+  return { sidebarRef, isFocused, focusSidebar }
 }
 
 export function FileSidebar() {
   const { initCollapsibleList, initSortSettings, initShowCloudFiles } = useArticleStore()
-  const { sidebarRef } = useFileManagerShortcuts()
+  const { sidebarRef, focusSidebar } = useFileManagerShortcuts()
 
   useEffect(() => {
     initCollapsibleList()
@@ -223,7 +240,7 @@ export function FileSidebar() {
       tabIndex={-1}
     >
       <div className="flex-1 overflow-x-hidden overflow-y-auto">
-        <FileManager />
+        <FileManager focusSidebar={focusSidebar} />
       </div>
       <FileFooter />
     </div>

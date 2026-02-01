@@ -28,7 +28,7 @@ import { FolderVectorMenu } from './folder-vector-menu'
 import emitter from '@/lib/emitter'
 import { LinkedFolder } from '@/lib/files'
 
-export function FolderItem({ item }: { item: DirTree }) {
+export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar?: () => void }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
   const [name, setName] = useState(item.name)
   const [isComposing, setIsComposing] = useState(false)
@@ -590,6 +590,8 @@ export function FolderItem({ item }: { item: DirTree }) {
   }
 
   async function handleSelectFolder() {
+    // 让文件管理器获得焦点，以便响应快捷键
+    focusSidebar?.()
     // 设置选中状态
     await setActiveFilePath(path)
 

@@ -19,7 +19,7 @@ function filterFileTree(tree: DirTree[], showCloud: boolean): DirTree[] {
     }))
 }
 
-function Tree({ item }: { item: DirTree }) {
+function Tree({ item, focusSidebar }: { item: DirTree; focusSidebar: () => void }) {
   const { collapsibleList, setCollapsibleList, loadCollapsibleFiles } = useArticleStore()
   const path = computedParentPath(item)
 
@@ -31,19 +31,19 @@ function Tree({ item }: { item: DirTree }) {
   }
 
   return (
-    item.isFile ? 
-    <FileItem item={item} /> :
+    item.isFile ?
+    <FileItem item={item} focusSidebar={focusSidebar} /> :
     <li>
       <Collapsible
         onOpenChange={handleCollapse}
         className="group/collapsible [&[data-state=open]>button>.file-manange-item>svg:first-child]:rotate-90"
         open={collapsibleList.includes(path)}
       >
-        <FolderItem item={item} />
+        <FolderItem item={item} focusSidebar={focusSidebar} />
         <CollapsibleContent className="pl-1">
           <ul className="pl-2">
             {item.children?.map((subItem) => (
-              <Tree key={`${subItem.name}-${subItem.parent?.name}-${subItem.sha || ''}-${subItem.isLocale}`} item={subItem} />
+              <Tree key={`${subItem.name}-${subItem.parent?.name}-${subItem.sha || ''}-${subItem.isLocale}`} item={subItem} focusSidebar={focusSidebar} />
             ))}
           </ul>
         </CollapsibleContent>
@@ -52,7 +52,7 @@ function Tree({ item }: { item: DirTree }) {
   )
 }
 
-export function FileManager() {
+export function FileManager({ focusSidebar }: { focusSidebar: () => void }) {
   const [isDragging, setIsDragging] = useState(false)
   const { activeFilePath, fileTree, loadFileTree, setActiveFilePath, addFile, showCloudFiles } = useArticleStore()
 
@@ -157,7 +157,7 @@ export function FileManager() {
             >
             </div>
             {filteredFileTree.map((item) => (
-              <Tree key={`${item.name}-${item.parent?.name || ''}-${item.sha || ''}-${item.isLocale}`} item={item} />
+              <Tree key={`${item.name}-${item.parent?.name || ''}-${item.sha || ''}-${item.isLocale}`} item={item} focusSidebar={focusSidebar} />
             ))}
             <div
               className="flex-1 min-h-1"

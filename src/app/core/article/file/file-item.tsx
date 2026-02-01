@@ -28,7 +28,7 @@ import { isSkillsFolder } from "@/lib/skills/utils";
 
 type Platform = 'macos' | 'windows' | 'linux' | 'unknown'
 
-export function FileItem({ item }: { item: DirTree }) {
+export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?: () => void }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
   const [name, setName] = useState(item.name)
   const [isComposing, setIsComposing] = useState(false) // 追踪输入法合成状态
@@ -149,6 +149,8 @@ export function FileItem({ item }: { item: DirTree }) {
   }, [])
 
   async function handleSelectFile() {
+    // 让文件管理器获得焦点，以便响应快捷键
+    focusSidebar?.()
     const currentPath = computedParentPath(item)
 
     if (item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
