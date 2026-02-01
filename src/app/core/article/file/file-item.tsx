@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { BaseDirectory, exists, readTextFile, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
-import { Cloud, CloudDownload, Copy, Database, File, FolderOpen, ImageIcon, LoaderCircle, RefreshCwOff, Trash2 } from "lucide-react"
+import { Copy, Database, File, FileDown, FileUp, FolderOpen, ImageIcon, LoaderCircle, RefreshCwOff, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react";
 import { ask } from '@tauri-apps/plugin-dialog';
 import { platform } from '@tauri-apps/plugin-os';
@@ -778,7 +778,6 @@ export function FileItem({ item }: { item: DirTree }) {
                   <span className={item.parent ? 'size-0' : `${iconSize} ml-1`}></span>
                   <div className="relative flex items-center">
                     <ImageIcon className={iconSize} />
-                    { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
                   {path === activeFilePath && renderVectorIcon()}
@@ -819,8 +818,7 @@ export function FileItem({ item }: { item: DirTree }) {
                 <div className="flex flex-1 gap-1 select-none relative items-center">
                   <span className={item.parent ? 'size-0' : `${iconSize} ml-1`}></span>
                   <div className="relative flex items-center">
-                    { item.isLocale ? <File className={iconSize} /> : <CloudDownload className={iconSize} /> }
-                    { item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" /> }
+                    { item.isLocale ? (item.sha ? <FileUp className={iconSize} /> : <File className={iconSize} />) : <FileDown className={iconSize} /> }
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
                   {path === activeFilePath && renderVectorIcon()}

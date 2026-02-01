@@ -2,7 +2,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuSeparator, ContextMenuTrigg
 import { Input } from "@/components/ui/input";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { BaseDirectory, exists, mkdir, rename } from "@tauri-apps/plugin-fs";
-import { ChevronRight, Cloud, Folder, FolderDot, FolderDown, FolderOpen, FolderOpenDot, Loader2, LoaderCircle, Database, Sparkles } from "lucide-react"
+import { ChevronRight, Folder, FolderDot, FolderDown, FolderOpen, FolderOpenDot, FolderUp, Loader2, LoaderCircle, Database, Sparkles } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react";
 import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
@@ -768,18 +768,15 @@ export function FolderItem({ item }: { item: DirTree }) {
                   className={`${!item.isLocale || isCut ? 'opacity-50' : ''} flex gap-1 items-center flex-1 select-none`}
                 >
                   <div className="flex flex-1 gap-1 select-none relative items-center">
-                    <div className="relative flex items-center">
-                      {item.loading ? (
-                        <Loader2 className={`${iconSize} animate-spin text-primary`} />
-                      ) : isSkillsFolder(item.name) ? (
-                        <Sparkles className={`${iconSize} text-primary`} />
-                      ) : collapsibleList.includes(path) ? (
-                        assetsPath === item.name ? <FolderOpenDot className={iconSize} /> : <FolderOpen className={iconSize} />
-                      ) : (
-                        assetsPath === item.name ? <FolderDot className={iconSize} /> : <Folder className={iconSize} />
-                      )}
-                      {!item.loading && item.sha && item.isLocale && <Cloud className="size-2.5 absolute left-0 bottom-0 z-10 bg-primary-foreground" />}
-                    </div>
+                    {item.loading ? (
+                      <Loader2 className={`${iconSize} animate-spin text-primary`} />
+                    ) : isSkillsFolder(item.name) ? (
+                      <Sparkles className={`${iconSize} text-primary`} />
+                    ) : collapsibleList.includes(path) ? (
+                      assetsPath === item.name ? <FolderOpenDot className={iconSize} /> : (!item.isLocale ? <FolderDown className={iconSize} /> : (item.sha ? <FolderUp className={iconSize} /> : <FolderOpen className={iconSize} />))
+                    ) : (
+                      assetsPath === item.name ? <FolderDot className={iconSize} /> : (!item.isLocale ? <FolderDown className={iconSize} /> : (item.sha ? <FolderUp className={iconSize} /> : <Folder className={iconSize} />))
+                    )}
                     <span className={`text-${fileManagerTextSize} line-clamp-1 ${item.loading ? 'text-muted-foreground' : ''}`}>{item.name}</span>
                   </div>
                   {/* 向量状态指示器 - 放在最右侧，skills 文件夹及其子内容不显示 */}
