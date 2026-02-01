@@ -867,6 +867,15 @@ export function MdEditor() {
     if (!editor) {
       init()
     } else {
+      // 切换文件时让编辑器失去焦点
+      // 移除焦点并清除选区
+      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+      }
       // 如果文件被删除或取消选中，清空编辑器
       if (!activeFilePath) {
         editor.setValue('', true)

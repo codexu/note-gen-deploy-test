@@ -1,4 +1,4 @@
-import { ContextMenuItem } from "@/components/ui/enhanced-context-menu";
+import { ContextMenuItem, ContextMenuShortcut } from "@/components/ui/enhanced-context-menu";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { useTranslations } from "next-intl";
 import { computedParentPath } from "@/lib/path";
@@ -7,12 +7,14 @@ import { toast } from "@/hooks/use-toast";
 import { BaseDirectory, exists, mkdir, readDir, readTextFile, remove, writeTextFile } from "@tauri-apps/plugin-fs";
 import { ask } from '@tauri-apps/plugin-dialog';
 import { FileSymlink } from "lucide-react"
+import { Kbd } from "@/components/ui/kbd"
 
 interface PasteInFolderProps {
   item: DirTree;
+  shortcut?: string;
 }
 
-export function PasteInFolder({ item }: PasteInFolderProps) {
+export function PasteInFolder({ item, shortcut }: PasteInFolderProps) {
   const t = useTranslations('article.file');
   const { clipboardItem, clipboardOperation, setClipboardItem } = useClipboardStore();
   const { loadFileTree } = useArticleStore();
@@ -105,6 +107,11 @@ export function PasteInFolder({ item }: PasteInFolderProps) {
     >
       <FileSymlink className="mr-2 h-4 w-4" />
       {t('context.paste')}
+      {shortcut && (
+        <ContextMenuShortcut menuType="file">
+          <Kbd>{shortcut}</Kbd>
+        </ContextMenuShortcut>
+      )}
     </ContextMenuItem>
   );
 }

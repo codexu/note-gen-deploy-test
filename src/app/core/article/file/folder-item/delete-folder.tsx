@@ -1,4 +1,4 @@
-import { ContextMenuItem } from "@/components/ui/enhanced-context-menu";
+import { ContextMenuItem, ContextMenuShortcut } from "@/components/ui/enhanced-context-menu";
 import useArticleStore, { DirTree } from "@/stores/article";
 import { useTranslations } from "next-intl";
 import { computedParentPath, getCurrentFolder } from "@/lib/path";
@@ -8,12 +8,14 @@ import { cloneDeep } from "lodash-es";
 import { ask } from '@tauri-apps/plugin-dialog';
 import useSettingStore from '@/stores/setting';
 import { Trash2 } from "lucide-react"
+import { Kbd } from "@/components/ui/kbd"
 
 interface DeleteFolderProps {
   item: DirTree;
+  shortcut?: string;
 }
 
-export function DeleteFolder({ item }: DeleteFolderProps) {
+export function DeleteFolder({ item, shortcut }: DeleteFolderProps) {
   const t = useTranslations('article.file');
   const { 
     activeFilePath,
@@ -128,6 +130,11 @@ export function DeleteFolder({ item }: DeleteFolderProps) {
     >
       <Trash2 className="mr-2 h-4 w-4" />
       {t('context.delete')}
+      {shortcut && (
+        <ContextMenuShortcut menuType="file">
+          <Kbd>{shortcut}</Kbd>
+        </ContextMenuShortcut>
+      )}
     </ContextMenuItem>
   );
 }

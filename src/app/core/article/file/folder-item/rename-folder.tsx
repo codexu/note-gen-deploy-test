@@ -1,49 +1,38 @@
 import { ContextMenuItem, ContextMenuShortcut } from "@/components/ui/enhanced-context-menu";
 import { Kbd } from "@/components/ui/kbd";
-import useArticleStore, { DirTree } from "@/stores/article";
 import { useTranslations } from "next-intl";
-import { computedParentPath, getCurrentFolder } from "@/lib/path";
-import { cloneDeep } from "lodash-es";
 import { FolderInput } from "lucide-react";
 import { platform } from "@tauri-apps/plugin-os";
 import { useEffect, useState } from "react";
 
 interface RenameFolderProps {
-  item: DirTree;
+  item: { name: string };
   onStartRename: () => void;
+  shortcut?: string;
 }
 
-export function RenameFolder({ item, onStartRename }: RenameFolderProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function RenameFolder({ item, onStartRename, shortcut }: RenameFolderProps) {
   const t = useTranslations('article.file');
-  const { fileTree, setFileTree } = useArticleStore();
-  const path = computedParentPath(item);
   const [renameKey, setRenameKey] = useState('F2');
 
   useEffect(() => {
+    // 如果从外部传入了快捷键，使用外部传入的
+    if (shortcut) {
+      setRenameKey(shortcut);
+      return;
+    }
     try {
       const p = platform();
       setRenameKey(p === 'macos' ? 'Enter' : 'F2');
     } catch {
       setRenameKey('F2');
     }
-  }, []);
+  }, [shortcut]);
 
   function handleStartRename() {
-    const cacheTree = cloneDeep(fileTree);
-    const currentFolder = getCurrentFolder(path, cacheTree);
-    const parentFolder = currentFolder?.parent;
-
-    if (parentFolder && parentFolder.children) {
-      const folderIndex = parentFolder?.children?.findIndex(folder => folder.name === item.name);
-      if (folderIndex !== undefined && folderIndex !== -1) {
-        parentFolder.children[folderIndex].isEditing = true;
-      }
-    } else {
-      const folderIndex = cacheTree.findIndex(folder => folder.name === item.name);
-      cacheTree[folderIndex].isEditing = true;
-    }
-
-    setFileTree(cacheTree);
+    // 不再更新文件树，只调用父组件的重命名处理函数
+    // 父组件会通过本地状态管理编辑状态
     onStartRename();
   }
 

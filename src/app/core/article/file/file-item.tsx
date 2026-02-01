@@ -34,6 +34,7 @@ export function FileItem({ item }: { item: DirTree }) {
   const [renameKey, setRenameKey] = useState('F2')
   const inputRef = useRef<HTMLInputElement>(null)
   const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree, loadFileTree, vectorIndexedFiles, checkFileVectorIndexed } = useArticleStore()
+  const setArticleState = useArticleStore.setState
   const { setClipboardItem, clipboardItem, clipboardOperation } = useClipboardStore()
   const { fileManagerTextSize } = useSettingStore()
   const t = useTranslations('article.file')
@@ -75,6 +76,9 @@ export function FileItem({ item }: { item: DirTree }) {
   const iconSize = getIconSize(fileManagerTextSize)
 
   const path = computedParentPath(item)
+
+  // 检查文件是否被剪切
+  const isCut = clipboardOperation === 'cut' && clipboardItem?.path === path
 
   // 检查文件是否已计算向量（skills 文件夹下的文件不显示）
   const hasVector = item.isFile && !isInSkillsFolder(path) && vectorIndexedFiles.has(item.name)
@@ -266,7 +270,7 @@ export function FileItem({ item }: { item: DirTree }) {
           // 从向量索引映射中移除
           const newMap = new Map(vectorIndexedFiles)
           newMap.delete(item.name)
-          setVectorIndexedFiles(newMap)
+          setArticleState({ vectorIndexedFiles: newMap })
         } catch (error) {
           console.error(`删除文件 ${item.name} 的向量数据失败:`, error)
         }
@@ -328,20 +332,23 @@ export function FileItem({ item }: { item: DirTree }) {
   }
 
   async function handleStartRename() {
-    setIsEditing(true)
+    // 延迟执行，确保上下文菜单完全关闭
     setTimeout(() => {
-      const input = inputRef.current
-      if (input) {
-        input.focus()
-        // 只选中文件名，不包含扩展名
-        const lastDotIndex = item.name.lastIndexOf('.')
-        if (lastDotIndex > 0) {
-          input.setSelectionRange(0, lastDotIndex)
-        } else {
-          input.select()
+      setIsEditing(true)
+      setTimeout(() => {
+        const input = inputRef.current
+        if (input) {
+          input.focus()
+          // 只选中文件名，不包含扩展名
+          const lastDotIndex = item.name.lastIndexOf('.')
+          if (lastDotIndex > 0) {
+            input.setSelectionRange(0, lastDotIndex)
+          } else {
+            input.select()
+          }
         }
-      }
-    }, 0)
+      }, 100)
+    }, 300)
   }
 
   async function handleRename() {
@@ -540,24 +547,18 @@ export function FileItem({ item }: { item: DirTree }) {
     try {
       const sourcePath = `article/${clipboardItem.path}`
       const targetDir = path.substring(0, path.lastIndexOf('/'))
-      const targetPath = `article/${targetDir}/${clipboardItem.name}`
-      
-      // Check if file already exists at target location
-      const fileExists = await exists(targetPath, { baseDir: BaseDirectory.AppData })
-      if (fileExists) {
-        const confirmOverwrite = await ask(t('clipboard.confirmOverwrite'), {
-          title: item.name,
-          kind: 'warning',
-        })
-        if (!confirmOverwrite) return
-      }
+
+      // 生成唯一的目标文件名
+      const { generateCopyFilename } = await import('@/lib/default-filename')
+      const uniqueFilename = await generateCopyFilename(targetDir, clipboardItem.name)
+      const targetPath = `article/${targetDir}/${uniqueFilename}`
 
       // Read content from source file
       const content = await readTextFile(sourcePath, { baseDir: BaseDirectory.AppData })
-      
+
       // Write to target location
       await writeTextFile(targetPath, content, { baseDir: BaseDirectory.AppData })
-      
+
       // If cut operation, delete the original file
       if (clipboardOperation === 'cut') {
         await remove(sourcePath, { baseDir: BaseDirectory.AppData })
@@ -592,17 +593,26 @@ export function FileItem({ item }: { item: DirTree }) {
 
   useEffect(() => {
     if (item.isEditing) {
+      setIsEditing(true)
       setName(name)
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [item])
 
-  // 文件快捷键：桌面端 F2 键重命名
-  useFileShortcuts({
+  // 文件快捷键：桌面端重命名、复制、粘贴、剪切、删除
+  const { currentPlatform } = useFileShortcuts({
     path,
     isEditing,
-    onStartRename: handleStartRename
+    onStartRename: handleStartRename,
+    onCopy: handleCopyFile,
+    onPaste: handlePasteFile,
+    onCut: handleCutFile,
+    onDelete: handleDeleteFile
   })
+
+  // 快捷键显示文本
+  const modKey = currentPlatform === 'macos' ? '⌘' : 'Ctrl'
+  const deleteKey = currentPlatform === 'macos' ? '⌫' : 'Del'
 
   return (
     <>
@@ -639,7 +649,7 @@ export function FileItem({ item }: { item: DirTree }) {
                 draggable
                 onDragStart={handleDragStart}
                 title={item.name}
-                className={`${item.isLocale ? '' : 'opacity-50'} flex justify-between flex-1 select-none items-center gap-1 dark:hover:text-white`}>
+                className={`${!item.isLocale || isCut ? 'opacity-50' : ''} flex justify-between flex-1 select-none items-center gap-1 dark:hover:text-white`}>
                 <div className="flex flex-1 gap-1 select-none relative items-center">
                   <span className={item.parent ? 'size-0' : `${iconSize} ml-1`}></span>
                   <div className="relative flex items-center">
@@ -681,7 +691,7 @@ export function FileItem({ item }: { item: DirTree }) {
                 draggable
                 onDragStart={handleDragStart}
                 title={item.name}
-                className={`${item.isLocale ? '' : 'opacity-50'} flex justify-between flex-1 select-none items-center gap-1 dark:hover:text-white`}>
+                className={`${!item.isLocale || isCut ? 'opacity-50' : ''} flex justify-between flex-1 select-none items-center gap-1 dark:hover:text-white`}>
                 <div className="flex flex-1 gap-1 select-none relative items-center">
                   <span className={item.parent ? 'size-0' : `${iconSize} ml-1`}></span>
                   <div className="relative flex items-center">
@@ -737,14 +747,23 @@ export function FileItem({ item }: { item: DirTree }) {
           <ContextMenuItem inset disabled={!item.isLocale} onClick={handleCutFile} menuType="file">
             <File className="mr-2 h-4 w-4" />
             {t('context.cut')}
+            <ContextMenuShortcut menuType="file">
+              <Kbd>{modKey}X</Kbd>
+            </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem inset onClick={handleCopyFile} menuType="file">
             <Copy className="mr-2 h-4 w-4" />
             {t('context.copy')}
+            <ContextMenuShortcut menuType="file">
+              <Kbd>{modKey}C</Kbd>
+            </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem inset disabled={!clipboardItem} onClick={handlePasteFile} menuType="file">
             <File className="mr-2 h-4 w-4" />
             {t('context.paste')}
+            <ContextMenuShortcut menuType="file">
+              <Kbd>{modKey}V</Kbd>
+            </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem disabled={!item.isLocale} inset onClick={handleStartRename} menuType="file">
@@ -761,6 +780,9 @@ export function FileItem({ item }: { item: DirTree }) {
           <ContextMenuItem disabled={!item.isLocale || item.name === ''} inset className="text-red-900" onClick={handleDeleteFile} menuType="file">
             <Trash2 className="mr-2 h-4 w-4" />
             {t('context.deleteLocalFile')}
+            <ContextMenuShortcut menuType="file">
+              <Kbd>{deleteKey}</Kbd>
+            </ContextMenuShortcut>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
