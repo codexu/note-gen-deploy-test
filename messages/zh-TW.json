@@ -26,6 +26,9 @@
     "restartToApply": "，請重啟應用使配置生效"
   },
   "settings": {
+    "defaultModels": {
+      "title": "預設模型"
+    },
     "others": "高級",
     "general": {
       "title": "常規設置",
@@ -189,6 +192,7 @@
     },
     "editor": {
       "title": "編輯器設置",
+      "interfaceSettings": "界面設置",
       "desc": "在這裡，你可以對編輯器進行自定義配置，打造更適合你的寫作方式。",
       "typewriterMode": "打字機模式",
       "typewriterModeDesc": "打字機模式下，編輯器會模擬打字機效果，幫助你更好地沉浸在寫作中。",
@@ -640,11 +644,44 @@
         }
       },
       "toolbar": {
-        "title": "工具欄配置",
+        "title": "工具欄設置",
         "chatToolbar": {
           "title": "對話工具欄",
           "desc": "自定義對話工具欄按鈕的顯示順序和可見性",
-          "button": "設置"
+          "button": "設置",
+          "modelSelect": {
+            "desc": "切換用於對話的 AI 模型"
+          },
+          "promptSelect": {
+            "desc": "選擇對話使用的預設提示詞"
+          },
+          "chatLanguage": {
+            "desc": "設置對話的語言"
+          },
+          "chatLink": {
+            "title": "關聯標籤",
+            "desc": "關聯當前標籤的筆記內容到對話上下文"
+          },
+          "fileLink": {
+            "desc": "關聯文件或文件夾到對話上下文"
+          },
+          "mcpButton": {
+            "desc": "選擇並連接 MCP 伺服器以使用外部工具"
+          },
+          "ragSwitch": {
+            "title": "知識庫檢索",
+            "desc": "啟用向量知識庫檢索功能"
+          },
+          "clipboardMonitor": {
+            "title": "剪貼板監聽",
+            "desc": "自動監聽剪貼板內容變化"
+          },
+          "clearContext": {
+            "desc": "清除對話上下文，保留聊天記錄"
+          },
+          "clearChat": {
+            "desc": "刪除所有聊天記錄"
+          }
         }
       },
       "condense": {

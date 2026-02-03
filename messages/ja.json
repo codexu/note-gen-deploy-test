@@ -26,6 +26,9 @@
     "restartToApply": "、設定を有効にするにはアプリケーションを再起動してください"
   },
   "settings": {
+    "defaultModels": {
+      "title": "デフォルトモデル"
+    },
     "others": "その他",
     "general": {
       "title": "一般設定",
@@ -195,6 +198,7 @@
     },
     "editor": {
       "title": "エディター設定",
+      "interfaceSettings": "インターフェース設定",
       "desc": "ここでは、エディターをカスタマイズして、より適した書き込み体験を提供できます。",
       "typewriterMode": "打字機モード",
       "typewriterModeDesc": "打字機モード下、エディタは打字機の効果を模倣し、より深く浸かる書き込み体験を提供します。",
@@ -668,7 +672,40 @@
         "chatToolbar": {
           "title": "チャットツールバー",
           "desc": "チャットツールバーボタンの表示順序と可視性をカスタマイズ",
-          "button": "設定"
+          "button": "設定",
+          "modelSelect": {
+            "desc": "会話に使用する AI モデルを切り替え"
+          },
+          "promptSelect": {
+            "desc": "会話で使用するプリセットプロンプトを選択"
+          },
+          "chatLanguage": {
+            "desc": "会話の言語を設定"
+          },
+          "chatLink": {
+            "title": "タグをリンク",
+            "desc": "現在のタグのノート内容を会話コンテキストにリンク"
+          },
+          "fileLink": {
+            "desc": "ファイルまたはフォルダーを会話コンテキストにリンク"
+          },
+          "mcpButton": {
+            "desc": "MCP サーバーを選択して接続し、外部ツールを使用"
+          },
+          "ragSwitch": {
+            "title": "ナレッジベース",
+            "desc": "ベクトルナレッジベース検索を有効にする"
+          },
+          "clipboardMonitor": {
+            "title": "クリップボード監視",
+            "desc": "クリップボードの内容の変更を自動監視"
+          },
+          "clearContext": {
+            "desc": "会話コンテキストをクリアし、チャット履歴を保持"
+          },
+          "clearChat": {
+            "desc": "すべてのチャット記録を削除"
+          }
         }
       },
       "condense": {

@@ -11,8 +11,7 @@ import {
 } from '@/components/ui/item'
 import { Switch } from '@/components/ui/switch'
 import { Slider } from '@/components/ui/slider'
-import { ModelSelect } from '../components/model-select'
-import { FileText, Shield, AlignLeft, MessageSquare } from 'lucide-react'
+import { Shield, AlignLeft, MessageSquare } from 'lucide-react'
 import useSettingStore from '@/stores/setting'
 
 export function CondenseSettings() {
@@ -49,20 +48,6 @@ export function CondenseSettings() {
 
       {enableCondense && (
         <>
-          {/* 摘要模型 */}
-          <Item variant="outline">
-            <ItemMedia variant="icon">
-              <FileText className="size-4" />
-            </ItemMedia>
-            <ItemContent>
-              <ItemTitle>{t('model.title')}</ItemTitle>
-              <ItemDescription>{t('model.desc')}</ItemDescription>
-            </ItemContent>
-            <ItemActions>
-              <ModelSelect modelKey="condense" />
-            </ItemActions>
-          </Item>
-
           {/* 保留最新条数 */}
           <Item variant="outline">
             <ItemMedia variant="icon">

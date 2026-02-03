@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { SettingType } from '../components/setting-base'
 import { PenTool } from 'lucide-react'
-import { ModelSettings } from './model-settings'
+import { DefaultModelsSettings } from '../components/default-models-settings'
 import { ToolbarSettings } from './toolbar-settings'
 
 export default function RecordSettingPage() {
@@ -17,7 +17,7 @@ export default function RecordSettingPage() {
       desc={t('desc')}
     >
       <div className="space-y-8">
-        <ModelSettings />
+        <DefaultModelsSettings type="record" />
         <ToolbarSettings />
       </div>
     </SettingType>

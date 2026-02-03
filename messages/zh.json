@@ -41,6 +41,9 @@
     "saving": "保存中..."
   },
   "settings": {
+    "defaultModels": {
+      "title": "默认模型"
+    },
     "others": "高级",
     "general": {
       "title": "常规设置",
@@ -358,6 +361,7 @@
     "editor": {
       "title": "编辑器设置",
       "desc": "在这里，你可以对编辑器进行自定义配置，打造更适合你的写作方式。",
+      "interfaceSettings": "界面设置",
       "typewriterMode": "打字机模式",
       "typewriterModeDesc": "打字机模式下，编辑器会模拟打字机效果，帮助你更好地沉浸在写作中。",
       "outlineEnable": "默认启用大纲",
@@ -406,7 +410,28 @@
         "recordToolbar": {
           "title": "记录工具栏",
           "desc": "自定义记录工具栏按钮的显示顺序和可见性",
-          "button": "设置"
+          "button": "设置",
+          "text": {
+            "desc": "记录文本内容"
+          },
+          "recording": {
+            "desc": "录音记录功能"
+          },
+          "scan": {
+            "desc": "扫描识别图片中的文字"
+          },
+          "image": {
+            "desc": "上传图片到笔记"
+          },
+          "link": {
+            "desc": "记录网页链接"
+          },
+          "file": {
+            "desc": "上传文件到笔记"
+          },
+          "todo": {
+            "desc": "创建待办事项"
+          }
         }
       }
     },
@@ -853,11 +878,44 @@
         }
       },
       "toolbar": {
-        "title": "工具栏配置",
+        "title": "工具栏设置",
         "chatToolbar": {
           "title": "对话工具栏",
           "desc": "自定义对话工具栏按钮的显示顺序和可见性",
-          "button": "设置"
+          "button": "设置",
+          "modelSelect": {
+            "desc": "切换用于对话的 AI 模型"
+          },
+          "promptSelect": {
+            "desc": "选择对话使用的预设提示词"
+          },
+          "chatLanguage": {
+            "desc": "设置对话的语言"
+          },
+          "chatLink": {
+            "title": "关联标签",
+            "desc": "关联当前标签的笔记内容到对话上下文"
+          },
+          "fileLink": {
+            "desc": "关联文件或文件夹到对话上下文"
+          },
+          "mcpButton": {
+            "desc": "选择并连接 MCP 服务器以使用外部工具"
+          },
+          "ragSwitch": {
+            "title": "知识库检索",
+            "desc": "启用向量知识库检索功能"
+          },
+          "clipboardMonitor": {
+            "title": "剪贴板监听",
+            "desc": "自动监听剪贴板内容变化"
+          },
+          "clearContext": {
+            "desc": "清除对话上下文，保留聊天记录"
+          },
+          "clearChat": {
+            "desc": "删除所有聊天记录"
+          }
         }
       },
       "condense": {

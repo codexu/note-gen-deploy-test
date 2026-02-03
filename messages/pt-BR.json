@@ -43,6 +43,9 @@
     "saving": "Salvando"
   },
   "settings": {
+    "defaultModels": {
+      "title": "Modelos Padrão"
+    },
     "others": "Avançado",
     "general": {
       "title": "Configurações Gerais",
@@ -309,6 +312,7 @@
     },
     "editor": {
       "title": "Configurações do Editor",
+      "interfaceSettings": "Configurações de Interface",
       "desc": "Aqui, você pode personalizar o editor, criando uma experiência de escrita adaptada às suas necessidades.",
       "typewriterMode": "Modo Máquina de Escrever",
       "typewriterModeDesc": "No modo máquina de escrever, o editor simula o efeito de uma máquina de escrever, permitindo que você se concentre melhor na escrita.",
@@ -806,11 +810,44 @@
         }
       },
       "toolbar": {
-        "title": "Configuração da Barra de Ferramentas",
+        "title": "Configurações da Barra de Ferramentas",
         "chatToolbar": {
           "title": "Barra de Ferramentas de Chat",
           "desc": "Personalize a visibilidade e a ordem dos botões da barra de ferramentas de chat",
-          "button": "Configurar"
+          "button": "Configurar",
+          "modelSelect": {
+            "desc": "Alternar o modelo de IA para conversa"
+          },
+          "promptSelect": {
+            "desc": "Selecionar o prompt predefinido para a conversa"
+          },
+          "chatLanguage": {
+            "desc": "Definir o idioma da conversa"
+          },
+          "chatLink": {
+            "title": "Vincular Etiqueta",
+            "desc": "Vincular conteúdo de notas da etiqueta atual ao contexto da conversa"
+          },
+          "fileLink": {
+            "desc": "Vincular arquivos ou pastas ao contexto da conversa"
+          },
+          "mcpButton": {
+            "desc": "Selecionar e conectar servidores MCP para usar ferramentas externas"
+          },
+          "ragSwitch": {
+            "title": "Base de Conhecimento",
+            "desc": "Ativar busca na base de conhecimento vetorial"
+          },
+          "clipboardMonitor": {
+            "title": "Monitorar Área de Transferência",
+            "desc": "Monitorar automaticamente alterações no conteúdo da área de transferência"
+          },
+          "clearContext": {
+            "desc": "Limpar contexto da conversa, manter histórico"
+          },
+          "clearChat": {
+            "desc": "Excluir todos os registros de chat"
+          }
         }
       },
       "condense": {

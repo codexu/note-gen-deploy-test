@@ -30,6 +30,9 @@
     "saving": "Saving..."
   },
   "settings": {
+    "defaultModels": {
+      "title": "Default Models"
+    },
     "others": "Advanced",
     "general": {
       "title": "General Settings",
@@ -345,6 +348,7 @@
     },
     "editor": {
       "title": "Editor Settings",
+      "interfaceSettings": "Interface Settings",
       "desc": "Here, you can customize the editor, creating a writing experience tailored to your needs.",
       "typewriterMode": "Typewriter Mode",
       "typewriterModeDesc": "In typewriter mode, the editor will simulate a typewriter effect, helping you better immerse in writing.",
@@ -394,7 +398,28 @@
         "recordToolbar": {
           "title": "Record Toolbar",
           "desc": "Customize the visibility and order of record toolbar buttons",
-          "button": "Configure"
+          "button": "Configure",
+          "text": {
+            "desc": "Record text content"
+          },
+          "recording": {
+            "desc": "Voice recording function"
+          },
+          "scan": {
+            "desc": "Scan and recognize text from images"
+          },
+          "image": {
+            "desc": "Upload images to notes"
+          },
+          "link": {
+            "desc": "Record web links"
+          },
+          "file": {
+            "desc": "Upload files to notes"
+          },
+          "todo": {
+            "desc": "Create todo items"
+          }
         }
       }
     },
@@ -859,11 +884,44 @@
         }
       },
       "toolbar": {
-        "title": "Toolbar Configuration",
+        "title": "Toolbar Settings",
         "chatToolbar": {
           "title": "Chat Toolbar",
           "desc": "Customize the visibility and order of chat toolbar buttons",
-          "button": "Configure"
+          "button": "Configure",
+          "modelSelect": {
+            "desc": "Switch the AI model for conversation"
+          },
+          "promptSelect": {
+            "desc": "Select the preset prompt for the conversation"
+          },
+          "chatLanguage": {
+            "desc": "Set the language for the conversation"
+          },
+          "chatLink": {
+            "title": "Link Tag",
+            "desc": "Link note content of the current tag to conversation context"
+          },
+          "fileLink": {
+            "desc": "Link files or folders to the conversation context"
+          },
+          "mcpButton": {
+            "desc": "Select and connect MCP servers to use external tools"
+          },
+          "ragSwitch": {
+            "title": "Knowledge Base",
+            "desc": "Enable vector knowledge base retrieval"
+          },
+          "clipboardMonitor": {
+            "title": "Clipboard Monitor",
+            "desc": "Automatically monitor clipboard content changes"
+          },
+          "clearContext": {
+            "desc": "Clear conversation context, keep chat history"
+          },
+          "clearChat": {
+            "desc": "Delete all chat records"
+          }
         }
       },
       "condense": {
