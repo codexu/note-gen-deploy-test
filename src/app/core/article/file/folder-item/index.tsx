@@ -590,6 +590,11 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
   }
 
   async function handleSelectFolder() {
+    // 检查是否真的是目录（防止误将文件当作目录处理）
+    if (!item.isDirectory) {
+      return
+    }
+
     // 让文件管理器获得焦点，以便响应快捷键
     focusSidebar?.()
     // 设置选中状态

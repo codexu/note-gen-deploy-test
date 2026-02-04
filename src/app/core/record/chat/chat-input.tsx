@@ -456,7 +456,8 @@ export const ChatInput = React.memo(function ChatInput() {
 
       const workspace = await getWorkspacePath()
 
-      if (activeFilePath.endsWith('.md')) {
+      // 检查是否是支持的文件类型（包括 markdown、代码文件等）
+      if (activeFilePath.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template)$/i)) {
         // 文件关联逻辑
         const fileName = activeFilePath.split('/').pop() || activeFilePath
 

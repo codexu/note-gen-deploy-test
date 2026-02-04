@@ -162,7 +162,7 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
         setActiveFilePath(currentPath)
         setCurrentArticle('') // 清空文本内容
       }
-    } else if (item.name.match(/\.(md|txt|markdown)$/i)) {
+    } else if (item.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template)$/i)) {
       // Markdown/文本文件：设置 activeFilePath 并读取内容
       if (activeFilePath === currentPath) {
         setActiveFilePath('')

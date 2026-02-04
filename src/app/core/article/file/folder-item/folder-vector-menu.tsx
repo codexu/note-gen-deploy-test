@@ -25,6 +25,16 @@ export function FolderVectorMenu({ item }: FolderVectorMenuProps) {
   async function handleBatchCalculate() {
     if (isCalculating) return;
 
+    // 检查是否真的是目录（防止误将文件当作目录处理）
+    if (!item.isDirectory) {
+      toast({
+        title: '不是目录',
+        description: '只能对目录进行批量向量计算',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsCalculating(true);
     setVectorCalcStatus(path, 'calculating');
 

@@ -370,7 +370,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
     if (workspace.isCustom) {
       // 自定义工作区
       dirs = (await readDir(workspace.path))
-        .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i))).map(file => ({
+        .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i))).map(file => ({
           ...file,
           isEditing: false,
           isLocale: true,
@@ -383,7 +383,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
     } else {
       // 默认工作区
       dirs = (await readDir('article', { baseDir: BaseDirectory.AppData }))
-        .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i))).map(file => ({
+        .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i))).map(file => ({
           ...file,
           isEditing: false,
           isLocale: true,
@@ -431,7 +431,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
         try {
           if (workspace.isCustom) {
             children = (await readDir(fullPath))
-              .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
+              .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
               .map(file => ({
                 ...file,
                 parent: folder,
@@ -446,7 +446,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
             const dirRelative = await toWorkspaceRelativePath(fullPath)
             const pathOptions = await getFilePathOptions(dirRelative)
             children = (await readDir(pathOptions.path, { baseDir: pathOptions.baseDir }))
-              .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
+              .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
               .map(file => ({
                 ...file,
                 parent: folder,
@@ -645,11 +645,16 @@ const useArticleStore = create<NoteState>((set, get) => ({
   loadCollapsibleFiles: async (fullpath: string) => {
     const cacheTree: DirTree[] = get().fileTree
     const currentFolder = getCurrentFolder(fullpath, cacheTree)
-    
+
     if (!currentFolder) {
       return
     }
-    
+
+    // 检查是否是目录（防止误将文件当作目录处理）
+    if (!currentFolder.isDirectory) {
+      return
+    }
+
     // 如果已经加载过子内容，则跳过
     if (currentFolder.children && currentFolder.children.length > 0) {
       // 仅异步更新远程同步状态
@@ -707,7 +712,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
       try {
         if (workspace.isCustom) {
           children = (await readDir(fullFolderPath))
-            .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
+            .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
             .map(file => ({
               ...file,
               parent: currentFolder,
@@ -722,7 +727,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
           const dirRelative = await toWorkspaceRelativePath(fullFolderPath)
           const pathOptions = await getFilePathOptions(dirRelative)
           children = (await readDir(pathOptions.path, { baseDir: pathOptions.baseDir }))
-            .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
+            .filter(file => file.name !== '.DS_Store' && !file.name.startsWith('.') && (file.isDirectory || file.name.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i)))
             .map(file => ({
               ...file,
               parent: currentFolder,
@@ -1014,15 +1019,15 @@ const useArticleStore = create<NoteState>((set, get) => ({
     const res = await store.get<string[]>('collapsibleList')
     const activeFilePath = await store.get<string>('activeFilePath')
     set({
-      collapsibleList: res ? uniq(res.filter(item => !item.includes('.md'))) : [],
+      collapsibleList: res ? uniq(res.filter(item => !item.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i))) : [],
       collapsibleListInitialized: true
     })
 
     if (activeFilePath) {
       set({ activeFilePath })
 
-      // 检查是否是文件夹（没有 .md 扩展名）
-      if (!activeFilePath.endsWith('.md') && !activeFilePath.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
+      // 检查是否是文件夹（所有支持的文件扩展名都是文件，不是文件夹）
+      if (!activeFilePath.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
         // 文件夹：确保展开并加载内容
         if (!get().collapsibleList.includes(activeFilePath)) {
           await get().setCollapsibleList(activeFilePath, true)
@@ -1047,7 +1052,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
     }
     const store = await Store.load('store.json');
     await store.set('collapsibleList', collapsibleList)
-    set({ collapsibleList: uniq(collapsibleList).filter(item => !item.includes('.md')) })
+    set({ collapsibleList: uniq(collapsibleList).filter(item => !item.match(/\.(md|txt|markdown|py|js|ts|jsx|tsx|css|scss|less|html|xml|json|yaml|yml|sh|bash|java|c|cpp|h|go|rs|sql|rb|php|vue|svelte|astro|toml|ini|conf|cfg|gitignore|env|example|template|jpg|jpeg|png|gif|bmp|webp|svg)$/i)) })
   },
   
   expandAllFolders: async () => {

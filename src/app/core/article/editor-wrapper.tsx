@@ -32,7 +32,7 @@ export function EditorWrapper() {
       return
     }
 
-    if (extension === 'md' || extension === 'txt' || extension === 'markdown') {
+    if (['md', 'txt', 'markdown', 'py', 'js', 'ts', 'jsx', 'tsx', 'css', 'scss', 'less', 'html', 'xml', 'json', 'yaml', 'yml', 'sh', 'bash', 'java', 'c', 'cpp', 'h', 'go', 'rs', 'sql', 'rb', 'php', 'vue', 'svelte', 'astro', 'toml', 'ini', 'conf', 'cfg', 'gitignore', 'env', 'example', 'template'].includes(extension)) {
       setItemType('markdown')
     } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension)) {
       setItemType('image')

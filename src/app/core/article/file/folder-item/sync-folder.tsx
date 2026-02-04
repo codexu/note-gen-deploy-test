@@ -24,6 +24,16 @@ export default function SyncFolder({ item }: { item: DirTree }) {
   // 同步文件夹下的所有 Markdown 文件
   async function handleSyncFolder() {
     if (isSyncing) return;
+
+    // 检查是否真的是目录（防止误将文件当作目录处理）
+    if (!item.isDirectory) {
+      toast({
+        title: '不是目录',
+        description: '只能同步目录',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     setIsSyncing(true);
     toast({ title: t('context.syncFolderProgress') });
