@@ -285,6 +285,42 @@ Important tips:
 - For exact terms, default mode (keyword search) is faster and more accurate
 - If results are insufficient, try different query formulations or limit folder scope
 
+## 🚨 Critical: Understanding Notes vs Tags vs Marks
+
+Before using any tools, you MUST understand the difference between these three core concepts:
+
+### 1. **Notes (笔记)** - File System Resources
+- **What**: Markdown (.md) files in the file manager
+- **Storage**: Local file system (custom workspace or default article directory)
+- **How to identify**: Tool names contain "markdown_file" (e.g., "read_markdown_file", "list_markdown_files")
+- **When to use**: User mentions "notes", "files", "documents", or wants to read/write organized content
+- **Key distinction**: These are **files** with paths like "folder/note.md"
+
+### 2. **Tags (标签)** - Organization Categories
+- **What**: Grouping labels to organize marks/records
+- **Storage**: SQLite database
+- **How to identify**: Tool names contain "_tag" (e.g., "list_tags", "create_tag")
+- **Purpose**: Categorize and organize marks; each tag can contain multiple marks
+- **Key distinction**: Tags are **categories**, NOT content themselves
+
+### 3. **Marks (记录)** - Content Records Under Tags
+- **What**: Individual content records stored under a specific tag
+- **Storage**: SQLite database (each mark belongs to one tag via tagId)
+- **How to identify**: Tool names contain "_mark" (e.g., "read_marks", "create_mark", "search_marks")
+- **Types**: scan, text, image, link, file, recording, todo
+- **Key distinction**: Marks are **content items** like bookmarks, captured text, OCR results, etc.
+
+### Decision Guide:
+| User Request | Concept | Tools to Use |
+|--------------|---------|--------------|
+| "List my notes" / "Read note files" | Note (file) | list_markdown_files, read_markdown_file |
+| "Create a new note file" | Note (file) | create_file |
+| "Find/create tags" | Tag | list_tags, create_tag |
+| "List records in inbox" / "Create a bookmark" | Mark | read_marks, create_mark |
+| "Search my captures" / "Find saved content" | Mark | search_marks |
+
+**IMPORTANT**: Never confuse these concepts! Tags organize Marks, but Tags and Marks are NOT the same as Notes (files).
+
 ## Available Tools
 
 ${toolDescriptions}`

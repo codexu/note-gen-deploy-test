@@ -9,7 +9,7 @@ import { isLinkedFolder } from '@/lib/files'
 
 export const listMarkdownFilesTool: Tool = {
   name: 'list_markdown_files',
-  description: 'List all Markdown note files',
+  description: '📁 **File Manager Notes**: List all Markdown note FILES in the workspace. These are organized file system resources (folders and .md files). Use this to find note files to read.',
   category: 'note',
   requiresConfirmation: false,
   parameters: [],
@@ -38,14 +38,14 @@ export const listMarkdownFilesTool: Tool = {
 
 export const readMarkdownFileTool: Tool = {
   name: 'read_markdown_file',
-  description: 'Read the content of the specified Markdown note file. Note: if a note is currently linked to the conversation, its content is already in context and does not need to be read again.',
+  description: '📁 **File Manager Notes**: Read content of a specific Markdown note FILE by path. Note: if a note is currently linked to the conversation, its content is already in context and does not need to be read again.',
   category: 'note',
   requiresConfirmation: false,
   parameters: [
     {
       name: 'filePath',
       type: 'string',
-      description: 'Path of the Markdown file (relative or absolute path)',
+      description: 'Path of the Markdown file (relative or absolute path, e.g., "folder/note.md")',
       required: true,
     },
   ],
@@ -107,7 +107,9 @@ export const readMarkdownFileTool: Tool = {
 
 export const createFileTool: Tool = {
   name: 'create_file',
-  description: `Create a new file. Supports Markdown (.md), JSON (.json), JavaScript (.js), TypeScript (.ts), Python (.py), HTML (.html), CSS (.css), YAML (.yaml/.yml), and other plain text formats.
+  description: `📁 **File Manager Notes**: Create a new FILE in the file system. Supports Markdown (.md) and other formats.
+
+**Key Difference from Marks**: This creates FILE SYSTEM resources (files with paths like "folder/note.md"), NOT database records. Use this when user wants to create organized notes/documents.
 
 **Returns:**
 - \`filePath\`: Relative path from workspace root
@@ -276,7 +278,7 @@ export const updateMarkdownFileTool: Tool = {
 
 export const deleteMarkdownFileTool: Tool = {
   name: 'delete_markdown_file',
-  description: 'Delete the specified Markdown note file',
+  description: '📁 **File Manager Notes**: Delete the specified Markdown note FILE from the file system.',
   category: 'note',
   requiresConfirmation: true,
   parameters: [
@@ -336,13 +338,15 @@ export const deleteMarkdownFileTool: Tool = {
 
 export const searchMarkdownFilesTool: Tool = {
   name: 'search_markdown_files',
-  description: `Search content in Markdown notes. Supports two modes:
+  description: `📁 **File Manager Notes**: Search content within Markdown note FILES in the file system. Supports two modes:
 
 1. **Keyword Search (default)**: Fast exact matching, suitable for finding specific terms, function names, code snippets
    - Example: search "useState", "React", "API"
 
 2. **Semantic Search (mode=rag)**: Intelligent understanding of meaning, suitable for exploratory queries
    - Example: search "how to optimize React performance", "note sync problem solutions"
+
+**NOT the same as search_marks**: This searches FILE SYSTEM notes, while search_marks searches database records under tags.
 
 Selection suggestions:
 - Find exact vocabulary → use default mode
@@ -625,7 +629,9 @@ function deleteLinesInRange(
 
 export const modifyCurrentNoteTool: Tool = {
   name: 'modify_current_note',
-  description: `Modify the content of the currently open note. Prerequisite: must first use read_markdown_file to read the current note content. This tool automatically gets the path of the currently open note.
+  description: `📁 **File Manager Notes**: Modify the content of the currently open note FILE. Prerequisite: must first use read_markdown_file to read the current note content. This tool automatically gets the path of the currently open note.
+
+**This edits FILE SYSTEM resources**, not database records (marks). Use for modifying existing note files.
 
 **🎯 When User Has Quoted Content (HIGHEST PRIORITY):**
 If the context includes "quoted content" with specific line numbers, you should use this tool to modify those exact lines!

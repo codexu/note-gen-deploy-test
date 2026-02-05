@@ -1,16 +1,16 @@
 import { Tool, ToolResult } from '../types'
-import { getMarks, insertMark, updateMark, delMark, restoreMark, Mark, insertMarks, updateMarks, deleteMarks, restoreMarks } from '@/db/marks'
+import { getMarks, getAllMarks, insertMark, updateMark, delMark, restoreMark, Mark, insertMarks, updateMarks, deleteMarks, restoreMarks } from '@/db/marks'
 
 export const readMarksTool: Tool = {
   name: 'read_marks',
-  description: 'Read all marks under the specified tag',
+  description: '🏷️ **Records System (Marks)**: Read all content records (marks) under a specific tag. Marks are database records like bookmarks, captured text, OCR results, etc. Each mark belongs to a tag via tagId.',
   category: 'mark',
   requiresConfirmation: false,
   parameters: [
     {
       name: 'tagId',
       type: 'number',
-      description: 'Tag ID',
+      description: 'Tag ID (use list_tags first to get available tags)',
       required: true,
     },
   ],
@@ -34,26 +34,26 @@ export const readMarksTool: Tool = {
 
 export const createMarkTool: Tool = {
   name: 'create_mark',
-  description: 'Create a new mark',
+  description: '🏷️ **Records System (Marks)**: Create a new content record (mark) under a specific tag. Marks are database records for things like bookmarks, captured text, OCR results, screenshots, etc. **NOT the same as creating note files (create_file)**.',
   category: 'mark',
   requiresConfirmation: false,
   parameters: [
     {
       name: 'tagId',
       type: 'number',
-      description: 'Tag ID',
+      description: 'Tag ID (use list_tags first to get available tags)',
       required: true,
     },
     {
       name: 'type',
       type: 'string',
-      description: 'Mark type: scan, text, image, link, file, recording',
+      description: 'Mark type: scan (OCR), text, image, link, file, recording',
       required: true,
     },
     {
       name: 'content',
       type: 'string',
-      description: 'Mark content',
+      description: 'Main content of the mark (text, OCR result, etc.)',
       required: false,
     },
     {
@@ -65,7 +65,7 @@ export const createMarkTool: Tool = {
     {
       name: 'desc',
       type: 'string',
-      description: 'Description',
+      description: 'Brief description or title',
       required: false,
     },
   ],
@@ -95,14 +95,14 @@ export const createMarkTool: Tool = {
 
 export const updateMarkTool: Tool = {
   name: 'update_mark',
-  description: 'Update the specified mark',
+  description: '🏷️ **Records System (Marks)**: Update content of an existing mark (record). Used for editing bookmarks, captured content, etc.',
   category: 'mark',
   requiresConfirmation: false,
   parameters: [
     {
       name: 'id',
       type: 'number',
-      description: 'Mark ID',
+      description: 'Mark ID (use read_marks first to get mark IDs)',
       required: true,
     },
     {
@@ -120,7 +120,7 @@ export const updateMarkTool: Tool = {
     {
       name: 'tagId',
       type: 'number',
-      description: 'Move to new tag',
+      description: 'Move to new tag (optional)',
       required: false,
     },
   ],
@@ -159,14 +159,14 @@ export const updateMarkTool: Tool = {
 
 export const deleteMarkTool: Tool = {
   name: 'delete_mark',
-  description: 'Delete the specified mark (soft delete, can be restored)',
+  description: '🏷️ **Records System (Marks)**: Soft delete a mark (record). Can be restored later using restore_mark.',
   category: 'mark',
   requiresConfirmation: true,
   parameters: [
     {
       name: 'id',
       type: 'number',
-      description: 'ID of the mark to delete',
+      description: 'Mark ID to delete',
       required: true,
     },
   ],
@@ -217,7 +217,7 @@ export const restoreMarkTool: Tool = {
 
 export const searchMarksTool: Tool = {
   name: 'search_marks',
-  description: 'Search marks for content containing keywords',
+  description: '🏷️ **Records System (Marks)**: Search content within marks (database records) for keywords. **NOT the same as search_markdown_files** which searches file system notes.',
   category: 'search',
   requiresConfirmation: false,
   parameters: [
@@ -230,29 +230,29 @@ export const searchMarksTool: Tool = {
     {
       name: 'tagId',
       type: 'number',
-      description: 'Optional: limit search to specified tag',
+      description: 'Optional: limit search to a specific tag',
       required: false,
     },
     {
       name: 'type',
       type: 'string',
-      description: 'Optional: filter by type (scan, text, image, link, file, recording)',
+      description: 'Optional: filter by mark type (scan, text, image, link, file, recording)',
       required: false,
     },
   ],
   execute: async (params): Promise<ToolResult> => {
     try {
       const marks = await getMarks(params.tagId || 1)
-      let results = marks.filter(mark => 
+      let results = marks.filter(mark =>
         mark.deleted === 0 &&
         (mark.content?.toLowerCase().includes(params.query.toLowerCase()) ||
          mark.desc?.toLowerCase().includes(params.query.toLowerCase()))
       )
-      
+
       if (params.type) {
         results = results.filter(mark => mark.type === params.type)
       }
-      
+
       return {
         success: true,
         data: results,
@@ -262,6 +262,67 @@ export const searchMarksTool: Tool = {
       return {
         success: false,
         error: `搜索记录失败: ${error}`,
+      }
+    }
+  },
+}
+
+export const searchAllMarksTool: Tool = {
+  name: 'search_all_marks',
+  description: '🏷️ **Records System (Marks)**: Search ALL marks across ALL tags for keywords. Use this when you want to search everything without specifying a tag.',
+  category: 'search',
+  requiresConfirmation: false,
+  parameters: [
+    {
+      name: 'query',
+      type: 'string',
+      description: 'Search keyword',
+      required: true,
+    },
+    {
+      name: 'mode',
+      type: 'string',
+      description: 'Search mode: fuzzy (default, contains keyword) or exact (exact match)',
+      required: false,
+    },
+    {
+      name: 'type',
+      type: 'string',
+      description: 'Optional: filter by mark type (scan, text, image, link, file, recording)',
+      required: false,
+    },
+  ],
+  execute: async (params): Promise<ToolResult> => {
+    try {
+      const allMarks = await getAllMarks()
+      const queryLower = params.query.toLowerCase()
+
+      let results = allMarks.filter(mark => {
+        if (mark.deleted === 1) return false
+
+        const contentMatch = params.mode === 'exact'
+          ? mark.content?.toLowerCase() === queryLower
+          : mark.content?.toLowerCase().includes(queryLower)
+        const descMatch = params.mode === 'exact'
+          ? mark.desc?.toLowerCase() === queryLower
+          : mark.desc?.toLowerCase().includes(queryLower)
+
+        return contentMatch || descMatch
+      })
+
+      if (params.type) {
+        results = results.filter(mark => mark.type === params.type)
+      }
+
+      return {
+        success: true,
+        data: results,
+        message: `在所有标签中找到 ${results.length} 条匹配的记录`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `搜索所有记录失败: ${error}`,
       }
     }
   },
@@ -447,6 +508,7 @@ export const markTools: Tool[] = [
   deleteMarkTool,
   restoreMarkTool,
   searchMarksTool,
+  searchAllMarksTool,
   createMarksBatchTool,
   updateMarksBatchTool,
   deleteMarksBatchTool,

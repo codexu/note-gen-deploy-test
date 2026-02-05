@@ -3,7 +3,7 @@ import { getTags, insertTag, updateTag, delTag, Tag, insertTags } from '@/db/tag
 
 export const listTagsTool: Tool = {
   name: 'list_tags',
-  description: 'List all tags',
+  description: '📋 **Tags System**: List all tags (organization categories). Tags are grouping labels used to organize marks (records). Use this first to discover available tag IDs for creating or reading marks.',
   category: 'tag',
   requiresConfirmation: false,
   parameters: [],
@@ -26,14 +26,14 @@ export const listTagsTool: Tool = {
 
 export const createTagTool: Tool = {
   name: 'create_tag',
-  description: 'Create a new tag',
+  description: '📋 **Tags System**: Create a new tag (category) for organizing marks. Tags are organizational containers - they hold marks but do not contain content themselves.',
   category: 'tag',
   requiresConfirmation: false,
   parameters: [
     {
       name: 'name',
       type: 'string',
-      description: 'Tag name',
+      description: 'Tag name (e.g., "Inbox", "Bookmarks", "Recipes")',
       required: true,
     },
   ],
@@ -56,14 +56,14 @@ export const createTagTool: Tool = {
 
 export const updateTagTool: Tool = {
   name: 'update_tag',
-  description: 'Update tag information',
+  description: '📋 **Tags System**: Update tag name or properties (like pin status).',
   category: 'tag',
   requiresConfirmation: false,
   parameters: [
     {
       name: 'id',
       type: 'number',
-      description: 'Tag ID',
+      description: 'Tag ID (use list_tags first to get tag IDs)',
       required: true,
     },
     {
@@ -75,7 +75,7 @@ export const updateTagTool: Tool = {
     {
       name: 'isPin',
       type: 'boolean',
-      description: 'Whether to pin the tag',
+      description: 'Pin or unpin the tag',
       required: false,
     },
   ],
@@ -111,16 +111,52 @@ export const updateTagTool: Tool = {
   },
 }
 
+export const searchTagsTool: Tool = {
+  name: 'search_tags',
+  description: '📋 **Tags System**: Search/fuzzy match tags by name. Use this when you need to find a tag by keyword without knowing the exact ID.',
+  category: 'search',
+  requiresConfirmation: false,
+  parameters: [
+    {
+      name: 'query',
+      type: 'string',
+      description: 'Search keyword (fuzzy match on tag name)',
+      required: true,
+    },
+  ],
+  execute: async (params): Promise<ToolResult> => {
+    try {
+      const tags = await getTags()
+      const queryLower = params.query.toLowerCase()
+
+      const results = tags.filter(tag =>
+        tag.name.toLowerCase().includes(queryLower)
+      )
+
+      return {
+        success: true,
+        data: results,
+        message: `找到 ${results.length} 个匹配的标签`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `搜索标签失败: ${error}`,
+      }
+    }
+  },
+}
+
 export const deleteTagTool: Tool = {
   name: 'delete_tag',
-  description: 'Delete the specified tag (Warning: will also delete all content under this tag)',
+  description: '📋 **Tags System**: Delete a tag and ALL marks under it. Use with caution - this cannot be undone easily.',
   category: 'tag',
   requiresConfirmation: true,
   parameters: [
     {
       name: 'id',
       type: 'number',
-      description: 'ID of the tag to delete',
+      description: 'Tag ID to delete (use list_tags first to get tag IDs)',
       required: true,
     },
   ],
@@ -263,6 +299,7 @@ export const tagTools: Tool[] = [
   createTagTool,
   updateTagTool,
   deleteTagTool,
+  searchTagsTool,
   createTagsBatchTool,
   updateTagsBatchTool,
 ]
