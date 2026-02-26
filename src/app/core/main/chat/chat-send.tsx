@@ -337,7 +337,7 @@ export const ChatSend = forwardRef<{ sendChat: () => void }, ChatSendProps>(({ i
       if (quoteData) {
         const { fileName, startLine, endLine, fullContent } = quoteData
         let lineInfo = ''
-        let hasValidLineNumbers = startLine !== -1 && endLine !== -1
+        const hasValidLineNumbers = startLine !== -1 && endLine !== -1
 
         if (hasValidLineNumbers) {
           if (startLine === endLine) {

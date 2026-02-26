@@ -81,6 +81,7 @@ const PasteMarkdown = Extension.create({
   },
 })
 
+
 // 简单的启发式函数：检查文本是否看起来像 Markdown
 function looksLikeMarkdown(text: string): boolean {
   return (
@@ -340,6 +341,29 @@ export function TipTapEditor({
     return () => {
       dom.removeEventListener('paste', handlePaste as EventListener)
       dom.removeEventListener('drop', handleDrop as EventListener)
+    }
+  }, [editor])
+
+  // Handle copy event to output Markdown format
+  useEffect(() => {
+    if (!editor) return
+
+    const handleCopy = (event: ClipboardEvent) => {
+      // Get the selected content as Markdown
+      const markdown = editor.getMarkdown()
+
+      // Write Markdown to clipboard
+      if (event.clipboardData) {
+        event.clipboardData.setData('text/plain', markdown)
+        event.preventDefault()
+      }
+    }
+
+    const dom = editor.view.dom
+    dom.addEventListener('copy', handleCopy as EventListener)
+
+    return () => {
+      dom.removeEventListener('copy', handleCopy as EventListener)
     }
   }, [editor])
 
