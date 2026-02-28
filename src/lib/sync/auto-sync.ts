@@ -20,6 +20,54 @@ import { sanitizeFilePath, hasInvalidFileNameChars } from './filename-utils'
 import { useSyncConfirmStore } from '@/stores/sync-confirm'
 import emitter from '@/lib/emitter'
 
+// Store 实例缓存
+let storeInstance: Store | null = null
+
+/**
+ * 获取 Store 实例
+ */
+async function getStore(): Promise<Store> {
+  if (!storeInstance) {
+    storeInstance = await Store.load('store.json')
+  }
+  return storeInstance
+}
+
+/**
+ * 获取 GitLab 分支配置
+ */
+async function getGitlabBranch(): Promise<string> {
+  const store = await getStore()
+  return await store.get<string>('gitlabBranch') || 'main'
+}
+
+/**
+ * 获取 Gitea 分支配置
+ */
+async function getGiteaBranch(): Promise<string> {
+  const store = await getStore()
+  return await store.get<string>('giteaBranch') || 'main'
+}
+
+/**
+ * 从 store 获取本地记录的远程 SHA
+ */
+async function getLocalRecordedSha(filePath: string): Promise<string | null> {
+  const store = await getStore()
+  const syncedShas = await store.get<Record<string, string>>('syncedFileShas') || {}
+  return syncedShas[filePath] || null
+}
+
+/**
+ * 设置本地记录的远程 SHA
+ */
+async function setLocalRecordedSha(filePath: string, sha: string): Promise<void> {
+  const store = await getStore()
+  const syncedShas = await store.get<Record<string, string>>('syncedFileShas') || {}
+  syncedShas[filePath] = sha
+  await store.set('syncedFileShas', syncedShas)
+}
+
 export interface FileMetadata {
   path: string
   localSha?: string
@@ -144,9 +192,10 @@ export async function getRemoteFileInfo(path: string): Promise<{ sha?: string; l
         }
         break
 
-      case 'gitlab':
+      case 'gitlab': {
         const gitlabRepo = await getSyncRepoName('gitlab')
-        file = await getGitlabFileContent({ path, ref: 'main', repo: gitlabRepo })
+        const gitlabBranch = await getGitlabBranch()
+        file = await getGitlabFileContent({ path, ref: gitlabBranch, repo: gitlabRepo })
         if (file) {
           const commits = await getGitlabFileCommits({ path, repo: gitlabRepo })
           if (commits && commits.data && commits.data.length > 0) {
@@ -159,10 +208,12 @@ export async function getRemoteFileInfo(path: string): Promise<{ sha?: string; l
           return { sha: undefined }
         }
         break
+      }
 
-      case 'gitea':
+      case 'gitea': {
         const giteaRepo = await getSyncRepoName('gitea')
-        file = await getGiteaFileContent({ path, ref: 'main', repo: giteaRepo })
+        const giteaBranch = await getGiteaBranch()
+        file = await getGiteaFileContent({ path, ref: giteaBranch, repo: giteaRepo })
         if (file) {
           const commits = await getGiteaFileCommits({ path, repo: giteaRepo })
           if (commits && commits.data && commits.data.length > 0) {
@@ -175,6 +226,7 @@ export async function getRemoteFileInfo(path: string): Promise<{ sha?: string; l
           return { sha: undefined }
         }
         break
+      }
     }
   } catch {
     // 静默处理错误
@@ -196,6 +248,26 @@ export async function compareFileVersions(path: string): Promise<SyncResult> {
   const syncStatus = await getFileSyncStatus(path)
   const lastSyncTime = syncStatus.lastSyncTime
   const lastRestoreTime = await getFileRestoreTime(path)
+
+  // SHA 比较逻辑：使用本地记录的远程 SHA 与当前远程 SHA 进行比较
+  if (remoteInfo.sha) {
+    const localRecordedSha = await getLocalRecordedSha(path)
+
+    // 如果有本地记录的 SHA 和远程 SHA，进行比较
+    if (localRecordedSha && localRecordedSha !== remoteInfo.sha) {
+      // SHA 不一致，说明远程文件已更新，需要拉取
+      return {
+        shouldUpdate: true,
+        action: 'pull',
+        reason: '远程文件已更新（SHA 不匹配），需要拉取更新'
+      }
+    }
+
+    // 如果没有本地记录的 SHA，但远程有内容，记录 SHA
+    if (!localRecordedSha) {
+      await setLocalRecordedSha(path, remoteInfo.sha)
+    }
+  }
 
   // 如果本地文件不存在
   if (!localMeta.localSha) {
@@ -316,21 +388,25 @@ export async function pullRemoteFile(path: string): Promise<string> {
         }
         break
 
-      case 'gitlab':
+      case 'gitlab': {
         const gitlabRepo = await getSyncRepoName('gitlab')
-        file = await getGitlabFileContent({ path, ref: 'main', repo: gitlabRepo })
+        const gitlabBranch = await getGitlabBranch()
+        file = await getGitlabFileContent({ path, ref: gitlabBranch, repo: gitlabRepo })
         if (file && typeof file.content === 'string') {
           return decodeBase64ToString(file.content)
         }
         break
+      }
 
-      case 'gitea':
+      case 'gitea': {
         const giteaRepo = await getSyncRepoName('gitea')
-        file = await getGiteaFileContent({ path, ref: 'main', repo: giteaRepo })
+        const giteaBranch = await getGiteaBranch()
+        file = await getGiteaFileContent({ path, ref: giteaBranch, repo: giteaRepo })
         if (file && typeof file.content === 'string') {
           return decodeBase64ToString(file.content)
         }
         break
+      }
     }
   } catch (error) {
     throw error
@@ -597,7 +673,11 @@ async function performSync(path: string, enableConflictResolution: boolean): Pro
     }
     
     const remoteContent = await pullRemoteFile(path)
-    
+
+    // 获取远程文件的 SHA，用于后续更新记录的 SHA
+    const remoteInfo = await getRemoteFileInfo(path)
+    const remoteSha = remoteInfo.sha
+
     // 检测和处理冲突
     if (enableConflictResolution && localContent && localContent !== remoteContent) {
       const resolution = await detectAndHandleConflict(path, localContent, remoteContent)
@@ -637,6 +717,11 @@ async function performSync(path: string, enableConflictResolution: boolean): Pro
       await saveLocalFile(actualPath, finalContent)
       await updateFileSyncTime(actualPath)
 
+      // 成功拉取后，更新记录的 SHA
+      if (remoteSha) {
+        await setLocalRecordedSha(actualPath, remoteSha)
+      }
+
       // 通知编辑器内容已更新
       emitter.emit('sync-content-updated', { path: actualPath, content: finalContent })
 
@@ -645,6 +730,11 @@ async function performSync(path: string, enableConflictResolution: boolean): Pro
       // 无冲突，直接保存
       await saveLocalFile(actualPath, remoteContent)
       await updateFileSyncTime(actualPath)
+
+      // 成功拉取后，更新记录的 SHA
+      if (remoteSha) {
+        await setLocalRecordedSha(actualPath, remoteSha)
+      }
 
       // 通知编辑器内容已更新
       emitter.emit('sync-content-updated', { path: actualPath, content: remoteContent })
@@ -665,25 +755,56 @@ export async function hasNetworkConnection(): Promise<boolean> {
   try {
     const store = await Store.load('store.json')
     const primaryBackupMethod = await store.get<string>('primaryBackupMethod') || 'github'
-    
-    // 简单的网络检测：尝试获取用户信息
+
+    // 真正的网络检测：尝试发送请求到 API 端点
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
+
+    let url = ''
+    let token = ''
+
     switch (primaryBackupMethod) {
       case 'github':
-        const accessToken = await store.get<string>('accessToken')
-        return !!accessToken
+        token = await store.get<string>('accessToken') || ''
+        url = 'https://api.github.com/user'
+        break
       case 'gitee':
-        const giteeAccessToken = await store.get<string>('giteeAccessToken')
-        return !!giteeAccessToken
+        token = await store.get<string>('giteeAccessToken') || ''
+        url = 'https://gitee.com/api/v5/user'
+        break
       case 'gitlab':
-        const gitlabAccessToken = await store.get<string>('gitlabAccessToken')
-        return !!gitlabAccessToken
+        token = await store.get<string>('gitlabAccessToken') || ''
+        const gitlabUrl = await store.get<string>('gitlabUrl') || 'https://gitlab.com'
+        url = `${gitlabUrl}/api/v4/user`
+        break
       case 'gitea':
-        const giteaAccessToken = await store.get<string>('giteaAccessToken')
-        return !!giteaAccessToken
+        token = await store.get<string>('giteaAccessToken') || ''
+        const giteaUrl = await store.get<string>('giteaUrl') || 'https://gitea.com'
+        url = `${giteaUrl}/api/v1/user`
+        break
       default:
+        clearTimeout(timeoutId)
         return false
     }
-  } catch {
+
+    if (!token) {
+      clearTimeout(timeoutId)
+      return false
+    }
+
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    clearTimeout(timeoutId)
+    return response.ok
+  } catch (error) {
+    // 网络错误、超时等
+    console.error('Network connection check failed:', error)
     return false
   }
 }
