@@ -23,6 +23,7 @@ export function MdEditor({ tabContentsRef, filePath }: MdEditorProps) {
   } = useArticleStore()
 
   const t = useTranslations('article.file.sync')
+  const tEditor = useTranslations('editor')
   const [initialContent, setInitialContent] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const isCreatingFileRef = useRef(false)
@@ -300,7 +301,7 @@ export function MdEditor({ tabContentsRef, filePath }: MdEditorProps) {
       <TipTapEditor
         initialContent={initialContent || ''}
         onChange={handleContentChange}
-        placeholder="开始写作..."
+        placeholder={tEditor('placeholder')}
         activeFilePath={activeFilePath}
         onQuoteToChat={handleQuoteToChat}
         onEditorReady={handleEditorReady}

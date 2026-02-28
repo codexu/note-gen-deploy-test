@@ -2239,7 +2239,7 @@
     }
   },
   "editor": {
-    "placeholder": "輸入「/」叫出選單，開始寫作...",
+    "placeholder": "輸入 / 叫出選單，或直接開始寫作...",
     "outline": {
       "title": "大綱",
       "open": "打開大綱",

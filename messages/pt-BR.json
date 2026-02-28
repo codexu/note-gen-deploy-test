@@ -2317,7 +2317,7 @@
     }
   },
   "editor": {
-    "placeholder": "Digite \"/\" para abrir o menu, comece a escrever...",
+    "placeholder": "Digite / para abrir o menu, ou comece a escrever...",
     "outline": {
       "title": "Esboço",
       "open": "Abrir Esboço",

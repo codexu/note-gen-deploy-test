@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { TipTapEditor } from '@/app/core/main/editor/markdown/tiptap-editor'
 import { Loader2 } from 'lucide-react'
 import useArticleStore from '@/stores/article'
@@ -9,6 +10,7 @@ import { exists, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import { getFilePathOptions, getWorkspacePath } from '@/lib/workspace'
 
 export function MobileEditor() {
+  const tEditor = useTranslations('editor')
   const { setCurrentArticle, activeFilePath } = useArticleStore()
 
   const [content, setContent] = useState('')
@@ -141,7 +143,7 @@ export function MobileEditor() {
       <TipTapEditor
         initialContent={content}
         onChange={handleContentChange}
-        placeholder="开始写作..."
+        placeholder={tEditor('placeholder')}
         activeFilePath={activeFilePath}
         onQuoteToChat={handleQuoteToChat}
         onReady={handleEditorReady}

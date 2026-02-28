@@ -200,6 +200,7 @@ export function TipTapEditor({
       }),
       Placeholder.configure({
         placeholder: placeholderText,
+        showOnlyCurrent: true,
       }),
       Link.configure({
         openOnClick: false,

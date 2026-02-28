@@ -2293,7 +2293,7 @@
     "description": "Click to select a recording tool and quickly create records"
   },
   "editor": {
-    "placeholder": "Type \"/\" to open menu, start writing...",
+    "placeholder": "Type / to open menu, or start writing...",
     "outline": {
       "title": "Outline",
       "open": "Open Outline",

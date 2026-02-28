@@ -2167,7 +2167,7 @@
     "description": "点击选择记录工具，快速创建记录"
   },
   "editor": {
-    "placeholder": "输入 \"/\" 呼出菜单，开始写作...",
+    "placeholder": "输入 / 唤起菜单，或直接开始写作...",
     "outline": {
       "title": "大纲",
       "open": "打开大纲",
