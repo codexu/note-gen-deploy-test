@@ -64,3 +64,6 @@ docs/.vitepress/cache
 # backup files
 *.backup
 .backup
+
+# worktrees
+.worktrees
