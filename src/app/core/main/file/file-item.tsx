@@ -33,7 +33,7 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
   const [name, setName] = useState(item.name)
   const [isComposing, setIsComposing] = useState(false) // 追踪输入法合成状态
   const inputRef = useRef<HTMLInputElement>(null)
-  const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree, loadFileTree, vectorIndexedFiles, checkFileVectorIndexed, cleanTabsByDeletedFile, cleanTabsByDeletedFolder } = useArticleStore()
+  const { activeFilePath, setActiveFilePath, readArticle, fileTree, setFileTree, loadFileTree, vectorIndexedFiles, checkFileVectorIndexed, cleanTabsByDeletedFile, cleanTabsByDeletedFolder } = useArticleStore()
   const setArticleState = useArticleStore.setState
   const { setClipboardItem, clipboardItem, clipboardOperation } = useClipboardStore()
   const { fileManagerTextSize } = useSettingStore()
@@ -163,9 +163,8 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
       // 检查是否是远程文件
       // 读取内容的逻辑移到 EditorLayout 中处理，避免重复渲染
     } else {
-      // 其他文件类型：清空编辑器
-      setActiveFilePath('')
-      setCurrentArticle('')
+      // 其他文件类型：设置 activeFilePath，让 EditorLayout 显示 UnsupportedFile 组件
+      setActiveFilePath(currentPath)
     }
   }
 
