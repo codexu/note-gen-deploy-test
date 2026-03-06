@@ -100,6 +100,10 @@ interface Events {
   'editor-get-selection': { resolve: (data: { text: string; from: number; to: number; html?: string; startLine?: number; endLine?: number }) => void };
   'editor-get-content': { resolve: (data: { markdown: string; html?: string; text: string; wordCount: number; charCount: number; totalLines?: number; version: number }) => void };
   'editor-insert': { content: string; resolve: (result: { success: boolean; insertedLength: number; newCursorPosition?: number }) => void };
+  'editor-undo': void;
+  'editor-redo': void;
+  'editor-can-undo-redo': { resolve: (can: { undo: boolean; redo: boolean }) => void };
+  'editor-undo-redo-changed': { undo: boolean; redo: boolean };
   'editor-replace': {
     content?: string;
     range?: { from: number; to: number };

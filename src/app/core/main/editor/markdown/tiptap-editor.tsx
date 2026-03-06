@@ -732,6 +732,23 @@ export function TipTapEditor({
     }
   }, [editor, initialContent, onReady, onEditorReady, activeFilePath])
 
+  // Listen to editor updates and notify TabBar about undo/redo state
+  useEffect(() => {
+    if (!editor) return
+
+    const handleUpdate = () => {
+      emitter.emit('editor-undo-redo-changed', {
+        undo: editor.can().undo(),
+        redo: editor.can().redo()
+      })
+    }
+
+    editor.on('update', handleUpdate)
+    return () => {
+      editor.off('update', handleUpdate)
+    }
+  }, [editor, activeFilePath])
+
   // Handle remote file pull updates - update content when initialContent changes
   useEffect(() => {
     if (!editor || !isInitializedRef.current) return
@@ -1255,6 +1272,29 @@ export function TipTapEditor({
       }).run()
     }
 
+    // Handle undo/redo from TabBar buttons
+    const handleUndo = () => {
+      if (!editor) return
+      editor.chain().focus().undo().run()
+    }
+
+    const handleRedo = () => {
+      if (!editor) return
+      editor.chain().focus().redo().run()
+    }
+
+    // Handle query for undo/redo capability
+    const handleCanUndoRedo = ({ resolve }: { resolve: (can: { undo: boolean; redo: boolean }) => void }) => {
+      if (!editor) {
+        resolve({ undo: false, redo: false })
+        return
+      }
+      resolve({
+        undo: editor.can().undo(),
+        redo: editor.can().redo()
+      })
+    }
+
     // Defer emitter and document listener registration to avoid flushSync conflict during React render
     const setupListeners = () => {
       // Check if editor is initialized before registering listeners
@@ -1265,6 +1305,9 @@ export function TipTapEditor({
       emitter.on('editor-insert', handleInsert)
       emitter.on('editor-replace', handleReplace)
       emitter.on('get-quote-from-editor', handleGetQuote)
+      emitter.on('editor-undo', handleUndo)
+      emitter.on('editor-redo', handleRedo)
+      emitter.on('editor-can-undo-redo', handleCanUndoRedo)
       document.addEventListener('tiptap-insert-mermaid', handleInsertMermaid as EventListener)
       listenersSetup = true
     }
@@ -1275,6 +1318,9 @@ export function TipTapEditor({
       emitter.off('editor-insert', handleInsert)
       emitter.off('editor-replace', handleReplace)
       emitter.off('get-quote-from-editor', handleGetQuote)
+      emitter.off('editor-undo', handleUndo)
+      emitter.off('editor-redo', handleRedo)
+      emitter.off('editor-can-undo-redo', handleCanUndoRedo)
       // Only remove event listener if it was actually added
       if (listenersSetup) {
         document.removeEventListener('tiptap-insert-mermaid', handleInsertMermaid as EventListener)
@@ -1282,8 +1328,10 @@ export function TipTapEditor({
       }
     }
 
-    // Use setTimeout to defer listener registration until after React render completes
-    setTimeout(setupListeners, 0)
+    // Register listeners synchronously
+    if (editor) {
+      setupListeners()
+    }
 
     return cleanupListeners
   }, [editor, activeFilePath])
