@@ -5,6 +5,7 @@ import { Heading1, Heading2, Heading3 } from 'lucide-react'
 import { useCallback, useEffect, useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
+
 interface HeadingItem {
   level: number
   text: string
@@ -23,6 +24,48 @@ export function Outline({ editor, isOpen }: OutlineProps) {
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null)
   // Use ref to always get latest headings in event handlers
   const headingsRef = useRef<HeadingItem[]>([])
+  // Track if editor is ready - use both ref and state
+  const isEditorReadyRef = useRef(false)
+  const [isReady, setIsReady] = useState(false)
+
+  // Check if editor is ready - wait for view to be available
+  useEffect(() => {
+    if (!editor) {
+      isEditorReadyRef.current = false
+      return
+    }
+
+    // Check periodically if editor view is available
+    const checkEditor = () => {
+      // Check if editor is destroyed
+      if (!editor || (editor as any).isDestroyed) {
+        isEditorReadyRef.current = false
+        return
+      }
+
+      // Check if editor view is ready
+      if (editor.view && editor.view.dom && editor.view.dom.isConnected) {
+        // Additional check: ensure DOM is actually mounted
+        try {
+          // This will throw if not ready
+          editor.view.dom.getBoundingClientRect()
+          isEditorReadyRef.current = true
+          setIsReady(true)
+        } catch {
+          isEditorReadyRef.current = false
+          setIsReady(false)
+          setTimeout(checkEditor, 50)
+          return
+        }
+      } else {
+        isEditorReadyRef.current = false
+        setIsReady(false)
+        setTimeout(checkEditor, 50)
+      }
+    }
+
+    checkEditor()
+  }, [editor])
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -88,12 +131,22 @@ export function Outline({ editor, isOpen }: OutlineProps) {
 
   // Update headings when editor content changes
   useEffect(() => {
-    setHeadings(extractHeadings())
+    // Check if editor is fully initialized
+    if (!editor || !editor.view || !editor.view.dom) {
+      console.log('[Outline] useEffect extractHeadings: editor not ready')
+      return
+    }
+    try {
+      setHeadings(extractHeadings())
+    } catch (e) {
+      console.error('[Outline] Error in extractHeadings:', e)
+    }
   }, [editor, extractHeadings])
 
   // Find active heading based on scroll position (viewport)
   const findActiveHeadingByScroll = useCallback((): string | null => {
-    if (!editor || headings.length === 0) return null
+    // Check if editor is fully initialized - use isEditorReadyRef
+    if (!isEditorReadyRef.current || headings.length === 0) return null
 
     // Get the editor's scrollable element
     const editorElement = editor.view.dom as HTMLElement
@@ -119,7 +172,8 @@ export function Outline({ editor, isOpen }: OutlineProps) {
 
   // Update active heading when selection or scroll changes
   useEffect(() => {
-    if (!editor) return
+    // Check if editor is fully initialized
+    if (!editor || !editor.view || !editor.view.dom) return
 
     const updateActiveHeading = () => {
       // First try to get heading from cursor position
@@ -188,7 +242,8 @@ export function Outline({ editor, isOpen }: OutlineProps) {
     }
   }, [activeHeadingId])
 
-  if (!isOpen) return null
+  // 如果编辑器还没准备好或没有打开Outline，直接返回 null
+  if (!isOpen || !isReady) return null
 
   return (
     <div className="outline-panel w-64 border-l border-[hsl(var(--border))] bg-[hsl(var(--background))] overflow-y-auto">
