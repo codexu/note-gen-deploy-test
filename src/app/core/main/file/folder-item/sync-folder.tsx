@@ -7,7 +7,11 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 import { uploadFile as uploadGithubFile, getFiles as getGithubFiles } from '@/lib/sync/github';
 import { uploadFile as uploadGiteeFile, getFiles as getGiteeFiles } from '@/lib/sync/gitee';
 import { uploadFile as uploadGitlabFile, getFiles as getGitlabFiles } from '@/lib/sync/gitlab';
+import { uploadFile as uploadGiteaFile, getFiles as getGiteaFiles } from '@/lib/sync/gitea';
+import { s3Upload as uploadS3File } from '@/lib/sync/s3';
+import { webdavUpload as uploadWebDAVFile } from '@/lib/sync/webdav';
 import { RepoNames } from '@/lib/sync/github.types';
+import { S3Config, WebDAVConfig } from '@/types/sync';
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import useArticleStore, { DirTree } from "@/stores/article";
@@ -71,10 +75,10 @@ export default function SyncFolder({ item }: { item: DirTree }) {
         
         const base64Content = Buffer.from(content).toString('base64');
         const filePath = file.path.substring(0, file.path.lastIndexOf('/')) || undefined;
-        
+
         // 检查文件是否已存在，获取 SHA 值
         let existingSha: string | undefined = undefined;
-        
+
         switch (primaryBackupMethod) {
           case 'github': {
             const existingFiles = await getGithubFiles({
@@ -106,8 +110,13 @@ export default function SyncFolder({ item }: { item: DirTree }) {
             }
             break;
           }
+          case 's3':
+          case 'gitea':
+          case 'webdav':
+            // S3、WebDAV 和 Gitea 不需要检查 SHA，直接上传（覆盖式）
+            break;
         }
-        
+
         // 根据主要备份方式选择上传函数
         let uploadResult;
         switch (primaryBackupMethod) {
@@ -141,6 +150,42 @@ export default function SyncFolder({ item }: { item: DirTree }) {
               message: existingSha ? `Update ${file.name} from folder: ${item.name}` : `Sync folder: ${item.name}`
             });
             break;
+          case 's3': {
+            const s3Config = await store.get<S3Config>('s3SyncConfig');
+            if (s3Config) {
+              // 直接传入文件路径，s3Upload 内部会处理 pathPrefix
+              uploadResult = await uploadS3File(s3Config, file.path, content);
+            }
+            break;
+          }
+          case 'webdav': {
+            const webdavConfig = await store.get<WebDAVConfig>('webdavSyncConfig');
+            if (webdavConfig) {
+              // 直接传入文件路径，webdavUpload 内部会处理 pathPrefix
+              uploadResult = await uploadWebDAVFile(webdavConfig, file.path, content);
+            }
+            break;
+          }
+          case 'gitea': {
+            // Gitea 上传
+            const existingFiles = await getGiteaFiles({
+              path: file.path,
+              repo: RepoNames.sync
+            });
+            let giteaSha: string | undefined = undefined;
+            if (existingFiles && !Array.isArray(existingFiles)) {
+              giteaSha = existingFiles.sha;
+            }
+            uploadResult = await uploadGiteaFile({
+              file: base64Content,
+              filename: file.name,
+              repo: RepoNames.sync,
+              path: filePath,
+              sha: giteaSha,
+              message: giteaSha ? `Update ${file.name} from folder: ${item.name}` : `Sync folder: ${item.name}`
+            });
+            break;
+          }
         }
         
         if (uploadResult) {
