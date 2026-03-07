@@ -258,6 +258,25 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
     if (answer) {
       const currentPath = computedParentPath(item)
 
+      // 设置 loading 状态
+      const cacheTree = cloneDeep(fileTree)
+      const setLoadingStatus = (items: typeof cacheTree): boolean => {
+        for (const entry of items) {
+          const entryPath = computedParentPath(entry)
+          if (entryPath === currentPath && entry.isFile) {
+            entry.loading = true
+            return true
+          }
+          if (entry.children && setLoadingStatus(entry.children)) {
+            return true
+          }
+        }
+        return false
+      }
+      if (setLoadingStatus(cacheTree)) {
+        setFileTree(cacheTree)
+      }
+
       try {
         // 获取当前主要备份方式
         const store = await Store.load('store.json');
@@ -292,22 +311,30 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
           // 只更新当前文件的状态，不刷新整个文件树
           const cacheTree = cloneDeep(fileTree)
 
-          // 递归查找并更新文件状态
-          const updateFileStatus = (items: typeof cacheTree): boolean => {
-            for (const entry of items) {
+          // 递归查找并更新/删除文件
+          const updateOrRemoveFile = (items: typeof cacheTree): boolean => {
+            for (let i = 0; i < items.length; i++) {
+              const entry = items[i]
               const entryPath = computedParentPath(entry)
               if (entryPath === currentPath && entry.isFile) {
-                entry.sha = undefined // 清除远程 SHA
+                if (entry.isLocale) {
+                  // 本地存在：只清除远程 SHA
+                  entry.sha = undefined
+                  entry.loading = undefined
+                } else {
+                  // 本地不存在：从列表中移除
+                  items.splice(i, 1)
+                }
                 return true
               }
-              if (entry.children && updateFileStatus(entry.children)) {
+              if (entry.children && updateOrRemoveFile(entry.children)) {
                 return true
               }
             }
             return false
           }
 
-          if (updateFileStatus(cacheTree)) {
+          if (updateOrRemoveFile(cacheTree)) {
             setFileTree(cacheTree)
           }
 
@@ -316,9 +343,45 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
             description: t('context.deleteSyncFileSuccess'),
           });
         } else {
+          // 删除失败，清除 loading 状态
+          const cacheTree = cloneDeep(fileTree)
+          const clearLoadingStatus = (items: typeof cacheTree): boolean => {
+            for (const entry of items) {
+              const entryPath = computedParentPath(entry)
+              if (entryPath === currentPath && entry.isFile) {
+                entry.loading = undefined
+                return true
+              }
+              if (entry.children && clearLoadingStatus(entry.children)) {
+                return true
+              }
+            }
+            return false
+          }
+          if (clearLoadingStatus(cacheTree)) {
+            setFileTree(cacheTree)
+          }
           throw new Error('删除操作返回失败')
         }
       } catch (error) {
+        // 删除失败，清除 loading 状态
+        const cacheTree = cloneDeep(fileTree)
+        const clearLoadingStatus = (items: typeof cacheTree): boolean => {
+          for (const entry of items) {
+            const entryPath = computedParentPath(entry)
+            if (entryPath === currentPath && entry.isFile) {
+              entry.loading = undefined
+              return true
+            }
+            if (entry.children && clearLoadingStatus(entry.children)) {
+              return true
+            }
+          }
+          return false
+        }
+        if (clearLoadingStatus(cacheTree)) {
+          setFileTree(cacheTree)
+        }
         console.error('[handleDeleteSyncFile] 删除远程文件失败:', error);
         toast({
           title: t('context.delete'),
@@ -846,7 +909,13 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
                 <div className="flex flex-1 gap-1 select-none relative items-center">
                   <span className={item.parent ? 'size-0' : `${iconSize} ml-1`}></span>
                   <div className="relative flex items-center">
-                    { item.isLocale ? (item.sha ? <FileUp className={iconSize} /> : <File className={iconSize} />) : <FileDown className={iconSize} /> }
+                    { item.loading ? (
+                      <LoaderCircle className={`${iconSize} animate-spin`} />
+                    ) : item.isLocale ? (
+                      item.sha ? <FileUp className={iconSize} /> : <File className={iconSize} />
+                    ) : (
+                      <FileDown className={iconSize} />
+                    )}
                   </div>
                   <span className={`text-${fileManagerTextSize} flex-1 line-clamp-1`}>{item.name}</span>
                   {path === activeFilePath && renderVectorIcon()}
