@@ -48,6 +48,8 @@ import { AISuggestionFloating } from './ai-suggestion-floating'
 import emitter from '@/lib/emitter'
 import { QuoteMark } from './quote-mark'
 import useSettingStore from '@/stores/setting'
+import { Loader2, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import './style.css'
 
 const lowlight = createLowlight(common)
@@ -143,6 +145,9 @@ interface TipTapEditorProps {
   onEditorReady?: (editor: any) => void
   outlineOpen?: boolean
   onToggleOutline?: () => void
+  autoScroll?: boolean
+  showOverlay?: boolean
+  onTerminate?: () => void
 }
 
 export function TipTapEditor({
@@ -156,12 +161,19 @@ export function TipTapEditor({
   onEditorReady,
   outlineOpen,
   onToggleOutline,
+  autoScroll = false,
+  showOverlay = false,
+  onTerminate,
 }: TipTapEditorProps) {
   const t = useTranslations('editor')
   const tMermaid = useTranslations('editor.mermaid.templates')
   const tImage = useTranslations('editor.image')
 
   const placeholderText = placeholder || t('placeholder')
+
+  // Use ref for autoScroll to avoid infinite re-render loop
+  const autoScrollRef = useRef(autoScroll)
+  autoScrollRef.current = autoScroll
 
   // 获取正文缩放设置
   const { contentTextScale } = useSettingStore()
@@ -304,6 +316,39 @@ export function TipTapEditor({
       }
     },
   })
+
+  // Auto scroll to bottom when content changes and autoScroll is enabled
+  useEffect(() => {
+    if (!editor) return
+
+    // Use requestAnimationFrame to avoid infinite loop
+    let isScrolling = false
+
+    const scrollToBottom = () => {
+      if (!autoScrollRef.current || isScrolling) return
+      isScrolling = true
+
+      requestAnimationFrame(() => {
+        try {
+          if (editorContainerRef.current) {
+            const proseMirror = editorContainerRef.current.querySelector('.ProseMirror') as HTMLElement
+            if (proseMirror) {
+              proseMirror.scrollTop = proseMirror.scrollHeight
+            }
+          }
+        } finally {
+          isScrolling = false
+        }
+      })
+    }
+
+    // Listen to editor updates
+    editor.on('update', scrollToBottom)
+
+    return () => {
+      editor.off('update', scrollToBottom)
+    }
+  }, [editor])
 
   // 应用正文文字大小缩放
   useEffect(() => {
@@ -1386,6 +1431,26 @@ export function TipTapEditor({
         <EditorContent editor={editor} className="h-full" />
         </div>
       </div>
+
+      {/* AI Generation Overlay */}
+      {showOverlay && (
+        <div className="absolute inset-0 z-50 flex items-start justify-end p-4 bg-background/20 pointer-events-none">
+          <div className="flex items-center gap-2 bg-background/90 border rounded-md px-3 py-2 shadow-md pointer-events-auto">
+            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">AI 整理中</span>
+            {onTerminate && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6"
+                onClick={onTerminate}
+              >
+                <X className="size-3" />
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Bottom toolbar - always visible */}
       <FooterBar

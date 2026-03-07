@@ -28,6 +28,7 @@ interface Events {
   'toolbar-shortcut-image': unknown;
   'toolbar-shortcut-file': unknown;
   'toolbar-shortcut-todo': unknown;
+  'editor-ai-streaming': { isStreaming: boolean; targetFilePath?: string; terminate?: () => void };
   'toolbar-shortcut-recording': unknown;
   'toolbar-shortcut-scan': unknown;
   'toolbar-shortcut-text': unknown;

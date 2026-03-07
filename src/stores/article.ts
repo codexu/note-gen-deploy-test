@@ -138,10 +138,16 @@ interface NoteState {
   currentArticle: string
   isPulling: boolean // 新增：拉取状态
   justPulledFile: boolean // 标记是否刚从远程拉取文件（用于避免立即推送）
+  skipSyncOnSave: boolean // 标记是否跳过同步（用于程序写入时）
+  aiGeneratingFilePath: string | null // 标记当前正在 AI 生成的文件路径
+  aiTerminateFn: (() => void) | null // AI 生成的终止函数
   readArticle: (path: string, sha?: string, isLocale?: boolean, autoSync?: boolean) => Promise<void>
   setCurrentArticle: (content: string) => void
   setIsPulling: (pulling: boolean) => void
   setJustPulledFile: (justPulled: boolean) => void
+  setSkipSyncOnSave: (skip: boolean) => void
+  setAiGeneratingFilePath: (path: string | null) => void
+  setAiTerminateFn: (fn: (() => void) | null) => void
   saveCurrentArticle: (content: string) => Promise<void>
   // 防抖保存相关
   debounceSaveTimer: NodeJS.Timeout | null
@@ -1477,6 +1483,9 @@ const useArticleStore = create<NoteState>((set, get) => ({
   readFilePath: '',
   isPulling: false, // 新增：拉取状态
   justPulledFile: false, // 标记是否刚从远程拉取文件
+  skipSyncOnSave: false, // 标记是否跳过同步
+  aiGeneratingFilePath: null, // 标记当前正在 AI 生成的文件路径
+  aiTerminateFn: null, // AI 生成的终止函数
 
   setReadFilePath: (path: string) => {
     set({ readFilePath: path })
@@ -1700,6 +1709,18 @@ const useArticleStore = create<NoteState>((set, get) => ({
     set({ justPulledFile: justPulled })
   },
 
+  setSkipSyncOnSave: (skip: boolean) => {
+    set({ skipSyncOnSave: skip })
+  },
+
+  setAiGeneratingFilePath: (path: string | null) => {
+    set({ aiGeneratingFilePath: path })
+  },
+
+  setAiTerminateFn: (fn: (() => void) | null) => {
+    set({ aiTerminateFn: fn })
+  },
+
   // 更新文件 sha 状态（推送成功后调用）
   updateFileSha: (path: string, sha: string) => {
     const cacheTree = cloneDeep(get().fileTree)
@@ -1868,8 +1889,11 @@ const useArticleStore = create<NoteState>((set, get) => ({
         // 更新 currentArticle
         set({ currentArticle: saveContent })
 
-        // 通知文件已保存，触发同步推送
-        emitter.emit('article-saved', { path: savePath, content: saveContent })
+        // 通知文件已保存，触发同步推送（除非设置了 skipSyncOnSave）
+        const shouldSkipSync = get().skipSyncOnSave
+        if (!shouldSkipSync) {
+          emitter.emit('article-saved', { path: savePath, content: saveContent })
+        }
       }, 500)
 
       // 保存待处理的内容（最新的内容）

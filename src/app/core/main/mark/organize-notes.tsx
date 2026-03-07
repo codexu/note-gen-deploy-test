@@ -30,6 +30,7 @@ import { useTranslations } from "next-intl"
 import { writeTextFile, exists } from "@tauri-apps/plugin-fs"
 import { getFilePathOptions, getWorkspacePath } from "@/lib/workspace"
 import { toast } from "@/hooks/use-toast"
+import emitter from "@/lib/emitter"
 
 interface OrganizeNotesProps {
   inputValue?: string;
@@ -40,7 +41,7 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
   const { primaryModel } = useSettingStore()
   const { fetchMarks, marks } = useMarkStore()
   const { currentTag } = useTagStore()
-  const { setActiveFilePath, loadFileTree, readArticle, setCurrentArticle } = useArticleStore()
+  const { setActiveFilePath, loadFileTree, readArticle, setCurrentArticle, setSkipSyncOnSave, setAiGeneratingFilePath, setAiTerminateFn } = useArticleStore()
   const { setLeftSidebarTab } = useSidebarStore()
   const router = useRouter()
   const [tab, setTab] = useState('0')
@@ -122,12 +123,13 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
 
     setLoading(true)
 
+    // Prepare file path outside try block for access in finally
+    const timestamp = new Date().getTime()
+    const fileName = `整理笔记_${timestamp}.md`
+    const filePath = fileName
+
     try {
-      // 1. Create empty markdown file
-      const timestamp = new Date().getTime()
-      const fileName = `整理笔记_${timestamp}.md`
       const workspace = await getWorkspacePath()
-      const filePath = fileName
       const pathOptions = await getFilePathOptions(filePath)
 
       if (workspace.isCustom) {
@@ -145,6 +147,46 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
       await new Promise(resolve => setTimeout(resolve, 500))
 
       await fetchMarks()
+
+      // Get latest marks from store after fetch
+      const latestMarks = useMarkStore.getState().marks
+
+      // Calculate marksByRange with latest marks
+      const range = selectedTemplate?.range
+      let subtractDate: Dayjs
+      switch (range) {
+        case GenTemplateRange.All:
+          subtractDate = dayjs().subtract(99, 'year')
+          break
+        case GenTemplateRange.Today:
+          subtractDate = dayjs().subtract(1, 'day')
+          break
+        case GenTemplateRange.Week:
+          subtractDate = dayjs().subtract(1, 'week')
+          break
+        case GenTemplateRange.Month:
+          subtractDate = dayjs().subtract(1, 'month')
+          break
+        case GenTemplateRange.ThreeMonth:
+          subtractDate = dayjs().subtract(3, 'month')
+          break
+        case GenTemplateRange.Year:
+          subtractDate = dayjs().subtract(1, 'year')
+          break
+        default:
+          subtractDate = dayjs().subtract(99, 'year')
+          break
+      }
+      const marksByRange = latestMarks.filter(item => dayjs(item.createdAt).isAfter(subtractDate))
+
+      // Calculate categorizedMarks with latest marks
+      const categorizedMarks = {
+        scanMarks: marksByRange.filter(item => item.type === 'scan'),
+        textMarks: marksByRange.filter(item => item.type === 'text'),
+        imageMarks: marksByRange.filter(item => item.type === 'image'),
+        linkMarks: marksByRange.filter(item => item.type === 'link'),
+        fileMarks: marksByRange.filter(item => item.type === 'file')
+      }
 
       // Process image marks
       const processedImageMarks = await Promise.all(
@@ -200,12 +242,40 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
         ${selectedTemplate?.content}
       `
 
+      // Emit AI streaming start event with target file path
+      emitter.emit('editor-ai-streaming', {
+        isStreaming: true,
+        targetFilePath: filePath,
+        terminate: () => {
+          terminateGeneration()
+        }
+      })
+
       // 5. Stream generation to editor
+
+      // Skip sync for AI-generated content
+      setSkipSyncOnSave(true)
+      setAiGeneratingFilePath(filePath)
+      setAiTerminateFn(() => {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+          abortControllerRef.current = null
+          setLoading(false)
+        }
+      })
+
       abortControllerRef.current = new AbortController()
       const signal = abortControllerRef.current.signal
+      const targetFilePath = filePath // 保存目标文件路径
 
       let fullContent = ''
       await fetchAiStream(request_content, async (content) => {
+        // Check if user switched to a different file - stop writing if so
+        const currentActivePath = useArticleStore.getState().activeFilePath
+        if (currentActivePath !== targetFilePath) {
+          return
+        }
+
         fullContent = content
         // Update editor content in real-time without reloading file
         setCurrentArticle(content)
@@ -216,6 +286,17 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
           await writeTextFile(pathOptions.path, content, { baseDir: pathOptions.baseDir })
         }
       }, signal)
+
+      // Re-enable sync after AI generation
+      setSkipSyncOnSave(false)
+      setAiGeneratingFilePath(null)
+      setAiTerminateFn(null)
+
+      // Emit AI streaming end event
+      emitter.emit('editor-ai-streaming', {
+        isStreaming: false,
+        targetFilePath: filePath
+      })
 
       // 6. Extract title and rename file
       const cleanedContent = fullContent
@@ -294,12 +375,34 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
     } finally {
       abortControllerRef.current = null
       setLoading(false)
+      // Re-enable sync in case of termination
+      setSkipSyncOnSave(false)
+      setAiGeneratingFilePath(null)
+      setAiTerminateFn(null)
+      // Emit AI streaming end event
+      emitter.emit('editor-ai-streaming', {
+        isStreaming: false,
+        targetFilePath: filePath
+      })
     }
   }, [primaryModel, categorizedMarks, selectedTemplate, inputValue, fetchMarks, loadFileTree, setActiveFilePath, setLeftSidebarTab, setCurrentArticle, readArticle, tMark, t, open])
 
   useImperativeHandle(ref, () => ({
     openOrganize
   }))
+
+  // Listen for abort event from editor
+  useEffect(() => {
+    const handleAbortAiStreaming = () => {
+      if (loading) {
+        terminateGeneration()
+      }
+    }
+    emitter.on('abort-ai-streaming', handleAbortAiStreaming)
+    return () => {
+      emitter.off('abort-ai-streaming', handleAbortAiStreaming)
+    }
+  }, [loading, terminateGeneration])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
