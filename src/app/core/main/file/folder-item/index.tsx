@@ -742,7 +742,21 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
               e.stopPropagation();
             }}
           >
-            <ChevronRight className="transition-transform size-4 ml-1 bg-sidebar group-hover:bg-transparent" />
+            <ChevronRight
+              className="transition-transform size-4 ml-1 bg-sidebar group-hover:bg-transparent"
+              onClick={async (e) => {
+                // 点击折叠箭头时只触发展开/折叠，阻止冒泡避免触发 handleSelectFolder
+                e.stopPropagation();
+                e.preventDefault();
+                // 切换折叠状态
+                const isExpanded = collapsibleList.includes(path)
+                await setCollapsibleList(path, !isExpanded)
+                // 如果是展开操作，加载文件夹内容
+                if (!isExpanded) {
+                  await loadCollapsibleFiles(path)
+                }
+              }}
+            />
             {
               isEditing ?
                 <>
