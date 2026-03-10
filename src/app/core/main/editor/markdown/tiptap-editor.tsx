@@ -32,7 +32,9 @@ import { MathEditorDialog } from './math-editor-dialog'
 import { SearchReplacePanel } from './search-replace-panel'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { Store } from '@tauri-apps/plugin-store'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { handleImageUpload } from '@/lib/image-handler'
+import useArticleStore from '@/stores/article'
 import { convertImageByWorkspace } from '@/lib/utils'
 import { isMobileDevice } from '@/lib/check'
 import { useTranslations } from 'next-intl'
@@ -397,6 +399,115 @@ export function TipTapEditor({
       }
     },
   })
+
+  // 处理编辑器内链接点击
+  useEffect(() => {
+    if (!editor || !editorContainerRef.current) return
+
+    const editorElement = editorContainerRef.current
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      const anchor = target.closest('a')
+
+      if (!anchor) return
+
+      let href = anchor.getAttribute('href')
+      if (!href) return
+
+      // 阻止默认行为
+      event.preventDefault()
+      // 阻止事件冒泡，防止其他处理器触发
+      event.stopPropagation()
+
+      // 处理 file:// 协议
+      if (href.startsWith('file://')) {
+        href = href.replace(/^file:\/\//, '')
+        // Windows 路径处理
+        if (href.startsWith('/') && !href.match(/^[A-Z]:/)) {
+          href = href.substring(1)
+        }
+        openUrl(`file://${href}`).catch(console.error)
+        return
+      }
+
+      // 检查是否是本地开发服务器的 URL (localhost 或 127.0.0.1)
+      const isLocalUrl = href.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//)
+
+      // 根据链接类型执行不同操作
+      if (href.startsWith('http://') || href.startsWith('https://')) {
+        if (isLocalUrl) {
+          // 本地开发服务器 URL，提取路径部分作为本地文件
+          const url = new URL(href)
+          let filePath = url.pathname
+          // 移除开头的斜杠（如果是 Unix 风格路径）
+          if (filePath.startsWith('/')) {
+            filePath = filePath.substring(1)
+          }
+          // Windows 路径处理
+          if (filePath.match(/^[A-Z]:/)) {
+            // 已经是 Windows 绝对路径
+          } else if (filePath.startsWith('/')) {
+            filePath = filePath.substring(1)
+          }
+          // URL 解码
+          filePath = decodeURIComponent(filePath)
+
+          // 获取当前文件的父目录，计算相对路径
+          const currentFilePath = useArticleStore.getState().activeFilePath
+          let fullPath: string
+
+          if (filePath.startsWith('/') || filePath.match(/^[A-Z]:/)) {
+            // 绝对路径
+            fullPath = filePath
+          } else {
+            // 相对路径，基于当前文件所在目录
+            const parentDir = currentFilePath.includes('/')
+              ? currentFilePath.substring(0, currentFilePath.lastIndexOf('/'))
+              : ''
+            fullPath = parentDir ? `${parentDir}/${filePath}` : filePath
+          }
+
+          // 在软件内部打开文件
+          useArticleStore.getState().setActiveFilePath(fullPath)
+          return
+        } else {
+          // 外部 HTTP/HTTPS 链接：用浏览器打开
+          openUrl(href).catch(console.error)
+          return
+        }
+      } else if (href.startsWith('mailto:') || href.startsWith('tel:')) {
+        // 邮件和电话链接，用默认应用打开
+        openUrl(href).catch(console.error)
+        return
+      } else {
+        // 本地路径相对路径，基于当前文件所在目录
+        const currentFilePath = useArticleStore.getState().activeFilePath
+        let fullPath: string
+
+        if (href.startsWith('/') || href.match(/^[A-Z]:/)) {
+          // 绝对路径
+          fullPath = href
+        } else {
+          // 相对路径
+          const parentDir = currentFilePath.includes('/')
+            ? currentFilePath.substring(0, currentFilePath.lastIndexOf('/'))
+            : ''
+          fullPath = parentDir ? `${parentDir}/${href}` : href
+        }
+
+        // 在软件内部打开文件
+        useArticleStore.getState().setActiveFilePath(fullPath)
+        return
+      }
+    }
+
+    editorElement.addEventListener('click', handleClick)
+
+    return () => {
+      editorElement.removeEventListener('click', handleClick)
+    }
+  }, [editor])
 
   // Auto scroll to bottom when content changes and autoScroll is enabled
   useEffect(() => {
@@ -928,8 +1039,6 @@ export function TipTapEditor({
   // 处理编辑器中图片的相对路径，转换为 asset:// URL
   useEffect(() => {
     if (!editor || !editor.view) return
-
-    const { convertImageByWorkspace } = require('@/lib/utils')
 
     const transformImagePaths = () => {
       // 获取编辑器 DOM 中的所有图片

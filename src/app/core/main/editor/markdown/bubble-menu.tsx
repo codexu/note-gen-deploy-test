@@ -61,6 +61,8 @@ export function BubbleMenu({
   const [customTranslateLang, setCustomTranslateLang] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [showLinkInput, setShowLinkInput] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isInteractingWithMenu, setIsInteractingWithMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const aiSubmenuRef = useRef<HTMLDivElement>(null)
   const translateSubmenuRef = useRef<HTMLDivElement>(null)
