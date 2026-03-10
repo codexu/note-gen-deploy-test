@@ -106,7 +106,10 @@ export function BubbleMenu({
     }
 
     // 检查编辑器是否有焦点（没有焦点时不显示）
-    if (!editor.view.hasFocus()) {
+    // 但如果选区有文本内容（from !== to），即使失去焦点也保持显示
+    // 这样可以避免点击工具栏按钮时菜单被隐藏
+    const hasSelection = from !== to
+    if (!hasSelection && !editor.view.hasFocus()) {
       setShow(false)
       return
     }
@@ -245,6 +248,7 @@ export function BubbleMenu({
         setShow(false)
         setShowAISubmenu(false)
         setShowTranslateSubmenu(false)
+        setIsInteractingWithMenu(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
