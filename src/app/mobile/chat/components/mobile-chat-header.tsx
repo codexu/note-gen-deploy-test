@@ -39,6 +39,7 @@ export function MobileChatHeader() {
   const { language } = useSettingStore()
   const tEmpty = useTranslations("record.chat.empty")
   const tInput = useTranslations("record.chat.input")
+  const tSearch = useTranslations("search")
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -65,17 +66,20 @@ export function MobileChatHeader() {
 
   return (
     <>
-      <header className="h-12 w-full border-b px-2 flex items-center justify-between bg-background">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={tEmpty("searchPlaceholder")}
+      <header className="h-12 w-full border-b px-2 flex items-center gap-2 bg-background">
+        <button
+          type="button"
+          aria-label={tSearch("placeholder")}
           onClick={() => setSearchOpen(true)}
+          className="flex h-9 min-w-0 flex-1 items-center rounded-md border bg-muted/30 px-3 text-left"
         >
-          <Search className="size-4" />
-        </Button>
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <span className="ml-2 truncate text-sm text-muted-foreground">
+            {tSearch("placeholder")}
+          </span>
+        </button>
 
-        <div className="flex items-center">
+        <div className="flex items-center shrink-0">
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DrawerTrigger asChild>
               <Button variant="ghost" size="icon" aria-label={tEmpty("conversationHistory")}>

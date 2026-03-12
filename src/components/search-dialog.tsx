@@ -1,14 +1,21 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { debounce } from 'lodash-es'
 import {
+  Command,
   CommandDialog,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { Badge } from '@/components/ui/badge'
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import { LocateFixed, SearchX } from 'lucide-react'
@@ -17,7 +24,7 @@ import useArticleStore from '@/stores/article'
 import useMarkStore from '@/stores/mark'
 import useTagStore from '@/stores/tag'
 import { useSidebarStore } from '@/stores/sidebar'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import emitter from '@/lib/emitter'
 import { EmitterRecordEvents } from '@/config/emitters'
 import { search, type SearchableItem } from '@/lib/search-utils'
@@ -47,12 +54,15 @@ interface EnhancedSearchResult {
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const t = useTranslations()
   const router = useRouter()
+  const pathname = usePathname()
   const [searchValue, setSearchValue] = useState('')
   const [searchResult, setSearchResult] = useState<EnhancedSearchResult[]>([])
   const { allArticle, loadAllArticle, setActiveFilePath, setMatchPosition, setCollapsibleList } = useArticleStore()
   const { allMarks, fetchAllMarks } = useMarkStore()
   const { tags, fetchTags, setCurrentTagId } = useTagStore()
   const { setLeftSidebarTab } = useSidebarStore()
+  const isMobileRoute = pathname.startsWith('/mobile')
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
 
   function extractTitleFromPath(path: string): string {
     if (!path) return ''
@@ -180,23 +190,30 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     // 如果是记录类型，跳转到记录页面并设置对应的 tag
     if (item.searchType === 'record') {
       onOpenChange(false)
-      
-      // 切换到记录标签页
-      await setLeftSidebarTab('notes')
-      
+
       if (item.tagId) {
         await setCurrentTagId(item.tagId)
       }
-      
+
+      if (!isMobileRoute) {
+        // PC 端：切换到记录标签页
+        await setLeftSidebarTab('notes')
+      } else {
+        // 移动端：进入记录页
+        router.push('/mobile/record')
+      }
+
       emitter.emit(EmitterRecordEvents.refreshMarks)
 
       return
     }
     
     onOpenChange(false)
-    
-    // 切换到笔记标签页
-    await setLeftSidebarTab('files')
+
+    // PC 端切换到笔记标签页；移动端直接跳转写作页
+    if (!isMobileRoute) {
+      await setLeftSidebarTab('files')
+    }
     
     // 如果是文章类型，跳转到文章页面
     if (item.firstMatchIndex !== undefined) {
@@ -230,8 +247,8 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       const { readArticle } = useArticleStore.getState()
       await readArticle(filePath)
       
-      // 跳转到主页面
-      router.push(`/core/main`)
+      // 跳转到对应平台页面
+      router.push(isMobileRoute ? '/mobile/writing' : '/core/main')
     }
     
     setupAndNavigate()
@@ -249,14 +266,24 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     debouncedSearch(searchValue)
   }, [searchValue, debouncedSearch])
 
-  return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+  useEffect(() => {
+    if (!open) return
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus()
+    }, 60)
+    return () => clearTimeout(timer)
+  }, [open, isMobileRoute])
+
+  const searchContent = (
+    <>
       <CommandInput 
+        ref={searchInputRef}
+        autoFocus
         placeholder={t('search.placeholder')} 
         value={searchValue}
         onValueChange={setSearchValue}
       />
-      <CommandList className="h-[400px] max-h-[400px]">
+      <CommandList className={isMobileRoute ? "h-[64vh] max-h-[64vh]" : "h-[400px] max-h-[400px]"}>
         {!searchValue && (
           <Empty className="border-0">
             <EmptyHeader>
@@ -287,29 +314,47 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                   key={item.id}
                   value={`${item.searchType}-${item.title || item.path}`}
                   onSelect={() => handleSelect(item)}
-                  className="flex flex-col items-start gap-1.5 py-2"
+                  className={isMobileRoute ? "flex flex-col items-start gap-1.5 py-2.5" : "flex flex-col items-start gap-1.5 py-2"}
                 >
-                  <div className="flex items-center justify-between gap-2 w-full">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <LocateFixed className="size-3.5 text-cyan-900 dark:text-cyan-400 shrink-0" />
-                      <Badge variant="secondary" className="text-xs">
-                        {item.searchType === 'record' ? t('search.item.record') : t('search.item.article')}
-                      </Badge>
-                      {item.title && (
-                        <span className="text-sm font-medium truncate">
-                          {highlightText(item.title, searchValue)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-muted-foreground/60">
-                        {item.score.toFixed(1)}
-                      </span>
-                      <div className="text-xs text-muted-foreground truncate max-w-[150px]">
+                  {isMobileRoute ? (
+                    <div className="w-full">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0">
+                          {item.searchType === 'record' ? t('search.item.record') : t('search.item.article')}
+                        </Badge>
+                        {item.title && (
+                          <span className="text-sm font-medium truncate">
+                            {highlightText(item.title, searchValue)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground truncate">
                         {item.searchType === 'record' ? (item.tagName || t('search.item.record')) : item.path}
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <LocateFixed className="size-3.5 text-cyan-900 dark:text-cyan-400 shrink-0" />
+                        <Badge variant="secondary" className="text-xs">
+                          {item.searchType === 'record' ? t('search.item.record') : t('search.item.article')}
+                        </Badge>
+                        {item.title && (
+                          <span className="text-sm font-medium truncate">
+                            {highlightText(item.title, searchValue)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-muted-foreground/60">
+                          {item.score.toFixed(1)}
+                        </span>
+                        <div className="text-xs text-muted-foreground truncate max-w-[150px]">
+                          {item.searchType === 'record' ? (item.tagName || t('search.item.record')) : item.path}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="text-xs text-muted-foreground line-clamp-2 w-full">
                     {highlightText(item.highlightText, searchValue)}
                   </div>
@@ -319,6 +364,32 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
           </CommandGroup>
         )}
       </CommandList>
+    </>
+  )
+
+  if (isMobileRoute) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="h-[86vh] rounded-t-2xl p-0">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle>{t('search.placeholder')}</DrawerTitle>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 px-3 pb-3">
+            <Command
+              shouldFilter={false}
+              className="h-full rounded-xl border bg-background [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-11 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+            >
+              {searchContent}
+            </Command>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <CommandDialog open={open} onOpenChange={onOpenChange}>
+      {searchContent}
     </CommandDialog>
   )
 }
