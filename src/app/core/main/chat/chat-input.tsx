@@ -121,6 +121,8 @@ export const ChatInput = React.memo(function ChatInput() {
     fileName: string
     startLine: number
     endLine: number
+    from: number
+    to: number
     articlePath: string
   } | null>(null)
   const chatSendRef = useRef<any>(null)
@@ -348,7 +350,6 @@ export const ChatInput = React.memo(function ChatInput() {
     setText('')
     setHistoryIndex(-1)
     setAttachedImages([])
-    setQuoteData(null)
     const textarea = document.querySelector('textarea')
     if (textarea) {
       textarea.style.height = 'auto'
@@ -456,6 +457,8 @@ export const ChatInput = React.memo(function ChatInput() {
         fileName: string
         startLine: number
         endLine: number
+        from: number
+        to: number
         articlePath: string
       }
       // 设置引用数据

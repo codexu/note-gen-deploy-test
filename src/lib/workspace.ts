@@ -1,5 +1,5 @@
 import { BaseDirectory } from '@tauri-apps/plugin-fs'
-import { join } from '@tauri-apps/api/path'
+import { appDataDir, join } from '@tauri-apps/api/path'
 import { Store } from '@tauri-apps/plugin-store'
 
 /**
@@ -47,6 +47,21 @@ export async function getFilePathOptions(relativePath: string): Promise<{ path: 
       baseDir: BaseDirectory.AppData
     }
   }
+}
+
+/**
+ * 获取默认 AppData/article 下的绝对路径
+ * 主要用于 skills/runtime、outputs 等特殊目录，避免某些 baseDir 写入限制
+ */
+export async function getDefaultArticleAbsolutePath(relativePath: string): Promise<string> {
+  const normalized = relativePath
+    .trim()
+    .replace(/\\/g, '/')
+    .replace(/^\.?\//, '')
+    .replace(/^article\//, '')
+
+  const appDataPath = await appDataDir()
+  return await join(appDataPath, 'article', normalized)
 }
 
 /**
@@ -112,4 +127,28 @@ export async function toWorkspaceRelativePath(path: string): Promise<string> {
   
   // 如果路径已经是相对路径，直接返回
   return path
+}
+
+/**
+ * 规范化相对于工作区的路径
+ * - 自定义工作区: 保持相对路径原样
+ * - 默认工作区(article): 自动移除误传入的 article/ 前缀
+ */
+export async function normalizeWorkspaceRelativePath(relativePath: string): Promise<string> {
+  const workspace = await getWorkspacePath()
+  const normalized = relativePath
+    .trim()
+    .replace(/\\/g, '/')
+    .replace(/^\.?\//, '')
+    .replace(/\/+/g, '/')
+
+  if (workspace.isCustom) {
+    return normalized
+  }
+
+  if (normalized === 'article') {
+    return ''
+  }
+
+  return normalized.replace(/^article\//, '')
 }

@@ -7,6 +7,7 @@ import { reloadMcpTools } from './tools'
 import OpenAI from 'openai'
 
 export interface AgentHandlerConfig {
+  activeChatId?: number
   onThought?: (thought: string) => void
   onAction?: (action: string, params: Record<string, any>) => void
   onObservation?: (observation: string) => void
@@ -14,6 +15,14 @@ export interface AgentHandlerConfig {
   onError?: (error: string) => void
   onFinalAnswerRender?: (markdownContent: string) => void  // 当检测到 Final Answer 时立即渲染 Markdown
   requestConfirmation?: (toolName: string, params: Record<string, any>) => Promise<boolean>
+  currentQuote?: {
+    fileName: string
+    startLine: number
+    endLine: number
+    from: number
+    to: number
+    fullContent?: string
+  }
 }
 
 export class AgentHandler {
@@ -32,7 +41,10 @@ export class AgentHandler {
     const store = useChatStore.getState()
 
     store.resetAgentState()
-    store.setAgentState({ isRunning: true })
+    store.setAgentState({
+      activeChatId: this.config.activeChatId,
+      isRunning: true,
+    })
 
     // 确保 MCP Store 已初始化
     try {
@@ -161,6 +173,7 @@ export class AgentHandler {
         this.config.onFinalAnswerRender?.(markdownContent)
       },
       requestConfirmation: this.config.requestConfirmation,
+      currentQuote: this.config.currentQuote,
     }
 
     // 在开始执行前设置当前步骤的开始时间（确保第一次思考也有耗时）
