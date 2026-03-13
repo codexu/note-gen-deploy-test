@@ -1,15 +1,24 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { ReactNode, useRef, useState } from 'react'
 import { Cloud, FileText, Folder } from 'lucide-react'
-import { MobileActionMenu } from '@/app/core/main/file/mobile-action-menu'
 import { BrowserEntry } from './types'
+import { Button } from '@/components/ui/button'
+
+type EntryAction = {
+  key: string
+  label: string
+  icon: ReactNode
+  onClick: () => void | Promise<void>
+  disabled?: boolean
+  variant?: 'default' | 'outline' | 'destructive'
+}
 
 interface EntryListItemProps {
   entry: BrowserEntry
   isActive: boolean
   onOpen: (entry: BrowserEntry) => void
-  menuContent: ReactNode
+  actions: EntryAction[]
   remoteLabel: string
   subtitle?: string
 }
@@ -18,21 +27,100 @@ export function EntryListItem({
   entry,
   isActive,
   onOpen,
-  menuContent,
+  actions,
   remoteLabel,
   subtitle,
 }: EntryListItemProps) {
+  const touchStartXRef = useRef(0)
+  const touchStartYRef = useRef(0)
+  const isSwipingRef = useRef(false)
+  const [translateX, setTranslateX] = useState(0)
+  const [opened, setOpened] = useState(false)
+
+  const actionWidth = actions.length * 60
+
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    if (actions.length === 0) return
+    const touch = e.touches[0]
+    touchStartXRef.current = touch.clientX
+    touchStartYRef.current = touch.clientY
+    isSwipingRef.current = false
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (actions.length === 0) return
+    const touch = e.touches[0]
+    const deltaX = touch.clientX - touchStartXRef.current
+    const deltaY = touch.clientY - touchStartYRef.current
+
+    if (!isSwipingRef.current) {
+      if (Math.abs(deltaX) < 8) return
+      if (Math.abs(deltaX) <= Math.abs(deltaY)) return
+      isSwipingRef.current = true
+    }
+
+    e.preventDefault()
+    const maxLeft = -actionWidth
+    const base = opened ? maxLeft : 0
+    const next = Math.max(maxLeft, Math.min(0, base + deltaX))
+    setTranslateX(next)
+  }
+
+  function handleTouchEnd() {
+    if (actions.length === 0) return
+    const maxLeft = -actionWidth
+    const shouldOpen = translateX < maxLeft / 2
+    setOpened(shouldOpen)
+    setTranslateX(shouldOpen ? maxLeft : 0)
+    isSwipingRef.current = false
+  }
+
   return (
-    <div
-      className={`w-full text-left rounded-md border px-3 py-2 active:bg-accent transition-colors ${
-        isActive ? 'border-primary bg-primary/5' : ''
-      }`}
-    >
-      <div className="flex items-center gap-2">
+    <div className="relative overflow-hidden rounded-md bg-background">
+      {actions.length > 0 && (
+        <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-2">
+          {actions.map((action) => (
+            <Button
+              key={action.key}
+              type="button"
+              variant={action.variant || 'outline'}
+              disabled={action.disabled}
+              size="icon"
+              className="size-11 rounded-xl shadow-sm"
+              onClick={async () => {
+                setOpened(false)
+                setTranslateX(0)
+                await action.onClick()
+              }}
+              aria-label={action.label}
+              title={action.label}
+            >
+              {action.icon}
+              <span className="sr-only">{action.label}</span>
+            </Button>
+          ))}
+        </div>
+      )}
+      <div
+        className={`w-full text-left rounded-md border px-3 py-2 active:bg-accent transition-transform duration-200 ease-out ${
+          isActive ? 'border-primary bg-background shadow-sm' : 'bg-background'
+        }`}
+        style={{ transform: `translateX(${translateX}px)` }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <button
           type="button"
-          onClick={() => onOpen(entry)}
-          className="flex-1 min-w-0 text-left"
+          onClick={() => {
+            if (opened) {
+              setOpened(false)
+              setTranslateX(0)
+              return
+            }
+            onOpen(entry)
+          }}
+          className="w-full min-w-0 text-left"
         >
           <div className="flex items-center gap-2">
             {entry.type === 'folder' ? (
@@ -55,9 +143,6 @@ export function EntryListItem({
             <p className="text-xs text-muted-foreground truncate mt-1">{subtitle}</p>
           )}
         </button>
-        <MobileActionMenu className="shrink-0">
-          {menuContent}
-        </MobileActionMenu>
       </div>
     </div>
   )

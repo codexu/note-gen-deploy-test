@@ -238,14 +238,6 @@ function parseCommand(command: string, args: string[]): { cmd: string; cmdArgs: 
   }
 }
 
-async function normalizeExecutableCommand(command: string): Promise<string> {
-  if (command === 'python' || command === 'python3') {
-    return (await detectPythonCommand(command)) || command
-  }
-
-  return command
-}
-
 async function normalizeExecutionPlan(
   command: string,
   args: string[]

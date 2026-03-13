@@ -2,7 +2,7 @@ import { Tool, ToolResult } from '../types'
 import { BaseDirectory, readTextFile, writeTextFile, remove, rename, copyFile } from '@tauri-apps/plugin-fs'
 import { appDataDir } from '@tauri-apps/api/path'
 import { getAllMarkdownFiles, MarkdownFile } from '@/lib/files'
-import { getDefaultArticleAbsolutePath, getFilePathOptions, normalizeWorkspaceRelativePath } from '@/lib/workspace'
+import { getFilePathOptions, normalizeWorkspaceRelativePath } from '@/lib/workspace'
 import useArticleStore from '@/stores/article'
 import useChatStore from '@/stores/chat'
 import { isLinkedFolder } from '@/lib/files'
@@ -175,9 +175,6 @@ export const createFileTool: Tool = {
       // 统一使用 getFilePathOptions 来处理路径
       const specialArticleRelativePath = isSpecialSkillPath
         ? `article/${filePath}`.replace(/^article\/article\//, 'article/')
-        : undefined
-      const specialAbsolutePath = specialArticleRelativePath
-        ? await getDefaultArticleAbsolutePath(filePath)
         : undefined
       const { path, baseDir } = specialArticleRelativePath
         ? { path: specialArticleRelativePath as string, baseDir: BaseDirectory.AppData }

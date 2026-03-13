@@ -12,7 +12,7 @@ import { LocalImage } from '@/components/local-image'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Trash2, MoveRight, CheckSquare, XSquare, Filter, Plus, ListChecks } from 'lucide-react'
+import { Trash2, MoveRight, CheckSquare, XSquare, Filter, Plus, ListChecks, RotateCcw } from 'lucide-react'
 import useMarkStore from '@/stores/mark'
 import useTagStore from '@/stores/tag'
 import { delMark, delMarkForever, Mark, restoreMark, updateMark as updateMarkDb } from '@/db/marks'
@@ -191,7 +191,7 @@ export function MobileRecordStream() {
   }
 
   function getActionWidth() {
-    return trashState ? 176 : 176
+    return 120
   }
 
   function handleItemTouchStart(e: React.TouchEvent, markId: number) {
@@ -270,6 +270,7 @@ export function MobileRecordStream() {
   const tagLabel = tagFilter === 'all' ? t('common.all') : (tags.find((item) => item.id === tagFilter)?.name || t('common.all'))
 
   const selectedTypeCount = typeFilters.size
+  const canMoveBetweenTags = tags.length >= 2
 
   function toggleTypeFilter(type: Mark['type']) {
     setTypeFilters((prev) => {
@@ -348,7 +349,13 @@ export function MobileRecordStream() {
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" disabled={selectedCount === 0} title={t('record.mark.toolbar.moveTag')}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        disabled={selectedCount === 0 || !canMoveBetweenTags}
+                        title={t('record.mark.toolbar.moveTag')}
+                      >
                         <MoveRight className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -407,50 +414,70 @@ export function MobileRecordStream() {
                       : 0
 
                   return (
-                  <div key={mark.id} className="relative overflow-hidden rounded-xl border bg-background">
+                  <div key={mark.id} className="relative overflow-hidden rounded-xl bg-background">
                     {!multiMode && (
                       <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-2">
                         {trashState ? (
                           <>
                             <Button
                               variant="outline"
-                              className="h-10 rounded-xl px-3"
+                              size="icon"
+                              className="size-11 rounded-xl shadow-sm"
                               onClick={() => {
                                 handleRestore(mark)
                                 setSwipedMarkId(null)
                               }}
+                              title={t('record.mark.toolbar.restore')}
+                              aria-label={t('record.mark.toolbar.restore')}
                             >
-                              {t('record.mark.toolbar.restore')}
+                              <RotateCcw className="size-4" />
+                              <span className="sr-only">{t('record.mark.toolbar.restore')}</span>
                             </Button>
                             <Button
                               variant="destructive"
-                              className="h-10 rounded-xl px-3"
+                              size="icon"
+                              className="size-11 rounded-xl shadow-sm"
                               onClick={() => {
                                 handleDelete(mark)
                                 setSwipedMarkId(null)
                               }}
+                              title={t('record.mark.toolbar.deleteForever')}
+                              aria-label={t('record.mark.toolbar.deleteForever')}
                             >
-                              {t('record.mark.toolbar.deleteForever')}
+                              <Trash2 className="size-4" />
+                              <span className="sr-only">{t('record.mark.toolbar.deleteForever')}</span>
                             </Button>
                           </>
                         ) : (
                           <>
                             <Button
                               variant="outline"
-                              className="h-10 rounded-xl px-3"
-                              onClick={() => setMoveTargetMark(mark)}
+                              size="icon"
+                              className="size-11 rounded-xl shadow-sm"
+                              disabled={!canMoveBetweenTags}
+                              onClick={() => {
+                                setMoveTargetMark(mark)
+                                setSwipedMarkId(null)
+                              }}
+                              title={t('record.mark.toolbar.moveTag')}
+                              aria-label={t('record.mark.toolbar.moveTag')}
                             >
-                              {t('record.mark.toolbar.moveTag')}
+                              <MoveRight className="size-4" />
+                              <span className="sr-only">{t('record.mark.toolbar.moveTag')}</span>
                             </Button>
                             <Button
                               variant="destructive"
-                              className="h-10 rounded-xl px-3"
+                              size="icon"
+                              className="size-11 rounded-xl shadow-sm"
                               onClick={() => {
                                 handleDelete(mark)
                                 setSwipedMarkId(null)
                               }}
+                              title={t('record.mark.toolbar.delete')}
+                              aria-label={t('record.mark.toolbar.delete')}
                             >
-                              {t('record.mark.toolbar.delete')}
+                              <Trash2 className="size-4" />
+                              <span className="sr-only">{t('record.mark.toolbar.delete')}</span>
                             </Button>
                           </>
                         )}
@@ -458,7 +485,7 @@ export function MobileRecordStream() {
                     )}
 
                     <div
-                      className="bg-card px-3 py-3 transition-transform duration-200 ease-out"
+                      className="rounded-xl border bg-background px-3 py-3 transition-transform duration-200 ease-out"
                       style={{ transform: `translateX(${translateX}px)` }}
                       onTouchStart={(e) => handleItemTouchStart(e, mark.id)}
                       onTouchMove={handleItemTouchMove}

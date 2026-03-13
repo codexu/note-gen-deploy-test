@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BaseDirectory, exists, mkdir, remove, rename as fsRename, stat, writeTextFile } from '@tauri-apps/plugin-fs'
 import { confirm } from '@tauri-apps/plugin-dialog'
 import { useTranslations } from 'next-intl'
-import { ChevronLeft, FilePlus, FileText, FolderPlus, Menu, Search } from 'lucide-react'
+import { ChevronLeft, FilePlus, FileText, FolderPlus, Menu, Pencil, Search, Trash2, Unplug } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,7 +14,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
-import { MobileMenuItem, MobileSeparator } from '@/app/core/main/file/mobile-action-menu'
 import { toast } from '@/hooks/use-toast'
 import useArticleStore from '@/stores/article'
 import { getFilePathOptions } from '@/lib/workspace'
@@ -292,13 +291,6 @@ export function WritingHeader() {
     setDrawerOpen(false)
   }
 
-  const createInFolder = (entry: BrowserEntry, type: 'file' | 'folder') => {
-    if (entry.type !== 'folder') return
-    setCurrentDir(entry.relativePath)
-    setCreateType(type)
-    setCreateName('')
-  }
-
   const handleCreateConfirm = async () => {
     if (!createType || creating) return
 
@@ -549,40 +541,41 @@ export function WritingHeader() {
             </div>
           </DrawerHeader>
           <div className="px-4 pb-4 h-full flex flex-col overflow-hidden">
-            <div className="relative mb-3">
-              <Search className="size-4 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
-              <Input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={t('searchPlaceholder')}
-                className="pl-8"
-              />
-            </div>
-
             <div className="flex items-center gap-2 mb-3">
+              <div className="relative flex-1">
+                <Search className="size-4 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
+                <Input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={t('searchPlaceholder')}
+                  className="h-9 pl-8"
+                />
+              </div>
               <Button
                 variant="outline"
-                size="sm"
-                className="flex-1"
+                size="icon"
+                className="h-9 w-9 shrink-0"
                 onClick={() => {
                   setCreateType('file')
                   setCreateName('')
                 }}
+                title={tToolbar('newArticle')}
+                aria-label={tToolbar('newArticle')}
               >
                 <FilePlus className="size-4" />
-                {tToolbar('newArticle')}
               </Button>
               <Button
                 variant="outline"
-                size="sm"
-                className="flex-1"
+                size="icon"
+                className="h-9 w-9 shrink-0"
                 onClick={() => {
                   setCreateType('folder')
                   setCreateName('')
                 }}
+                title={tToolbar('newFolder')}
+                aria-label={tToolbar('newFolder')}
               >
                 <FolderPlus className="size-4" />
-                {tToolbar('newFolder')}
               </Button>
             </div>
 
@@ -603,64 +596,32 @@ export function WritingHeader() {
                       onOpen={openEntry}
                       remoteLabel={tMobile('remote')}
                       subtitle={getEntrySubtitle(entry)}
-                      menuContent={
-                        <>
-                          {entry.type === 'folder' && (
-                            <>
-                              <MobileMenuItem
-                                onSelect={(event) => {
-                                  event.preventDefault()
-                                  createInFolder(entry, 'file')
-                                }}
-                                disabled={!!entry.sha && !entry.isLocale}
-                              >
-                                {tContext('newFile')}
-                              </MobileMenuItem>
-                              <MobileMenuItem
-                                onSelect={(event) => {
-                                  event.preventDefault()
-                                  createInFolder(entry, 'folder')
-                                }}
-                                disabled={!!entry.sha && !entry.isLocale}
-                              >
-                                {tContext('newFolder')}
-                              </MobileMenuItem>
-                            </>
-                          )}
-                          <MobileSeparator />
-                          <MobileMenuItem
-                            onSelect={(event) => {
-                              event.preventDefault()
-                              startRename(entry)
-                            }}
-                            disabled={!entry.isLocale}
-                          >
-                            {tContext('rename')}
-                          </MobileMenuItem>
-                          {entry.type === 'file' && (
-                            <MobileMenuItem
-                              onSelect={async (event) => {
-                                event.preventDefault()
-                                await handleDeleteSyncFile(entry)
-                              }}
-                              disabled={!entry.sha}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              {tContext('deleteSyncFile')}
-                            </MobileMenuItem>
-                          )}
-                          <MobileMenuItem
-                            onSelect={async (event) => {
-                              event.preventDefault()
-                              await handleDelete(entry)
-                            }}
-                            disabled={!entry.isLocale}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            {entry.type === 'file' ? tContext('deleteLocalFile') : tContext('delete')}
-                          </MobileMenuItem>
-                        </>
-                      }
+                      actions={[
+                        {
+                          key: 'rename',
+                          label: tContext('rename'),
+                          icon: <Pencil className="size-4" />,
+                          onClick: () => startRename(entry),
+                          disabled: !entry.isLocale,
+                          variant: 'outline',
+                        },
+                        ...(entry.type === 'file' && entry.sha ? [{
+                          key: 'delete-sync',
+                          label: tContext('deleteSyncFile'),
+                          icon: <Unplug className="size-4" />,
+                          onClick: () => handleDeleteSyncFile(entry),
+                          disabled: !entry.sha,
+                          variant: 'outline' as const,
+                        }] : []),
+                        {
+                          key: 'delete',
+                          label: entry.type === 'file' ? tContext('deleteLocalFile') : tContext('delete'),
+                          icon: <Trash2 className="size-4" />,
+                          onClick: () => handleDelete(entry),
+                          disabled: !entry.isLocale,
+                          variant: 'destructive',
+                        },
+                      ]}
                     />
                   ))}
                 </div>
