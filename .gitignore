@@ -10,7 +10,7 @@ src-tauri/gen/*
 *.local
 target/*
 .claude/*
-/docs/plans/*
+/docs/*/*
 
 /.pnp
 .pnp.*

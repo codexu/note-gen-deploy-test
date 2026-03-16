@@ -28,6 +28,7 @@ import { ImageIcon } from "lucide-react"
 import { TooltipButton } from "@/components/tooltip-button"
 import { isMobileDevice } from '@/lib/check'
 import { QuoteDisplay } from "./quote-display"
+import type { PendingQuote } from "@/stores/chat"
 import { convertFileSrc } from "@tauri-apps/api/core"
 import { readTextFile, writeFile, BaseDirectory, exists } from "@tauri-apps/plugin-fs"
 import { ShineBorder } from "@/components/ui/shine-border"
@@ -104,7 +105,15 @@ SortableToolbarItem.displayName = 'SortableToolbarItem'
 export const ChatInput = React.memo(function ChatInput() {
   const [text, setText] = useState("")
   const { primaryModel, chatToolbarConfigPc, setChatToolbarConfigPc } = useSettingStore()
-  const { chats, loading, setLinkedResource: setChatLinkedResource, setLinkedResourcePreview } = useChatStore()
+  const {
+    chats,
+    loading,
+    setLinkedResource: setChatLinkedResource,
+    setLinkedResourcePreview,
+    pendingQuote,
+    setPendingQuote,
+    clearPendingQuote,
+  } = useChatStore()
   const { marks, trashState } = useMarkStore()
   const { activeFilePath } = useArticleStore()
   const [isComposing, setIsComposing] = useState(false)
@@ -115,16 +124,6 @@ export const ChatInput = React.memo(function ChatInput() {
   const [tempInput, setTempInput] = useState('')
   const [linkedResource, setLinkedResource] = useState<LinkedResource | null>(null)
   const [attachedImages, setAttachedImages] = useState<ImageAttachment[]>([])
-  const [quoteData, setQuoteData] = useState<{
-    quote: string
-    fullContent: string
-    fileName: string
-    startLine: number
-    endLine: number
-    from: number
-    to: number
-    articlePath: string
-  } | null>(null)
   const chatSendRef = useRef<any>(null)
   const isMobile = useIsMobile()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -194,7 +193,7 @@ export const ChatInput = React.memo(function ChatInput() {
   }
 
   function removeQuote() {
-    setQuoteData(null)
+    clearPendingQuote()
   }
 
   async function handleSelectLocalImages() {
@@ -350,6 +349,7 @@ export const ChatInput = React.memo(function ChatInput() {
     setText('')
     setHistoryIndex(-1)
     setAttachedImages([])
+    clearPendingQuote()
     const textarea = document.querySelector('textarea')
     if (textarea) {
       textarea.style.height = 'auto'
@@ -451,18 +451,8 @@ export const ChatInput = React.memo(function ChatInput() {
       setChatLinkedResource(event as LinkedFolder)
     })
     emitter.on('insert-quote', (event: unknown) => {
-      const data = event as {
-        quote: string
-        fullContent: string
-        fileName: string
-        startLine: number
-        endLine: number
-        from: number
-        to: number
-        articlePath: string
-      }
-      // 设置引用数据
-      setQuoteData(data)
+      const data = event as PendingQuote
+      setPendingQuote(data)
       // 延迟聚焦到输入框
       setTimeout(() => {
         textareaRef.current?.focus()
@@ -488,7 +478,7 @@ export const ChatInput = React.memo(function ChatInput() {
       emitter.off('quick-prompt-insert')
       emitter.off('ai-placeholder-generated')
     }
-  }, [debouncedGenPlaceholder])
+  }, [debouncedGenPlaceholder, setPendingQuote])
 
   // 生成文件的行号预览（用于 AI 对话）
   async function generateFilePreview(filePath: string, isCustom: boolean): Promise<string> {
@@ -658,8 +648,8 @@ ${previewLines.join('\n')}
             shineColor={["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A"]}
           />
         )}
-        {quoteData && (
-          <QuoteDisplay quoteData={quoteData} onRemove={removeQuote} />
+        {pendingQuote && (
+          <QuoteDisplay quoteData={pendingQuote} onRemove={removeQuote} />
         )}
         <ImageAttachments images={attachedImages} onRemove={removeImage} />
         <div className="relative w-full flex items-start">
@@ -771,7 +761,7 @@ ${previewLines.join('\n')}
                 disabled={!primaryModel || loading}
               />
             )}
-            <ChatSend inputValue={text} onSent={handleSent} linkedResource={linkedResource} attachedImages={attachedImages} quoteData={quoteData} ref={chatSendRef} />
+            <ChatSend inputValue={text} onSent={handleSent} linkedResource={linkedResource} attachedImages={attachedImages} quoteData={pendingQuote} ref={chatSendRef} />
           </div>
         </div>
 

@@ -15,6 +15,17 @@ import { LinkedResource } from '@/lib/files'
 import type { Conversation } from '@/db/conversations'
 import { S3Config, WebDAVConfig } from '@/types/sync'
 
+export interface PendingQuote {
+  quote: string
+  fullContent: string
+  fileName: string
+  startLine: number
+  endLine: number
+  from: number
+  to: number
+  articlePath: string
+}
+
 // MCP 工具调用记录（临时，不保存到数据库）
 export interface McpToolCall {
   id: string
@@ -88,6 +99,10 @@ interface ChatState {
   // 关联文件的行号预览（用于 AI 对话时快速了解文件结构）
   linkedResourcePreview: string | null
   setLinkedResourcePreview: (preview: string | null) => void
+
+  pendingQuote: PendingQuote | null
+  setPendingQuote: (quote: PendingQuote | null) => void
+  clearPendingQuote: () => void
 
   // === 新增：会话管理 ===
   // 当前会话
@@ -288,6 +303,14 @@ const useChatStore = create<ChatState>((set, get) => ({
     set({ linkedResourcePreview: preview })
   },
 
+  pendingQuote: null,
+  setPendingQuote: (pendingQuote: PendingQuote | null) => {
+    set({ pendingQuote })
+  },
+  clearPendingQuote: () => {
+    set({ pendingQuote: null })
+  },
+
   chats: [],
   // 兼容旧代码：init 方法现在会初始化会话列表并切换到第一个会话
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -424,6 +447,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     // 清空聊天记录时同步清理 Agent 状态
     get().resetAgentState()
     get().clearMcpToolCalls()
+    get().clearPendingQuote()
 
     // 更新会话的消息数量
     const { currentConversationId } = get()
@@ -670,7 +694,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     // 然后加载消息
     const { getChatsByConversation } = await import('@/db/chats')
     const data = await getChatsByConversation(id)
-    set({ currentConversationId: id, chats: data })
+    set({ currentConversationId: id, chats: data, pendingQuote: null })
     // 刷新会话列表以确保 UI 显示最新的会话状态
     await get().initConversations()
   },
@@ -698,6 +722,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         set({
           currentConversationId: null,
           chats: [],
+          pendingQuote: null,
           agentAutoApproveConversationId: null,
           agentAutoApproveRuntimeSkillId: null
         })
@@ -739,6 +764,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     set({
       currentConversationId: null,
       chats: [],
+      pendingQuote: null,
       agentAutoApproveConversationId: null,
       agentAutoApproveRuntimeSkillId: null
     })

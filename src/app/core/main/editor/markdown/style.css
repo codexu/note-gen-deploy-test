@@ -538,6 +538,8 @@
   border: 2px solid currentColor !important;
   border-radius: 4px !important;
   padding: 1px 4px;
+  background: hsl(var(--primary) / 0.12);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.1);
   transition: border-color 0.2s ease;
 }
 
@@ -565,6 +567,10 @@
 /* 选中文本时的背景 */
 .ProseMirror-focused::selection {
   background-color: hsl(var(--primary) / 0.3);
+}
+
+.tiptap-editor .ProseMirror ::selection {
+  background-color: hsl(var(--primary) / 0.24);
 }
 
 /* 暗色模式适配 */
@@ -748,10 +754,20 @@
 
 /* 移动端工具栏支持左右滑动 */
 @media (max-width: 768px) {
+  #mobile-writing .mobile-editor-context-bar {
+    position: sticky;
+    top: 0;
+    z-index: 35;
+  }
+
   /* 确保移动端写作页面的编辑器容器不会阻止滑动 */
   #mobile-writing .tiptap-editor .ProseMirror {
     touch-action: pan-x pan-y !important;
     -webkit-overflow-scrolling: touch !important;
+  }
+
+  #mobile-writing .tiptap-editor .ProseMirror ::selection {
+    background-color: hsl(var(--primary) / 0.34);
   }
 
   /* 移动端优化 FooterBar */

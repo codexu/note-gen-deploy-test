@@ -53,8 +53,13 @@ import emitter from '@/lib/emitter'
 import { QuoteMark } from './quote-mark'
 import { MarkdownParagraph } from './markdown-paragraph'
 import useSettingStore from '@/stores/setting'
+import useChatStore from '@/stores/chat'
 import { Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { buildMobileSelectionContext, isMobileSelectionContextStale } from './mobile-selection-context'
+import { MobileEditorContextBar } from './mobile-editor-context-bar'
+import { MobileEditorMoreSheet } from './mobile-editor-more-sheet'
+import { shouldRestorePendingQuote } from './quote-session'
 import './style.css'
 
 const lowlight = createLowlight(common)
@@ -158,6 +163,30 @@ interface TipTapEditorProps {
   onTerminate?: () => void
 }
 
+type MobileSelectionContext =
+  | {
+      mode: 'text'
+      from: number
+      to: number
+      previewText: string
+      actions: string[]
+    }
+  | {
+      mode: 'image'
+      pos: number
+      src: string
+      alt: string
+      actions: string[]
+    }
+  | {
+      mode: 'table'
+      from: number
+      actions: string[]
+    }
+  | null
+
+type MobileSheetMode = 'ai' | 'image-src' | 'image-alt' | 'table-align' | 'table-more' | null
+
 export function TipTapEditor({
   initialContent,
   onChange,
@@ -176,8 +205,10 @@ export function TipTapEditor({
   const t = useTranslations('editor')
   const tMermaid = useTranslations('editor.mermaid.templates')
   const tImage = useTranslations('editor.image')
+  const pendingQuote = useChatStore((state) => state.pendingQuote)
 
   const placeholderText = placeholder || t('placeholder')
+  const isMobile = isMobileDevice()
 
   // Use ref for autoScroll to avoid infinite re-render loop
   const autoScrollRef = useRef(autoScroll)
@@ -198,6 +229,15 @@ export function TipTapEditor({
 
   // Search and replace panel state
   const [searchReplaceOpen, setSearchReplaceOpen] = useState(false)
+  const [mobileContext, setMobileContext] = useState<MobileSelectionContext>(null)
+  const [mobileSheetMode, setMobileSheetMode] = useState<MobileSheetMode>(null)
+  const [imageSrcDraft, setImageSrcDraft] = useState('')
+  const [imageAltDraft, setImageAltDraft] = useState('')
+  const aiActionHandlersRef = useRef({
+    polish: async () => {},
+    concise: async () => {},
+    expand: async () => {},
+  })
 
   const isInitializedRef = useRef(false)
   const initializedForPathRef = useRef<string | null>(null)
@@ -514,6 +554,301 @@ export function TipTapEditor({
       editorElement.removeEventListener('click', handleClick)
     }
   }, [editor])
+
+  const restoreMobileContextSelection = useCallback((context: MobileSelectionContext = mobileContext) => {
+    if (!editor || !context) {
+      return false
+    }
+
+    const docSize = editor.state.doc.content.size
+    if (isMobileSelectionContextStale(context, docSize)) {
+      setMobileContext(null)
+      setMobileSheetMode(null)
+      return false
+    }
+
+    if (context.mode === 'text') {
+      editor.chain().focus().setTextSelection({ from: context.from, to: context.to }).run()
+      return true
+    }
+
+    if (context.mode === 'image') {
+      editor.chain().focus().setNodeSelection(context.pos).run()
+      return true
+    }
+
+    editor.chain().focus().setTextSelection(context.from).run()
+    return true
+  }, [editor, mobileContext])
+
+  const updateMobileContext = useCallback(() => {
+    if (!editor || !isMobile) {
+      setMobileContext(null)
+      return
+    }
+
+    const { from, to } = editor.state.selection
+    const selectedNode = editor.state.doc.nodeAt(from)
+
+    if (selectedNode?.type.name === 'image') {
+      const nextContext = buildMobileSelectionContext({
+        mode: 'image',
+        pos: from,
+        src: selectedNode.attrs.relativeSrc || selectedNode.attrs.src || '',
+        alt: selectedNode.attrs.alt || '',
+      }) as MobileSelectionContext
+      setImageSrcDraft(selectedNode.attrs.relativeSrc || selectedNode.attrs.src || '')
+      setImageAltDraft(selectedNode.attrs.alt || '')
+      setMobileContext(nextContext)
+      return
+    }
+
+    const previewText = editor.state.doc.textBetween(from, to).trim()
+    if (from !== to && previewText) {
+      const nextContext = buildMobileSelectionContext({
+        mode: 'text',
+        from,
+        to,
+        previewText,
+      }) as MobileSelectionContext
+      setMobileContext(nextContext)
+      return
+    }
+
+    if (editor.isActive('table')) {
+      const nextContext = buildMobileSelectionContext({
+        mode: 'table',
+        from,
+      }) as MobileSelectionContext
+      setMobileContext(nextContext)
+      return
+    }
+
+    setMobileContext(null)
+    setMobileSheetMode(null)
+  }, [editor, isMobile])
+
+  const runMobileEditorAction = useCallback((action: string) => {
+    if (!editor || !mobileContext) return
+
+    switch (action) {
+      case 'quote':
+        if (restoreMobileContextSelection()) {
+          onQuoteToChat?.()
+        }
+        return
+      case 'bold':
+        if (restoreMobileContextSelection()) {
+          editor.chain().focus().toggleBold().run()
+        }
+        return
+      case 'highlight':
+        if (restoreMobileContextSelection()) {
+          editor.chain().focus().toggleHighlight().run()
+        }
+        return
+      case 'ai':
+        setMobileSheetMode('ai')
+        return
+      case 'more':
+        setMobileSheetMode('table-more')
+        return
+      case 'image-src':
+        setMobileSheetMode('image-src')
+        return
+      case 'image-alt':
+        setMobileSheetMode('image-alt')
+        return
+      case 'delete-image':
+        if (restoreMobileContextSelection(mobileContext) && mobileContext.mode === 'image') {
+          editor.chain().focus().deleteRange({ from: mobileContext.pos, to: mobileContext.pos + 1 }).run()
+          updateMobileContext()
+        }
+        return
+      case 'add-row':
+        if (restoreMobileContextSelection()) {
+          editor.chain().focus().addRowAfter().run()
+          updateMobileContext()
+        }
+        return
+      case 'add-column':
+        if (restoreMobileContextSelection()) {
+          editor.chain().focus().addColumnAfter().run()
+          updateMobileContext()
+        }
+        return
+      case 'align':
+        setMobileSheetMode('table-align')
+        return
+      case 'ai-polish':
+        if (restoreMobileContextSelection()) {
+          setMobileSheetMode(null)
+          void aiActionHandlersRef.current.polish()
+        }
+        return
+      case 'ai-concise':
+        if (restoreMobileContextSelection()) {
+          setMobileSheetMode(null)
+          void aiActionHandlersRef.current.concise()
+        }
+        return
+      case 'ai-expand':
+        if (restoreMobileContextSelection()) {
+          setMobileSheetMode(null)
+          void aiActionHandlersRef.current.expand()
+        }
+        return
+      case 'italic':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleItalic().run()
+        return
+      case 'underline':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleUnderline().run()
+        return
+      case 'strike':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleStrike().run()
+        return
+      case 'code':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleCode().run()
+        return
+      case 'blockquote':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleBlockquote().run()
+        return
+      case 'bulletList':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleBulletList().run()
+        return
+      case 'orderedList':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleOrderedList().run()
+        return
+      case 'taskList':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleTaskList().run()
+        return
+      case 'codeBlock':
+        if (restoreMobileContextSelection()) editor.chain().focus().toggleCodeBlock().run()
+        return
+      case 'align-left':
+        if (restoreMobileContextSelection()) editor.chain().focus().setCellAttribute('align', 'left').run()
+        return
+      case 'align-center':
+        if (restoreMobileContextSelection()) editor.chain().focus().setCellAttribute('align', 'center').run()
+        return
+      case 'align-right':
+        if (restoreMobileContextSelection()) editor.chain().focus().setCellAttribute('align', 'right').run()
+        return
+      case 'add-row-before':
+        if (restoreMobileContextSelection()) editor.chain().focus().addRowBefore().run()
+        return
+      case 'add-row-after':
+        if (restoreMobileContextSelection()) editor.chain().focus().addRowAfter().run()
+        return
+      case 'add-column-before':
+        if (restoreMobileContextSelection()) editor.chain().focus().addColumnBefore().run()
+        return
+      case 'add-column-after':
+        if (restoreMobileContextSelection()) editor.chain().focus().addColumnAfter().run()
+        return
+      case 'delete-row':
+        if (restoreMobileContextSelection()) editor.chain().focus().deleteRow().run()
+        return
+      case 'delete-column':
+        if (restoreMobileContextSelection()) editor.chain().focus().deleteColumn().run()
+        return
+      case 'delete-table':
+        if (restoreMobileContextSelection()) editor.chain().focus().deleteTable().run()
+        return
+      default:
+        return
+    }
+  }, [
+    editor,
+    mobileContext,
+    onQuoteToChat,
+    restoreMobileContextSelection,
+    updateMobileContext,
+  ])
+
+  const submitMobileImageSrc = useCallback(() => {
+    if (!editor || !mobileContext || mobileContext.mode !== 'image') return
+    if (!restoreMobileContextSelection(mobileContext)) return
+
+    editor.chain().focus().updateAttributes('image', {
+      src: imageSrcDraft.trim(),
+      relativeSrc: imageSrcDraft.trim(),
+    }).run()
+    setMobileSheetMode(null)
+    updateMobileContext()
+  }, [editor, imageSrcDraft, mobileContext, restoreMobileContextSelection, updateMobileContext])
+
+  const submitMobileImageAlt = useCallback(() => {
+    if (!editor || !mobileContext || mobileContext.mode !== 'image') return
+    if (!restoreMobileContextSelection(mobileContext)) return
+
+    editor.chain().focus().updateAttributes('image', {
+      alt: imageAltDraft.trim(),
+    }).run()
+    setMobileSheetMode(null)
+    updateMobileContext()
+  }, [editor, imageAltDraft, mobileContext, restoreMobileContextSelection, updateMobileContext])
+
+  useEffect(() => {
+    if (!editor || !isMobile) return
+
+    updateMobileContext()
+    editor.on('selectionUpdate', updateMobileContext)
+    editor.on('transaction', updateMobileContext)
+
+    return () => {
+      editor.off('selectionUpdate', updateMobileContext)
+      editor.off('transaction', updateMobileContext)
+    }
+  }, [editor, isMobile, updateMobileContext])
+
+  useEffect(() => {
+    if (!editor) return
+
+    const quoteMarkType = editor.state.schema.marks.quote
+    if (!quoteMarkType) return
+
+    let tr = editor.state.tr
+    let changed = false
+
+    editor.state.doc.descendants((node, pos) => {
+      if (!node.isText) return true
+      if (node.marks.some((mark) => mark.type === quoteMarkType)) {
+        tr = tr.removeMark(pos, pos + node.nodeSize, quoteMarkType)
+        changed = true
+      }
+      return true
+    })
+
+    const quoteToRestore = pendingQuote
+    if (quoteToRestore && shouldRestorePendingQuote(quoteToRestore, activeFilePath, editor.state.doc.content.size)) {
+      tr = tr.addMark(quoteToRestore.from, quoteToRestore.to, quoteMarkType.create())
+      changed = true
+    }
+
+    if (changed) {
+      editor.view.dispatch(tr)
+    }
+  }, [editor, pendingQuote, activeFilePath])
+
+  useEffect(() => {
+    if (!editor || !isMobile) return
+
+    const editorDom = editor.view.dom
+    const handleMobileImageClick = (event: Event) => {
+      const target = event.target as HTMLElement | null
+      if (!target || target.tagName !== 'IMG') return
+
+      const pos = editor.view.posAtDOM(target, 0)
+      editor.chain().focus().setNodeSelection(pos).run()
+      updateMobileContext()
+    }
+
+    editorDom.addEventListener('click', handleMobileImageClick)
+    return () => {
+      editorDom.removeEventListener('click', handleMobileImageClick)
+    }
+  }, [editor, isMobile, updateMobileContext])
 
   // Auto scroll to bottom when content changes and autoScroll is enabled
   useEffect(() => {
@@ -1008,6 +1343,14 @@ export function TipTapEditor({
       emitter.emit('ai-streaming-complete')
     }
   }, [editor])
+
+  useEffect(() => {
+    aiActionHandlersRef.current = {
+      polish: handleAIPolish,
+      concise: handleAIConcise,
+      expand: handleAIExpand,
+    }
+  }, [handleAIPolish, handleAIConcise, handleAIExpand])
 
   // Initialize content only once - preserves undo/redo history when switching tabs
   // Bug fix: Only initialize if the editor is for the current file path
@@ -1622,7 +1965,7 @@ export function TipTapEditor({
         const markdownLines = editor.getMarkdown().split('\n')
         const quotedMarkdown = markdownLines.slice(startLine - 1, endLine).join('\n')
 
-        emitter.emit('insert-quote', {
+        const quoteData = {
           quote,
           fullContent: quotedMarkdown || quote,
           fileName,
@@ -1631,24 +1974,10 @@ export function TipTapEditor({
           from,
           to,
           articlePath: activeFilePath || '',
-        })
-        // Mark the selected text as quoted - use setTimeout to defer execution
-        setTimeout(() => {
-          editor.commands.setMark('quote')
-        }, 0)
-        // Add click handler to remove mark when clicking back on editor
-        const removeQuoteOnClick = (e: MouseEvent) => {
-          const target = e.target as HTMLElement
-          if (target.closest('.ProseMirror')) {
-            setTimeout(() => {
-              editor.commands.unsetMark('quote')
-            }, 0)
-            document.removeEventListener('mousedown', removeQuoteOnClick)
-          }
         }
-        setTimeout(() => {
-          document.addEventListener('mousedown', removeQuoteOnClick)
-        }, 100)
+
+        useChatStore.getState().setPendingQuote(quoteData)
+        emitter.emit('insert-quote', quoteData)
       }
     }
 
@@ -1744,6 +2073,15 @@ export function TipTapEditor({
 
   return (
     <div ref={editorContainerRef} id="aritcle-md-editor" className="tiptap-editor relative flex flex-col h-full">
+      {isMobile && mobileContext && (
+        <MobileEditorContextBar
+          mode={mobileContext.mode}
+          previewText={mobileContext.mode === 'text' ? mobileContext.previewText : undefined}
+          activeActions={mobileContext.actions}
+          onAction={runMobileEditorAction}
+        />
+      )}
+
       {/* Editor content - scrollable area */}
       <div
         className="flex-1 overflow-x-hidden overflow-y-auto relative"
@@ -1752,19 +2090,21 @@ export function TipTapEditor({
       >
         <div className={centeredContent ? 'max-w-3xl mx-auto px-4' : ''}>
         <EditorContent editor={editor} className="h-full relative">
-          <ImageBubbleMenu editor={editor} />
+          {!isMobile && <ImageBubbleMenu editor={editor} />}
 
           <AISuggestionFloating editor={editor} />
 
-          <FloatingTableMenu editor={editor} />
+          {!isMobile && <FloatingTableMenu editor={editor} />}
 
-          <BubbleMenuComponent
-            editor={editor}
-            onAIPolish={handleAIPolish}
-            onAIConcise={handleAIConcise}
-            onAIExpand={handleAIExpand}
-            onQuoteToChat={onQuoteToChat}
-          />
+          {!isMobile && (
+            <BubbleMenuComponent
+              editor={editor}
+              onAIPolish={handleAIPolish}
+              onAIConcise={handleAIConcise}
+              onAIExpand={handleAIExpand}
+              onQuoteToChat={onQuoteToChat}
+            />
+          )}
         </EditorContent>
 
         <SearchReplacePanel
@@ -1774,6 +2114,25 @@ export function TipTapEditor({
         />
         </div>
       </div>
+
+      {isMobile && (
+        <MobileEditorMoreSheet
+          open={mobileSheetMode !== null}
+          mode={mobileSheetMode}
+          imageSrc={imageSrcDraft}
+          imageAlt={imageAltDraft}
+          onOpenChange={(open) => {
+            if (!open) {
+              setMobileSheetMode(null)
+            }
+          }}
+          onImageSrcChange={setImageSrcDraft}
+          onImageAltChange={setImageAltDraft}
+          onSubmitImageSrc={submitMobileImageSrc}
+          onSubmitImageAlt={submitMobileImageAlt}
+          onAction={runMobileEditorAction}
+        />
+      )}
 
       {/* AI Generation Overlay */}
       {showOverlay && (
