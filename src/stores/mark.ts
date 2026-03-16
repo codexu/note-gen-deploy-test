@@ -7,6 +7,7 @@ import { s3Upload, s3Delete, s3HeadObject, s3Download } from '@/lib/sync/s3'
 import { webdavUpload, webdavDelete, webdavHeadObject, webdavDownload } from '@/lib/sync/webdav'
 import { WebDAVConfig } from '@/types/sync'
 import { getSyncRepoName } from '@/lib/sync/repo-utils';
+import { getRemoteFileContent } from '@/lib/sync/remote-file';
 import { Store } from '@tauri-apps/plugin-store';
 import { create } from 'zustand'
 import { S3Config } from '@/types/sync'
@@ -378,7 +379,7 @@ const useMarkStore = create<MarkState>((set, get) => ({
     }
     // S3 已经直接解析到 result 了，这里处理 Git 平台
     if (files) {
-      const configJson = decodeBase64ToString(files.content)
+      const configJson = decodeBase64ToString(getRemoteFileContent(files, `${path}/${filename}`))
       result = JSON.parse(configJson)
     }
     if (result.length > 0) {

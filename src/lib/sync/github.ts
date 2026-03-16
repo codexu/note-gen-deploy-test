@@ -3,6 +3,7 @@ import { Store } from '@tauri-apps/plugin-store';
 import { v4 as uuid } from 'uuid';
 import { GithubError, GithubRepoInfo, OctokitResponse } from './github.types';
 import { fetch, Proxy } from '@tauri-apps/plugin-http'
+export { decodeBase64ToString } from './remote-file';
 
 export function uint8ArrayToBase64(data: Uint8Array) {
   return Buffer.from(data).toString('base64');
@@ -20,12 +21,6 @@ export async function fileToBase64(file: File) {
     }
     reader.onerror = error => reject(error);
   });
-}
-
-export function decodeBase64ToString(str: string){
-  return decodeURIComponent(atob(str).split('').map(function (c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
 }
 
 export interface GithubFile {

@@ -30,6 +30,7 @@ import useSettingStore from "@/stores/setting"
 import useSyncStore from "@/stores/sync"
 import { Store } from "@tauri-apps/plugin-store"
 import { uint8ArrayToBase64, decodeBase64ToString } from "@/lib/sync/github"
+import { getRemoteFileContent } from "@/lib/sync/remote-file"
 import { getSyncRepoName } from "@/lib/sync/repo-utils"
 import { getGiteaApiBaseUrl } from "@/lib/sync/gitea"
 import { fetch } from '@tauri-apps/plugin-http'
@@ -778,7 +779,7 @@ export function SyncToggle() {
           const s3Content = (remoteFile as any).content?.content
           remoteSettings = JSON.parse(s3Content)
         } else {
-          const configJson = decodeBase64ToString(remoteFile.content)
+          const configJson = decodeBase64ToString(getRemoteFileContent(remoteFile, `${path}/${filename}`))
           remoteSettings = JSON.parse(configJson)
         }
 
