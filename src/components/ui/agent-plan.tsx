@@ -142,6 +142,17 @@ export function AgentPlan({
   const [showDiff, setShowDiff] = React.useState(true);
   const [autoScrollEnabled, setAutoScrollEnabled] = React.useState(true);
 
+  const scrollStepIntoView = React.useCallback((stepId: string) => {
+    if (embedded) return;
+
+    setTimeout(() => {
+      const el = document.getElementById(`step-${stepId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    }, 50);
+  }, [embedded]);
+
   const extractFinalAnswer = React.useCallback((content: string): string => {
     if (!content) return "";
 
@@ -474,18 +485,13 @@ export function AgentPlan({
       if (currentStepId && !expandedTasks.includes(currentStepId)) {
         setExpandedTasks((prev) => {
           const newState = [...prev, currentStepId];
-          // 自动展开后滚动到该步骤
-          setTimeout(() => {
-            const el = document.getElementById(`step-${currentStepId}`);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-          }, 50);
+          // 非嵌入模式下自动展开后滚动到该步骤
+          scrollStepIntoView(currentStepId);
           return newState;
         });
       }
     }
-  }, [displaySteps.length, currentThought, currentObservation, isRunning, mode]);
+  }, [displaySteps.length, currentThought, currentObservation, isRunning, mode, expandedTasks, scrollStepIntoView]);
 
   const confirmationPreview = React.useMemo(() => {
     if (!pendingConfirmation) {
@@ -546,13 +552,8 @@ export function AgentPlan({
     setExpandedTasks((prev) => {
       const isExpanding = !prev.includes(stepId);
       if (isExpanding) {
-        // 展开时滚动到该步骤
-        setTimeout(() => {
-          const el = document.getElementById(`step-${stepId}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'end' });
-          }
-        }, 50);
+        // 非嵌入模式下展开时滚动到该步骤
+        scrollStepIntoView(stepId);
       }
       return prev.includes(stepId)
         ? prev.filter((id) => id !== stepId)
