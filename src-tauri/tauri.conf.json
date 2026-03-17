@@ -21,7 +21,7 @@
     },
     "windows": [
       {
-        "title": "",
+        "title": "NoteGen",
         "label": "main",
         "width": 1360,
         "height": 720,
