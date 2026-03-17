@@ -6,6 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { baseAiConfig } from "../config";
 import { useState } from "react";
@@ -19,6 +26,8 @@ import { AvatarImage } from "@/components/ui/avatar";
 import { Avatar } from "@radix-ui/react-avatar";
 import useSettingStore from "@/stores/setting";
 import { useLocalStorage } from "react-use";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { isMobileDevice as checkIsMobileDevice } from "@/lib/check";
 
 interface CreateConfigProps {
   hasCustomModels?: boolean;
@@ -28,6 +37,7 @@ interface CreateConfigProps {
 // 独立的创建配置对话框组件
 function CreateConfigDialog({ open, setOpen, onConfigCreated }: { open: boolean; setOpen: (open: boolean) => void; onConfigCreated?: (configId: string) => void }) {
   const t = useTranslations('settings.ai');
+  const isMobile = useIsMobile() || checkIsMobileDevice()
   const { setAiModelList } = useSettingStore()
   const [, setSelectedAiConfig] = useLocalStorage<string>('ai-config-selected', '')
 
@@ -70,6 +80,38 @@ function CreateConfigDialog({ open, setOpen, onConfigCreated }: { open: boolean;
     setOpen(false)
   }
 
+  const content = (
+    <>
+      <ProviderItem item={customModel} onClick={() => addCustomModelHandler(customModel)}/>
+      <p className="text-xs text-muted-foreground">供应商模板</p>
+      <div className="overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2">
+        {
+          baseAiConfig.map((item, index) => (
+            <ProviderItem key={index} item={item} onClick={() => addCustomModelHandler(item)}/>
+          ))
+        }
+      </div>
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader>
+            <DrawerTitle>{t('create')}</DrawerTitle>
+            <DrawerDescription>
+              {t('createDesc')}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-3 px-4 pb-6 overflow-y-auto">
+            {content}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-[650px]">
@@ -79,15 +121,7 @@ function CreateConfigDialog({ open, setOpen, onConfigCreated }: { open: boolean;
             {t('createDesc')}
           </DialogDescription>
         </DialogHeader>
-        <ProviderItem item={customModel} onClick={() => addCustomModelHandler(customModel)}/>
-        <p className="text-xs text-muted-foreground">供应商模板</p>
-        <div className="overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2">
-          {
-            baseAiConfig.map((item, index) => (
-              <ProviderItem key={index} item={item} onClick={() => addCustomModelHandler(item)}/>
-            ))
-          }
-        </div>
+        {content}
       </DialogContent>
     </Dialog>
   )
