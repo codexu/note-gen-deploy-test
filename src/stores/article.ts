@@ -238,7 +238,7 @@ interface NoteState {
   removeLocalEntry: (relativePath: string) => boolean
   moveLocalEntry: (oldPath: string, newPath: string) => boolean
   syncOpenTabsForPathChange: (oldPath: string, newPath: string) => Promise<void>
-  loadFileTree: () => Promise<void>
+  loadFileTree: (options?: { skipRemoteSync?: boolean }) => Promise<void>
   loadRemoteSyncFiles: () => Promise<void>
   loadCollapsibleFiles: (folderName: string) => Promise<void>
   loadFolderRemoteFiles: (folderName: string) => Promise<void>
@@ -733,7 +733,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
     set({ fileTree: [...fileTree] }) // 触发重新渲染
   },
   
-  loadFileTree: async () => {
+  loadFileTree: async (options) => {
     set({ fileTreeLoading: true })
     set({ fileTree: [] })
 
@@ -877,7 +877,9 @@ const useArticleStore = create<NoteState>((set, get) => ({
     get().initVectorIndexedFiles()
 
     // 异步加载远程同步文件（不阻塞界面）
-    get().loadRemoteSyncFiles()
+    if (!options?.skipRemoteSync) {
+      get().loadRemoteSyncFiles()
+    }
   },
   
   // 加载远程同步文件（后台任务）
@@ -923,8 +925,9 @@ const useArticleStore = create<NoteState>((set, get) => ({
     const collapsibleList = get().collapsibleList
     const pathsToLoad = buildRemotePathsToLoad(collapsibleList)
     
-    // 使用 Promise.all 并发请求所有路径的远程文件
-    const loadPromises = pathsToLoad.map(async path => {
+    // 目录树会在加载过程中逐步插入父级节点，因此这里必须按层级顺序加载。
+    // 如果并发请求深层路径，远端子目录可能会在父目录节点尚未写入树时被跳过。
+    for (const path of pathsToLoad) {
       try {
         let files;
         switch (primaryBackupMethod) {
@@ -1115,14 +1118,11 @@ const useArticleStore = create<NoteState>((set, get) => ({
               }
             });
           }
-          set({ fileTree: dirs })
+          set({ fileTree: [...dirs] })
         }
       } catch {
       }
-    });
-
-    // 等待所有远程文件加载完成
-    await Promise.all(loadPromises)
+    }
   } catch {
   }
 },
@@ -1237,7 +1237,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
 
     // 设置子节点（可能为空）
     currentFolder.children = children
-    set({ fileTree: cacheTree })
+    set({ fileTree: [...cacheTree] })
     
     // 异步加载远程同步文件状态（不阻塞界面）
     // 这将会填充仅存在于云端的文件
@@ -1406,7 +1406,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
 
           // 移除加载状态
           currentFolder.loading = false
-          set({ fileTree: cacheTree })
+          set({ fileTree: [...cacheTree] })
         }
       }
     } catch {

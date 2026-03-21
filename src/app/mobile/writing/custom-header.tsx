@@ -45,6 +45,7 @@ export function WritingHeader() {
     fileTree,
     fileTreeLoading,
     loadFileTree,
+    loadRemoteSyncFiles,
     loadCollapsibleFiles,
     loadFolderRemoteFiles,
     setCollapsibleList,
@@ -54,6 +55,7 @@ export function WritingHeader() {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentDir, setCurrentDir] = useState('')
   const [folderLoading, setFolderLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [entryMetaMap, setEntryMetaMap] = useState<Record<string, { modifiedAt?: string; size?: number }>>({})
   const hasInitializedDrawerRef = useRef(false)
 
@@ -222,15 +224,33 @@ export function WritingHeader() {
     return modifiedLabel ? `${folderSummary} · ${modifiedLabel}` : folderSummary
   }, [entryMetaMap, formatDateTime, formatSize, tMobile])
 
-  const isBrowserLoading = fileTreeLoading || folderLoading || !!currentFolderNode?.loading
+  const isBrowserLoading = fileTreeLoading || folderLoading || isRefreshing || !!currentFolderNode?.loading
 
   const refreshTree = useCallback(async (dir: string) => {
-    await loadFileTree()
-    if (dir) {
-      await setCollapsibleList(dir, true)
-      await loadCollapsibleFiles(dir)
+    setIsRefreshing(true)
+    try {
+      const parts = dir.split('/').filter(Boolean)
+      const pathsToExpand = parts.map((_, index) => parts.slice(0, index + 1).join('/'))
+
+      for (const path of pathsToExpand) {
+        await setCollapsibleList(path, true)
+      }
+
+      await loadFileTree({ skipRemoteSync: true })
+      await loadRemoteSyncFiles()
+
+      if (!dir) {
+        return
+      }
+
+      for (const path of pathsToExpand) {
+        await loadCollapsibleFiles(path)
+        await loadFolderRemoteFiles(path)
+      }
+    } finally {
+      setIsRefreshing(false)
     }
-  }, [loadFileTree, loadCollapsibleFiles, setCollapsibleList])
+  }, [loadFileTree, loadRemoteSyncFiles, loadCollapsibleFiles, loadFolderRemoteFiles, setCollapsibleList])
 
   useEffect(() => {
     if (!drawerOpen) {
