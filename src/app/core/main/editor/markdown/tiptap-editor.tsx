@@ -189,6 +189,10 @@ type MobileSelectionContext =
 
 type MobileSheetMode = 'ai' | 'image-src' | 'image-alt' | 'table-align' | 'table-more' | null
 
+function clampSelectionPosition(value: number, docSize: number): number {
+  return Math.max(0, Math.min(value, docSize))
+}
+
 export function TipTapEditor({
   initialContent,
   onChange,
@@ -210,6 +214,8 @@ export function TipTapEditor({
   const pendingQuote = useChatStore((state) => state.pendingQuote)
   const pendingSearchKeyword = useArticleStore((state) => state.pendingSearchKeyword)
   const setPendingSearchKeyword = useArticleStore((state) => state.setPendingSearchKeyword)
+  const setEditorViewState = useArticleStore((state) => state.setEditorViewState)
+  const getEditorViewState = useArticleStore((state) => state.getEditorViewState)
 
   const placeholderText = placeholder || t('placeholder')
   const isMobile = isMobileDevice()
@@ -226,6 +232,7 @@ export function TipTapEditor({
 
   // 编辑器容器 ref，用于应用字体缩放
   const editorContainerRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Math dialog state
   const [mathDialogOpen, setMathDialogOpen] = useState(false)
@@ -247,6 +254,8 @@ export function TipTapEditor({
   const initializedForPathRef = useRef<string | null>(null)
   const externalUpdateCounterRef = useRef(0)
   const pendingSyncUpdateRef = useRef<{ path: string; content: string } | null>(null)
+  const restoredViewPathRef = useRef<string | null>(null)
+  const lastViewStateRef = useRef<{ path: string; selectionFrom: number; selectionTo: number; scrollTop: number } | null>(null)
 
   // 读取居中内容设置（移动端强制关闭）
   useEffect(() => {
@@ -278,6 +287,7 @@ export function TipTapEditor({
       isFirstUpdateRef.current = true
       initializedForPathRef.current = activeFilePath
       pendingSyncUpdateRef.current = null
+      restoredViewPathRef.current = null
     }
   }, [activeFilePath])
 
@@ -449,6 +459,140 @@ export function TipTapEditor({
       }
     },
   })
+
+  const persistEditorViewState = useCallback(() => {
+    if (!editor || !activeFilePath || !scrollContainerRef.current) {
+      return
+    }
+
+    if (restoredViewPathRef.current !== activeFilePath) {
+      return
+    }
+
+    const { from, to } = editor.state.selection
+    const nextState = {
+      path: activeFilePath,
+      selectionFrom: from,
+      selectionTo: to,
+      scrollTop: scrollContainerRef.current.scrollTop,
+    }
+
+    const previousState = lastViewStateRef.current
+    if (
+      previousState &&
+      previousState.path === nextState.path &&
+      previousState.selectionFrom === nextState.selectionFrom &&
+      previousState.selectionTo === nextState.selectionTo &&
+      previousState.scrollTop === nextState.scrollTop
+    ) {
+      return
+    }
+
+    lastViewStateRef.current = nextState
+    setEditorViewState(activeFilePath, {
+      selectionFrom: from,
+      selectionTo: to,
+      scrollTop: nextState.scrollTop,
+    })
+  }, [activeFilePath, editor, setEditorViewState])
+
+  useEffect(() => {
+    if (!editor || !activeFilePath) {
+      return
+    }
+
+    const handleSelectionUpdate = () => {
+      persistEditorViewState()
+    }
+
+    editor.on('selectionUpdate', handleSelectionUpdate)
+    return () => {
+      editor.off('selectionUpdate', handleSelectionUpdate)
+    }
+  }, [activeFilePath, editor, persistEditorViewState])
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current
+    if (!scrollContainer || !activeFilePath) {
+      return
+    }
+
+    const handleScroll = () => {
+      persistEditorViewState()
+    }
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll)
+    }
+  }, [activeFilePath, persistEditorViewState])
+
+  useEffect(() => {
+    return () => {
+      persistEditorViewState()
+    }
+  }, [persistEditorViewState])
+
+  const restoreEditorViewState = useCallback((path: string, attempt: number = 0) => {
+    if (!editor || !path || !scrollContainerRef.current) {
+      return
+    }
+
+    if (restoredViewPathRef.current === path) {
+      return
+    }
+
+    const savedViewState = getEditorViewState(path)
+
+    if (!savedViewState) {
+      restoredViewPathRef.current = path
+      lastViewStateRef.current = {
+        path,
+        selectionFrom: editor.state.selection.from,
+        selectionTo: editor.state.selection.to,
+        scrollTop: scrollContainerRef.current.scrollTop,
+      }
+      return
+    }
+
+    const docSize = editor.state.doc.content.size
+    const selectionFrom = clampSelectionPosition(savedViewState.selectionFrom, docSize)
+    const selectionTo = clampSelectionPosition(savedViewState.selectionTo, docSize)
+    const wantedSelection = Math.max(savedViewState.selectionFrom, savedViewState.selectionTo)
+
+    if (docSize < wantedSelection && attempt < 5) {
+      setTimeout(() => {
+        restoreEditorViewState(path, attempt + 1)
+      }, 16)
+      return
+    }
+
+    requestAnimationFrame(() => {
+      if (!scrollContainerRef.current) {
+        return
+      }
+
+      editor.chain().focus().setTextSelection({
+        from: selectionFrom,
+        to: selectionTo,
+      }).run()
+
+      requestAnimationFrame(() => {
+        if (!scrollContainerRef.current) {
+          return
+        }
+
+        scrollContainerRef.current.scrollTop = savedViewState.scrollTop
+        restoredViewPathRef.current = path
+        lastViewStateRef.current = {
+          path,
+          selectionFrom,
+          selectionTo,
+          scrollTop: savedViewState.scrollTop,
+        }
+      })
+    })
+  }, [editor, getEditorViewState])
 
   // 处理编辑器内链接点击
   useEffect(() => {
@@ -1388,9 +1532,10 @@ export function TipTapEditor({
         onReady?.()
         // Notify parent component about editor instance
         onEditorReady?.(editor)
+        restoreEditorViewState(currentPath)
       }, 0)
     }
-  }, [editor, initialContent, onReady, onEditorReady, activeFilePath])
+  }, [editor, initialContent, onReady, onEditorReady, activeFilePath, restoreEditorViewState])
 
   // 处理编辑器中图片的相对路径，转换为 asset:// URL
   useEffect(() => {
@@ -2172,6 +2317,7 @@ export function TipTapEditor({
 
       {/* Editor content - scrollable area */}
       <div
+        ref={scrollContainerRef}
         className="flex-1 overflow-x-hidden overflow-y-auto relative"
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleEditorDrop}

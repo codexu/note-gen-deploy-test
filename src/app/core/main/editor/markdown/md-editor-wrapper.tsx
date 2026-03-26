@@ -391,7 +391,7 @@ export function MdEditor({ tabContentsRef, filePath }: MdEditorProps) {
         initialContent={initialContent || ''}
         onChange={handleContentChange}
         placeholder={tEditor('placeholder')}
-        activeFilePath={activeFilePath}
+        activeFilePath={filePath}
         onQuoteToChat={handleQuoteToChat}
         onEditorReady={handleEditorReady}
         outlineOpen={outlineOpen}
