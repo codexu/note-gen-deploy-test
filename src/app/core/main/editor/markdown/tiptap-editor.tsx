@@ -47,6 +47,7 @@ import { SlashCommand, suggestionOptions } from './slash-command'
 import { SlashCommandPortal } from './slash-command/slash-command-portal'
 import { fetchCompletionStream } from '@/lib/ai/completion'
 import { fetchAiPolishStream, fetchAiConciseStream, fetchAiExpandStream } from '@/lib/ai/rewrite'
+import { fetchAiTranslateStream } from '@/lib/ai/translate'
 import { AISuggestion } from './ai-suggestion'
 import { AISuggestionFloating } from './ai-suggestion-floating'
 import emitter from '@/lib/emitter'
@@ -249,6 +250,7 @@ export function TipTapEditor({
     polish: async () => {},
     concise: async () => {},
     expand: async () => {},
+    translate: async (_targetLanguage: string) => {},
   })
 
   const isInitializedRef = useRef(false)
@@ -1514,13 +1516,93 @@ export function TipTapEditor({
     }
   }, [editor])
 
+  const handleAITranslate = useCallback(async (targetLanguage: string) => {
+    if (!editor) return
+
+    const { from, to } = editor.state.selection
+    const selectedText = editor.state.doc.textBetween(from, to)
+
+    if (!selectedText.trim()) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    editor.chain()
+      .focus()
+      .deleteSelection()
+      .run()
+
+    const initialCoords = editor.view.coordsAtPos(editor.state.selection.from)
+    emitter.emit('start-ai-streaming', {
+      originalText: selectedText,
+      type: 'translate',
+      position: initialCoords,
+      controller,
+    })
+
+    let accumulatedResult = ''
+    const startPosition = editor.state.selection.from
+
+    try {
+      await fetchAiTranslateStream(
+        selectedText,
+        targetLanguage,
+        (chunk) => {
+          editor.chain()
+            .insertContentAt(startPosition + accumulatedResult.length, chunk)
+            .run()
+
+          accumulatedResult += chunk
+
+          const coords = editor.view.coordsAtPos(startPosition + accumulatedResult.length)
+          emitter.emit('update-ai-streaming-content', {
+            suggestedText: accumulatedResult,
+            position: coords,
+          })
+        },
+        controller.signal,
+        (thinkingText) => {
+          emitter.emit('update-ai-thinking-content', {
+            thinkingText,
+            position: initialCoords,
+          })
+        },
+      )
+
+      editor.chain()
+        .deleteRange({ from: startPosition, to: startPosition + accumulatedResult.length })
+        .insertContent(accumulatedResult, { contentType: 'markdown' })
+        .run()
+
+      const finalCoords = editor.view.coordsAtPos(startPosition + accumulatedResult.length)
+      emitter.emit('ai-streaming-complete', {
+        originalText: selectedText,
+        suggestedText: accumulatedResult,
+        type: 'translate',
+        position: finalCoords,
+        generatedRange: { from: startPosition, to: startPosition + accumulatedResult.length },
+      })
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return
+      }
+      editor.chain()
+        .focus()
+        .insertContent(selectedText)
+        .run()
+      emitter.emit('ai-streaming-complete')
+    }
+  }, [editor])
+
   useEffect(() => {
     aiActionHandlersRef.current = {
       polish: handleAIPolish,
       concise: handleAIConcise,
       expand: handleAIExpand,
+      translate: handleAITranslate,
     }
-  }, [handleAIPolish, handleAIConcise, handleAIExpand])
+  }, [handleAIPolish, handleAIConcise, handleAIExpand, handleAITranslate])
 
   // Initialize content only once - preserves undo/redo history when switching tabs
   // Bug fix: Only initialize if the editor is for the current file path
@@ -2349,6 +2431,7 @@ export function TipTapEditor({
               onAIPolish={handleAIPolish}
               onAIConcise={handleAIConcise}
               onAIExpand={handleAIExpand}
+              onAITranslate={handleAITranslate}
               onQuoteToChat={onQuoteToChat}
             />
           )}

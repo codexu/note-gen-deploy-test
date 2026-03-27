@@ -292,6 +292,7 @@ export function AISuggestionFloating({ editor }: AISuggestionFloatingProps) {
     polish: t('bubbleMenu.polish'),
     concise: t('bubbleMenu.concise'),
     expand: t('bubbleMenu.expand'),
+    translate: t('bubbleMenu.translate'),
   }
 
   const showThinkingPanel = Boolean(thinkingText)
