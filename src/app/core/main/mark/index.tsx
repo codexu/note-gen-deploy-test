@@ -14,7 +14,7 @@ import { filterMarks, getTrashRecordFilters } from "./mark-filters";
 
 export function NoteSidebar() {
   const t = useTranslations();
-  const { trashState, marks, setMarks, recordFilters, initRecordViewMode } = useMarkStore()
+  const { trashState, marks, setMarks, initRecordViewMode } = useMarkStore()
   const visibleTrashMarks = React.useMemo(() => filterMarks(marks, getTrashRecordFilters()), [marks])
 
   useEffect(() => {

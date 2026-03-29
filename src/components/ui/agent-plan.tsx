@@ -75,6 +75,7 @@ interface AgentPlanProps {
   pendingConfirmation?: {
     toolName: string;
     params: Record<string, any>;
+    previewParams?: Record<string, any>;
     originalContent?: string;
     modifiedContent?: string;
     filePath?: string;

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Cropper, CropperRef } from 'react-advanced-cropper'
+import { Cropper, CropperRef, Priority } from 'react-advanced-cropper'
 import 'react-advanced-cropper/dist/style.css'
 import { Button } from '@/components/ui/button'
 import { 
@@ -460,7 +460,7 @@ export function ImageEditor({ filePath }: ImageEditorProps) {
               className="h-full w-full min-h-0 min-w-0"
               defaultSize={getInitialCropSize}
               defaultVisibleArea={getInitialVisibleArea}
-              priority="visibleArea"
+              priority={Priority.visibleArea}
               stencilProps={{
                 movable: true,
                 resizable: true,
