@@ -121,6 +121,17 @@ function looksLikeMarkdown(text: string): boolean {
   )
 }
 
+function runDeferredEditorCommand(onSuccess: () => void, onError: (error: unknown) => void) {
+  setTimeout(() => {
+    try {
+      onSuccess()
+    } catch (error) {
+      console.error('[TipTap Editor] Deferred editor command failed:', error)
+      onError(error)
+    }
+  }, 0)
+}
+
 interface TipTapEditorProps {
   initialContent: string
   onChange?: (content: string) => void
@@ -2118,7 +2129,7 @@ export function TipTapEditor({
       try {
         // Insert content with markdown parsing
         // Wrap in setTimeout to avoid React lifecycle flushSync conflict
-        setTimeout(() => {
+        runDeferredEditorCommand(() => {
           editor.commands.insertContent(content, { contentType: 'markdown' })
 
           // Use the actual cursor position after transaction
@@ -2129,7 +2140,9 @@ export function TipTapEditor({
             insertedLength: content.length,
             newCursorPosition: newPosition,
           })
-        }, 0)
+        }, () => {
+          resolve({ success: false, insertedLength: 0 })
+        })
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         resolve({ success: false, insertedLength: 0 })
@@ -2242,7 +2255,7 @@ export function TipTapEditor({
 
         // Delete old content and insert new content with markdown parsing
         // Wrap in setTimeout to avoid React lifecycle flushSync conflict
-        setTimeout(() => {
+        runDeferredEditorCommand(() => {
           if (replacementMode === 'line' && startLine !== undefined && endLine !== undefined) {
             const currentMarkdown = normalizeMarkdownPlaceholders(editor.getMarkdown())
             const updatedMarkdown = replaceLinesInRange(
@@ -2270,7 +2283,9 @@ export function TipTapEditor({
             message: `成功替换 ${to - from} 个字符为 ${newContent.length} 个字符`,
             newCursorPosition: from + newContent.length,
           })
-        }, 0)
+        }, (error) => {
+          resolve({ success: false, insertedLength: 0, error: String(error) })
+        })
       } catch (error) {
         resolve({ success: false, insertedLength: 0, error: String(error) })
       }
