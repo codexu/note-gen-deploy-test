@@ -1,13 +1,15 @@
+import type { BaseDirectory, WriteFileOptions } from '@tauri-apps/plugin-fs'
+
 type FilePathOptions = {
   path: string
-  baseDir?: unknown
+  baseDir?: BaseDirectory
 }
 
 type RootDropDeps = {
   fileName: string
   getFilePathOptions: (relativePath: string) => Promise<FilePathOptions>
-  writeTextFile?: (path: string, content: string, options?: { baseDir: unknown }) => Promise<void>
-  writeFile?: (path: string, content: Uint8Array, options?: { baseDir: unknown }) => Promise<void>
+  writeTextFile?: (path: string, content: string, options?: WriteFileOptions) => Promise<void>
+  writeFile?: (path: string, content: Uint8Array, options?: WriteFileOptions) => Promise<void>
 }
 
 type RootDropPayload =

@@ -117,7 +117,9 @@ function looksLikeMarkdown(text: string): boolean {
     /^\d+\.\s/.test(text) || // 有序列表
     /^>\s/.test(text) || // 引用
     /^```[\s\S]*```$/.test(text) || // 代码块
-    /`[^`]+`/.test(text) // 行内代码
+    /`[^`]+`/.test(text) || // 行内代码
+    /\$\$[\s\S]+?\$\$/.test(text) || // 块级公式
+    /(^|[^\$])\$[^\$\n]+\$(?!\$)/.test(text) // 行内公式
   )
 }
 
