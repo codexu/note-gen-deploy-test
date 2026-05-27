@@ -28,6 +28,13 @@ import { FolderVectorMenu } from './folder-vector-menu'
 import { pasteIntoFolder } from './paste-into-folder'
 import emitter from '@/lib/emitter'
 import { LinkedFolder } from '@/lib/files'
+import {
+  getFileManagerDragPath,
+  getPathAfterMove,
+  hasFileManagerDragData,
+  moveFileManagerEntry,
+  setFileManagerDragData,
+} from '../file-dnd'
 
 export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar?: () => void }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
@@ -35,6 +42,7 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
   const [isComposing, setIsComposing] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const dragExpandTimeoutRef = useRef<number | null>(null)
 
   const { assetsPath, fileManagerTextSize } = useSettingStore()
   const isMobile = useIsMobile()
@@ -69,7 +77,9 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
     loadCollapsibleFiles,
     fileTree,
     setFileTree,
-    vectorIndexedFiles
+    vectorIndexedFiles,
+    moveLocalEntry,
+    syncOpenTabsForPathChange,
   } = useArticleStore()
   const { setClipboardItem, clipboardItem, clipboardOperation } = useClipboardStore()
 
@@ -476,51 +486,117 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
 
 
 
-  async function handleDrop(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault()
-    const renamePath = e.dataTransfer?.getData('text')
-    if (renamePath) {
-      const filename = renamePath.slice(renamePath.lastIndexOf('/') + 1)
-      
-      // 获取工作区路径信息
-      const { getFilePathOptions, getWorkspacePath } = await import('@/lib/workspace')
-      const workspace = await getWorkspacePath()
-      
-      // 获取源路径和目标路径的选项
-      const oldPathOptions = await getFilePathOptions(renamePath)
-      const newPathOptions = await getFilePathOptions(`${path}/${filename}`)
-      
-      // 根据工作区类型执行重命名操作
-      if (workspace.isCustom) {
-        // 自定义工作区
-        await rename(oldPathOptions.path, newPathOptions.path)
-      } else {
-        // 默认工作区
-        await rename(oldPathOptions.path, newPathOptions.path, { 
-          newPathBaseDir: BaseDirectory.AppData, 
-          oldPathBaseDir: BaseDirectory.AppData 
-        })
-      }
-      
-      // 刷新文件树
-      loadFileTree()
-      
-      // 更新活动文件路径和折叠状态
-      if (renamePath === activeFilePath && !collapsibleList.includes(item.name)) {
-        setCollapsibleList(item.name, true)
-        setActiveFilePath(`${path}/${filename}`)
-      }
+  function clearDragExpandTimer() {
+    if (dragExpandTimeoutRef.current !== null) {
+      window.clearTimeout(dragExpandTimeoutRef.current)
+      dragExpandTimeoutRef.current = null
     }
-    setIsDragging(false)
+  }
+
+  function scheduleDragExpand() {
+    if (collapsibleList.includes(path) || dragExpandTimeoutRef.current !== null) {
+      return
+    }
+
+    dragExpandTimeoutRef.current = window.setTimeout(async () => {
+      dragExpandTimeoutRef.current = null
+      await setCollapsibleList(path, true)
+      await loadCollapsibleFiles(path)
+    }, 450)
+  }
+
+  async function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    if (!hasFileManagerDragData(e.dataTransfer)) {
+      return
+    }
+
+    e.preventDefault()
+    e.stopPropagation()
+    clearDragExpandTimer()
+    const renamePath = getFileManagerDragPath(e.dataTransfer)
+
+    try {
+      if (renamePath) {
+        const result = await moveFileManagerEntry(renamePath, path)
+
+        if (!result.moved) {
+          if (result.reason === 'invalid-target') {
+            toast({
+              title: t('context.invalidMoveTarget'),
+              variant: 'destructive',
+            })
+          }
+          return
+        }
+
+        const movedInTree = moveLocalEntry(result.sourcePath, result.targetPath)
+        if (!movedInTree) {
+          await loadFileTree()
+        }
+
+        if (!collapsibleList.includes(path)) {
+          await setCollapsibleList(path, true)
+        }
+
+        const nextActiveFilePath = getPathAfterMove(activeFilePath, result.sourcePath, result.targetPath)
+        if (nextActiveFilePath !== activeFilePath) {
+          setActiveFilePath(nextActiveFilePath)
+        }
+
+        await syncOpenTabsForPathChange(result.sourcePath, result.targetPath)
+      }
+    } catch (error) {
+      console.error('Move entry into folder failed:', error)
+      toast({
+        title: t('context.moveFailed'),
+        variant: 'destructive',
+      })
+    } finally {
+      clearDragExpandTimer()
+      setIsDragging(false)
+    }
   }
 
   function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
+    if (!hasFileManagerDragData(e.dataTransfer)) {
+      return
+    }
+
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'move'
+    scheduleDragExpand()
     setIsDragging(true)
   }
 
   function handleDragleave(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
+    if (!hasFileManagerDragData(e.dataTransfer)) {
+      return
+    }
+
+    e.preventDefault()
+    e.stopPropagation()
+    const nextTarget = e.relatedTarget as Node | null
+    if (nextTarget && e.currentTarget.contains(nextTarget)) {
+      return
+    }
+
+    clearDragExpandTimer()
+    setIsDragging(false)
+  }
+
+  function handleDragStart(ev: React.DragEvent<HTMLDivElement>) {
+    if (!item.isLocale || isEditing) {
+      ev.preventDefault()
+      return
+    }
+
+    ev.stopPropagation()
+    setFileManagerDragData(ev.dataTransfer, path)
+  }
+
+  function handleDragEnd() {
+    clearDragExpandTimer()
     setIsDragging(false)
   }
 
@@ -603,6 +679,14 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
     }
   }, [item])
 
+  useEffect(() => {
+    return () => {
+      if (dragExpandTimeoutRef.current !== null) {
+        window.clearTimeout(dragExpandTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // 监听文件管理器统一快捷键触发的自定义事件
   useEffect(() => {
     const handleRenameEvent = (e: Event) => {
@@ -671,6 +755,12 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
         <ContextMenuTrigger asChild>
           <div
             className={`${isDragging ? 'file-on-drop' : ''} ${path === activeFilePath ? 'active' : ''} group file-manange-item flex select-none`}
+            draggable={!isMobile && item.isLocale && !isEditing}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDrop={(e) => handleDrop(e)}
+            onDragOver={e => handleDragOver(e)}
+            onDragLeave={(e) => handleDragleave(e)}
             onClick={() => handleSelectFolder()}
             onContextMenu={(e) => {
               // 右键打开菜单时阻止冒泡，防止触发折叠/展开
@@ -722,9 +812,6 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
                   />
                 </> :
                 <div
-                  onDrop={(e) => handleDrop(e)}
-                  onDragOver={e => handleDragOver(e)}
-                  onDragLeave={(e) => handleDragleave(e)}
                   className={`${!item.isLocale || isCut ? 'opacity-50' : ''} flex gap-1 items-center flex-1 select-none`}
                 >
                   <div className="flex flex-1 gap-1 select-none relative items-center">

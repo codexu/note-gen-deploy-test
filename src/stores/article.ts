@@ -722,29 +722,41 @@ const useArticleStore = create<NoteState>((set, get) => ({
     return true
   },
   syncOpenTabsForPathChange: async (oldPath: string, newPath: string) => {
+    const mapMovedPath = (path: string) => {
+      if (path === oldPath) {
+        return newPath
+      }
+
+      if (path.startsWith(`${oldPath}/`)) {
+        return `${newPath}${path.slice(oldPath.length)}`
+      }
+
+      return path
+    }
+
     const currentTabs = get().openTabs
     const currentActiveTabId = get().activeTabId
     const newTabs = currentTabs.map(tab => {
-      if (tab.path !== oldPath) {
+      const nextPath = mapMovedPath(tab.path)
+      if (nextPath === tab.path) {
         return tab
       }
 
       return {
         ...tab,
-        path: newPath,
-        name: newPath.split('/').pop() || newPath,
+        path: nextPath,
+        name: nextPath.split('/').pop() || nextPath,
       }
     })
 
-    const nextActiveTabId = currentTabs.some(tab => tab.path === oldPath)
+    const nextActiveTabId = currentTabs.some(tab => mapMovedPath(tab.path) !== tab.path)
       ? currentActiveTabId
       : get().activeTabId
 
-    const nextEditorViewStates = { ...get().editorViewStates }
-    if (nextEditorViewStates[oldPath]) {
-      nextEditorViewStates[newPath] = nextEditorViewStates[oldPath]
-      delete nextEditorViewStates[oldPath]
-    }
+    const nextEditorViewStates = Object.entries(get().editorViewStates).reduce<Record<string, EditorViewState>>((states, [path, viewState]) => {
+      states[mapMovedPath(path)] = viewState
+      return states
+    }, {})
 
     set({ openTabs: newTabs, activeTabId: nextActiveTabId, editorViewStates: nextEditorViewStates })
     const store = await getStore()

@@ -2271,6 +2271,8 @@
         "confirmDelete": "确定要删除文件夹 \"{name}\" 吗？此操作将删除文件夹及其所有内容。",
         "deleteSuccess": "删除成功",
         "deleteFailed": "删除失败",
+        "moveFailed": "移动失败",
+        "invalidMoveTarget": "不能移动到自身或子目录",
         "newFile": "新建文件",
         "newFolder": "新建文件夹",
         "syncFolder": "同步",

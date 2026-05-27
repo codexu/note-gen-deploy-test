@@ -253,6 +253,12 @@ html, body {
   background-color: hsl(var(--secondary-foreground));
 }
 
+.file-manange-item.file-on-drop {
+  background-color: hsl(var(--primary) / 0.12);
+  outline: 1px dashed hsl(var(--primary) / 0.7);
+  outline-offset: -2px;
+}
+
 :not(table)::-webkit-scrollbar {
   width: 0.5rem;
   height: 0.5rem;

@@ -31,6 +31,7 @@ import useSettingStore from "@/stores/setting";
 import { VectorKnowledgeMenu } from "./vector-knowledge-menu";
 import { isSkillsFolder } from "@/lib/skills/utils";
 import { exportMarkdownFile, type MarkdownExportFormat } from "../editor/markdown/markdown-export";
+import { setFileManagerDragData } from "./file-dnd";
 
 type Platform = 'macos' | 'windows' | 'linux' | 'unknown'
 
@@ -630,8 +631,8 @@ export function FileItem({ item, focusSidebar }: { item: DirTree; focusSidebar?:
     }
   }
 
-  async function handleDragStart(ev: React.DragEvent<HTMLDivElement>) {
-    ev.dataTransfer.setData('text', path)
+  function handleDragStart(ev: React.DragEvent<HTMLElement>) {
+    setFileManagerDragData(ev.dataTransfer, path)
   }
 
   async function handleCopyFile() {

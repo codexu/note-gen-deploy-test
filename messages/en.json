@@ -2329,6 +2329,8 @@
         "confirmDelete": "Are you sure you want to delete the folder \"{name}\"? This will delete the folder and all its contents.",
         "deleteSuccess": "Deleted successfully",
         "deleteFailed": "Delete failed",
+        "moveFailed": "Move failed",
+        "invalidMoveTarget": "Cannot move into itself or a subfolder",
         "newFile": "New File",
         "newFolder": "New Folder",
         "syncFolder": "Sync Folder",

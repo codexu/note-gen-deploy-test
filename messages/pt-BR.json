@@ -2283,6 +2283,8 @@
         "confirmDelete": "Tem certeza de que deseja excluir a pasta \"{name}\"? Isso excluirá a pasta e todo o seu conteúdo.",
         "deleteSuccess": "Excluído com sucesso",
         "deleteFailed": "Falha ao excluir",
+        "moveFailed": "Falha ao mover",
+        "invalidMoveTarget": "Não é possível mover para si mesmo ou uma subpasta",
         "newFile": "Novo Arquivo",
         "newFolder": "Nova Pasta",
         "syncFolder": "Sincronizar Pasta",
