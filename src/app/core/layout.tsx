@@ -11,6 +11,7 @@ import { useI18n } from "@/hooks/useI18n"
 import useVectorStore from "@/stores/vector"
 import useImageStore from "@/stores/imageHosting"
 import useShortcutStore from "@/stores/shortcut"
+import useEditorShortcutStore from "@/stores/editor-shortcut"
 import useUpdateStore from "@/stores/update"
 import initQuickRecordText from "@/lib/shortcut/quick-record-text"
 import { useRouter, usePathname } from "next/navigation"
@@ -41,6 +42,7 @@ export default function RootLayout({
   const { initMainHosting } = useImageStore()
   const { currentLocale } = useI18n()
   const { initShortcut } = useShortcutStore()
+  const { initEditorShortcuts } = useEditorShortcutStore()
   const { initVectorDb } = useVectorStore()
   const { initUpdateStore, checkForUpdates } = useUpdateStore()
   const router = useRouter()
@@ -134,6 +136,7 @@ export default function RootLayout({
         if (cancelled) return
 
         initShortcut()
+        initEditorShortcuts()
         await initVectorDb()
         if (cancelled) return
 

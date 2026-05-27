@@ -44,6 +44,9 @@ interface BubbleMenuProps {
   onAIExpand?: () => void
   onAITranslate?: (targetLanguage: string) => void
   onQuoteToChat?: () => void
+  openAiMenuSignal?: number
+  openTranslateMenuSignal?: number
+  openLinkInputSignal?: number
 }
 
 export function BubbleMenu({
@@ -53,6 +56,9 @@ export function BubbleMenu({
   onAIExpand,
   onAITranslate,
   onQuoteToChat,
+  openAiMenuSignal = 0,
+  openTranslateMenuSignal = 0,
+  openLinkInputSignal = 0,
 }: BubbleMenuProps) {
   const t = useTranslations('editor')
   const [show, setShow] = useState(false)
@@ -153,6 +159,35 @@ export function BubbleMenu({
 
     setShow(true)
   }, [editor])
+
+  useEffect(() => {
+    if (!openAiMenuSignal) return
+
+    updatePosition()
+    setShowAISubmenu(true)
+    setShowTranslateSubmenu(false)
+    setShowLinkInput(false)
+  }, [openAiMenuSignal, updatePosition])
+
+  useEffect(() => {
+    if (!openTranslateMenuSignal) return
+
+    updatePosition()
+    setShowAISubmenu(true)
+    setShowTranslateSubmenu(true)
+    setShowLinkInput(false)
+  }, [openTranslateMenuSignal, updatePosition])
+
+  useEffect(() => {
+    if (!openLinkInputSignal) return
+
+    updatePosition()
+    const previousUrl = editor.getAttributes('link').href
+    setLinkUrl(previousUrl || '')
+    setShowLinkInput(true)
+    setShowAISubmenu(false)
+    setShowTranslateSubmenu(false)
+  }, [editor, openLinkInputSignal, updatePosition])
 
   // AI子菜单边界检测
   useEffect(() => {

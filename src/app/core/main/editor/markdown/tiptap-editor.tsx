@@ -21,7 +21,7 @@ import { common, createLowlight } from 'lowlight'
 import { Markdown } from '@tiptap/markdown'
 import { SearchAndReplace } from '@sereneinserenade/tiptap-search-and-replace'
 import UniqueId from '@tiptap/extension-unique-id'
-import { Extension, nodeInputRule, ResizableNodeView, type ResizableNodeViewDirection } from '@tiptap/core'
+import { Extension, nodeInputRule, ResizableNodeView, type Editor as CoreEditor, type ResizableNodeViewDirection } from '@tiptap/core'
 import { Plugin, TextSelection } from '@tiptap/pm/state'
 import 'katex/dist/katex.min.css'
 import { InlineMath, BlockMath } from './math-extension'
@@ -31,6 +31,8 @@ import { SearchReplacePanel } from './search-replace-panel'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { Store } from '@tauri-apps/plugin-store'
 import { openUrl } from '@tauri-apps/plugin-opener'
+import { open } from '@tauri-apps/plugin-dialog'
+import { readFile } from '@tauri-apps/plugin-fs'
 import { handleImageUpload } from '@/lib/image-handler'
 import useArticleStore from '@/stores/article'
 import { convertImageByWorkspace } from '@/lib/utils'
@@ -68,6 +70,10 @@ import { getEditorContentContainerClass } from '@/lib/editor-layout-styles'
 import { getResultIndexToFocus } from './search-navigation'
 import { isOutlineOnLeft, type OutlinePosition } from '@/lib/outline-preferences'
 import { OUTLINE_PANEL_PADDING_CLASS } from '@/lib/outline-styles'
+import { EditorShortcutsExtension } from './editor-shortcuts-extension'
+import useEditorShortcutStore from '@/stores/editor-shortcut'
+import type { EditorShortcutCommandId } from '@/config/editor-shortcuts'
+import { isAiSuggestionShortcutVisible } from '@/lib/ai-suggestion-shortcut-state'
 import './style.css'
 
 const lowlight = createLowlight(common)
@@ -375,6 +381,20 @@ export function TipTapEditor({
 
   // Content version ref for race condition prevention between editor and agent
   const contentVersionRef = useRef(0)
+  const editorShortcuts = useEditorShortcutStore((state) => state.shortcuts)
+  const editorShortcutsRef = useRef(editorShortcuts)
+  const editorShortcutHandlersRef = useRef<Partial<Record<EditorShortcutCommandId, (targetEditor: CoreEditor) => boolean>>>({})
+  const [openAiMenuSignal, setOpenAiMenuSignal] = useState(0)
+  const [openTranslateMenuSignal, setOpenTranslateMenuSignal] = useState(0)
+  const [openLinkInputSignal, setOpenLinkInputSignal] = useState(0)
+
+  useEffect(() => {
+    editorShortcutsRef.current = editorShortcuts
+  }, [editorShortcuts])
+
+  const runEditorShortcutCommand = useCallback((id: EditorShortcutCommandId, targetEditor: CoreEditor) => {
+    return editorShortcutHandlersRef.current[id]?.(targetEditor) ?? false
+  }, [])
 
   // When file path changes, reset initialization state to avoid old file content overwriting new file
   useEffect(() => {
@@ -391,6 +411,10 @@ export function TipTapEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
+      EditorShortcutsExtension.configure({
+        getShortcuts: () => editorShortcutsRef.current,
+        runCommand: runEditorShortcutCommand,
+      }),
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
@@ -1827,6 +1851,214 @@ export function TipTapEditor({
     }
   }, [handleAIPolish, handleAIConcise, handleAIExpand, handleAITranslate])
 
+  const insertImageAtSelection = useCallback(async () => {
+    if (!editor) return
+
+    const insertPos = editor.state.selection.from
+    const placeholder = 'Uploading... '
+
+    editor.chain()
+      .focus()
+      .insertContentAt(insertPos, {
+        type: 'text',
+        text: placeholder,
+      })
+      .run()
+
+    const placeholderEnd = insertPos + placeholder.length
+
+    try {
+      const file = await open({
+        multiple: false,
+        filters: [
+          {
+            name: 'Images',
+            extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'],
+          },
+        ],
+      })
+
+      if (!file) {
+        editor.chain().focus().deleteRange({ from: insertPos, to: placeholderEnd }).run()
+        return
+      }
+
+      let fileObject: File
+
+      if (typeof file === 'string') {
+        const fileData = await readFile(file)
+        const ext = file.split('.').pop() || 'png'
+        const fileName = file.split('/').pop() || `image.${ext}`
+        const arrayBuffer = new Uint8Array(fileData).buffer
+        fileObject = new File([arrayBuffer], fileName, { type: `image/${ext}` })
+      } else {
+        fileObject = file
+      }
+
+      const result = await handleImageUpload(fileObject, activeFilePath)
+
+      editor.chain().focus().deleteRange({ from: insertPos, to: placeholderEnd }).run()
+      editor.chain().focus().insertContentAt(insertPos, {
+        type: 'image',
+        attrs: {
+          src: result.src,
+          alt: fileObject.name,
+          relativeSrc: result.relativePath,
+        },
+      }).run()
+    } catch (error) {
+      editor.chain().focus().deleteRange({ from: insertPos, to: placeholderEnd }).run()
+      toast({
+        title: tImage('failed'),
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      })
+    }
+  }, [activeFilePath, editor, tImage])
+
+  useEffect(() => {
+    editorShortcutHandlersRef.current = {
+      undo: (targetEditor) => targetEditor.chain().focus().undo().run(),
+      redo: (targetEditor) => targetEditor.chain().focus().redo().run(),
+      setParagraph: (targetEditor) => targetEditor.chain().focus().setParagraph().run(),
+      toggleHeading1: (targetEditor) => targetEditor.chain().focus().toggleHeading({ level: 1 }).run(),
+      toggleHeading2: (targetEditor) => targetEditor.chain().focus().toggleHeading({ level: 2 }).run(),
+      toggleHeading3: (targetEditor) => targetEditor.chain().focus().toggleHeading({ level: 3 }).run(),
+      toggleHeading4: (targetEditor) => targetEditor.chain().focus().toggleHeading({ level: 4 }).run(),
+      toggleHeading5: (targetEditor) => targetEditor.chain().focus().toggleHeading({ level: 5 }).run(),
+      toggleHeading6: (targetEditor) => targetEditor.chain().focus().toggleHeading({ level: 6 }).run(),
+      openSearch: () => {
+        setSearchReplaceOpen(true)
+        return true
+      },
+      openSlashCommand: (targetEditor) => targetEditor.commands.triggerSlashCommand(),
+      toggleOutline: () => {
+        if (isMobile) {
+          setMobileOutlineOpen((prev) => !prev)
+        } else {
+          onToggleOutline?.()
+        }
+        return true
+      },
+      toggleBold: (targetEditor) => targetEditor.chain().focus().toggleBold().run(),
+      toggleItalic: (targetEditor) => targetEditor.chain().focus().toggleItalic().run(),
+      toggleStrike: (targetEditor) => targetEditor.chain().focus().toggleStrike().run(),
+      toggleUnderline: (targetEditor) => targetEditor.chain().focus().toggleUnderline().run(),
+      toggleInlineCode: (targetEditor) => targetEditor.chain().focus().toggleCode().run(),
+      toggleHighlight: (targetEditor) => targetEditor.chain().focus().toggleHighlight().run(),
+      openLinkInput: () => {
+        setOpenLinkInputSignal((value) => value + 1)
+        return true
+      },
+      toggleBlockquote: (targetEditor) => targetEditor.chain().focus().toggleBlockquote().run(),
+      toggleBulletList: (targetEditor) => targetEditor.chain().focus().toggleBulletList().run(),
+      toggleOrderedList: (targetEditor) => targetEditor.chain().focus().toggleOrderedList().run(),
+      toggleTaskList: (targetEditor) => targetEditor.chain().focus().toggleTaskList().run(),
+      toggleCodeBlock: (targetEditor) => targetEditor.chain().focus().toggleCodeBlock().run(),
+      quoteToChat: () => {
+        onQuoteToChat?.()
+        return true
+      },
+      openAiMenu: () => {
+        setOpenAiMenuSignal((value) => value + 1)
+        return true
+      },
+      aiContinue: () => {
+        document.dispatchEvent(new CustomEvent('tiptap-ai-continue'))
+        return true
+      },
+      aiPolish: () => {
+        void aiActionHandlersRef.current.polish()
+        return true
+      },
+      aiConcise: () => {
+        void aiActionHandlersRef.current.concise()
+        return true
+      },
+      aiExpand: () => {
+        void aiActionHandlersRef.current.expand()
+        return true
+      },
+      aiTranslate: () => {
+        setOpenTranslateMenuSignal((value) => value + 1)
+        return true
+      },
+      acceptAiSuggestion: () => {
+        if (!isAiSuggestionShortcutVisible()) {
+          return false
+        }
+        emitter.emit('accept-ai-suggestion')
+        return true
+      },
+      rejectAiSuggestion: () => {
+        if (!isAiSuggestionShortcutVisible()) {
+          return false
+        }
+        emitter.emit('reject-ai-suggestion')
+        return true
+      },
+      abortAiGeneration: () => {
+        if (onTerminate) {
+          onTerminate()
+        } else {
+          emitter.emit('abort-ai-streaming')
+        }
+        return true
+      },
+      insertTable: (targetEditor) => targetEditor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+      addColumnBefore: (targetEditor) => targetEditor.chain().focus().addColumnBefore().run(),
+      addColumnAfter: (targetEditor) => targetEditor.chain().focus().addColumnAfter().run(),
+      addRowBefore: (targetEditor) => targetEditor.chain().focus().addRowBefore().run(),
+      addRowAfter: (targetEditor) => targetEditor.chain().focus().addRowAfter().run(),
+      deleteColumn: (targetEditor) => targetEditor.chain().focus().deleteColumn().run(),
+      deleteRow: (targetEditor) => targetEditor.chain().focus().deleteRow().run(),
+      deleteTable: (targetEditor) => targetEditor.chain().focus().deleteTable().run(),
+      alignLeft: (targetEditor) => {
+        if (targetEditor.isActive('table')) {
+          return targetEditor.chain().focus().setCellAttribute('align', 'left').run()
+        }
+        return targetEditor.chain().focus().setTextAlign('left').run()
+      },
+      alignCenter: (targetEditor) => {
+        if (targetEditor.isActive('table')) {
+          return targetEditor.chain().focus().setCellAttribute('align', 'center').run()
+        }
+        return targetEditor.chain().focus().setTextAlign('center').run()
+      },
+      alignRight: (targetEditor) => {
+        if (targetEditor.isActive('table')) {
+          return targetEditor.chain().focus().setCellAttribute('align', 'right').run()
+        }
+        return targetEditor.chain().focus().setTextAlign('right').run()
+      },
+      insertImage: () => {
+        void insertImageAtSelection()
+        return true
+      },
+      insertInlineMath: () => {
+        setMathType('inline')
+        setMathDialogOpen(true)
+        return true
+      },
+      insertBlockMath: () => {
+        setMathType('block')
+        setMathDialogOpen(true)
+        return true
+      },
+      insertMermaid: () => {
+        document.dispatchEvent(new CustomEvent('tiptap-insert-mermaid', { detail: { type: 'flowchart' } }))
+        return true
+      },
+      insertHorizontalRule: (targetEditor) => targetEditor.chain().focus().setHorizontalRule().run(),
+    }
+  }, [
+    insertImageAtSelection,
+    isMobile,
+    onQuoteToChat,
+    onTerminate,
+    onToggleOutline,
+  ])
+
   // Initialize content only once - preserves undo/redo history when switching tabs
   // Bug fix: Only initialize if the editor is for the current file path
   useEffect(() => {
@@ -2715,6 +2947,9 @@ export function TipTapEditor({
               onAIExpand={handleAIExpand}
               onAITranslate={handleAITranslate}
               onQuoteToChat={onQuoteToChat}
+              openAiMenuSignal={openAiMenuSignal}
+              openTranslateMenuSignal={openTranslateMenuSignal}
+              openLinkInputSignal={openLinkInputSignal}
             />
           )}
         </EditorContent>

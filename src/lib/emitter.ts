@@ -107,6 +107,8 @@ interface Events {
     generatedRange?: { from: number; to: number };
   };
   'abort-ai-streaming': void;
+  'accept-ai-suggestion': void;
+  'reject-ai-suggestion': void;
   // Agent 编辑器工具事件 - 内联定义避免重复
   'editor-get-selection': { resolve: (data: { text: string; from: number; to: number; html?: string; startLine?: number; endLine?: number }) => void };
   'editor-get-content': { resolve: (data: { markdown: string; text: string; wordCount: number; charCount: number; totalLines?: number; numberedLines?: string; version: number }) => void };

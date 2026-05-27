@@ -5,6 +5,7 @@ import { Brain, Check, ChevronRight, CircleX, Loader2, Sparkles, X } from 'lucid
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import emitter from '@/lib/emitter'
+import { setAiSuggestionShortcutVisible } from '@/lib/ai-suggestion-shortcut-state'
 
 interface AISuggestionFloatingProps {
   editor: Editor
@@ -72,6 +73,14 @@ export function AISuggestionFloating({ editor }: AISuggestionFloatingProps) {
   useEffect(() => {
     latestSuggestionRef.current = suggestion
   }, [suggestion])
+
+  useEffect(() => {
+    setAiSuggestionShortcutVisible(isVisible)
+
+    return () => {
+      setAiSuggestionShortcutVisible(false)
+    }
+  }, [isVisible])
 
   useEffect(() => {
     return () => {
@@ -285,6 +294,16 @@ export function AISuggestionFloating({ editor }: AISuggestionFloatingProps) {
   const handleAbort = useCallback(() => {
     emitter.emit('abort-ai-streaming')
   }, [])
+
+  useEffect(() => {
+    emitter.on('accept-ai-suggestion', handleAccept)
+    emitter.on('reject-ai-suggestion', handleReject)
+
+    return () => {
+      emitter.off('accept-ai-suggestion', handleAccept)
+      emitter.off('reject-ai-suggestion', handleReject)
+    }
+  }, [handleAccept, handleReject])
 
   if (!isVisible) return null
 
