@@ -659,6 +659,9 @@ export const ChatInput = React.memo(function ChatInput() {
     setHistoryIndex(-1)
     setAttachedImages([])
     clearPendingQuote()
+    if (isMobileDevice_) {
+      clearEditorSelectionQuote()
+    }
     const textarea = document.querySelector('textarea')
     if (textarea) {
       textarea.style.height = 'auto'

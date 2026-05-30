@@ -2769,12 +2769,13 @@ export function TipTapEditor({
 
   // Editor tools event handlers for Agent integration
   useEffect(() => {
-    const buildCurrentQuoteData = (): PendingQuote | null => {
+    let lastEditorSelectionQuote: PendingQuote | null = null
+
+    const buildQuoteDataFromRange = (from: number, to: number): PendingQuote | null => {
       if (!editor) {
         return null
       }
 
-      const { from, to } = editor.state.selection
       if (from === to) {
         return null
       }
@@ -2814,8 +2815,35 @@ export function TipTapEditor({
       }
     }
 
+    const buildCurrentQuoteData = (): PendingQuote | null => {
+      if (!editor) {
+        return null
+      }
+
+      const { from, to } = editor.state.selection
+      return buildQuoteDataFromRange(from, to)
+    }
+
     const syncEditorSelectionQuote = () => {
-      useChatStore.getState().setEditorSelectionQuote(buildCurrentQuoteData())
+      if (!editor) {
+        useChatStore.getState().setEditorSelectionQuote(null)
+        return
+      }
+
+      const quoteData = buildCurrentQuoteData()
+      if (quoteData) {
+        lastEditorSelectionQuote = quoteData
+        useChatStore.getState().setEditorSelectionQuote(quoteData)
+        return
+      }
+
+      if (isMobile && !isFocusWithinEditor(editor.view) && lastEditorSelectionQuote) {
+        useChatStore.getState().setEditorSelectionQuote(lastEditorSelectionQuote)
+        return
+      }
+
+      lastEditorSelectionQuote = null
+      useChatStore.getState().setEditorSelectionQuote(null)
     }
 
     // Get editor selection
@@ -3147,7 +3175,9 @@ export function TipTapEditor({
       emitter.off('mobile-editor-toggle-outline', handleMobileToggleOutline)
       emitter.off('editor-can-undo-redo', handleCanUndoRedo)
       editor?.off('selectionUpdate', syncEditorSelectionQuote)
-      useChatStore.getState().clearEditorSelectionQuote()
+      if (!isMobile) {
+        useChatStore.getState().clearEditorSelectionQuote()
+      }
       // Only remove event listener if it was actually added
       if (listenersSetup) {
         document.removeEventListener('tiptap-insert-mermaid', handleInsertMermaid as EventListener)

@@ -497,6 +497,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     get().resetAgentState()
     get().clearMcpToolCalls()
     get().clearPendingQuote()
+    get().clearEditorSelectionQuote()
 
     // 更新会话的消息数量
     const { currentConversationId } = get()
@@ -743,7 +744,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     // 然后加载消息
     const { getChatsByConversation } = await import('@/db/chats')
     const data = await getChatsByConversation(id)
-    set({ currentConversationId: id, chats: data, pendingQuote: null })
+    set({ currentConversationId: id, chats: data, pendingQuote: null, editorSelectionQuote: null })
     // 刷新会话列表以确保 UI 显示最新的会话状态
     await get().initConversations()
   },
@@ -772,6 +773,7 @@ const useChatStore = create<ChatState>((set, get) => ({
           currentConversationId: null,
           chats: [],
           pendingQuote: null,
+          editorSelectionQuote: null,
           agentAutoApproveConversationId: null,
           agentAutoApproveRuntimeSkillId: null
         })
@@ -814,6 +816,7 @@ const useChatStore = create<ChatState>((set, get) => ({
       currentConversationId: null,
       chats: [],
       pendingQuote: null,
+      editorSelectionQuote: null,
       agentAutoApproveConversationId: null,
       agentAutoApproveRuntimeSkillId: null
     })
