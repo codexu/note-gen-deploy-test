@@ -18,9 +18,10 @@ import { filterMarks, getTrashRecordFilters } from '@/app/core/main/mark/mark-fi
 import { getMarkTypeChipClasses, MARK_TYPE_OPTIONS } from '@/app/core/main/mark/mark-type-meta'
 import useMarkStore, { RecordTimePreset } from '@/stores/mark'
 import useTagStore from '@/stores/tag'
-import { clearTrash, delMark, delMarkForever, initMarksDb, Mark, restoreMark, restoreMarks, updateMark as updateMarkDb } from '@/db/marks'
+import { clearTrash, delMark, deleteMarks, delMarkForever, initMarksDb, Mark, restoreMark, restoreMarks, updateMark as updateMarkDb } from '@/db/marks'
 import { insertTag } from '@/db/tags'
 import { cn } from '@/lib/utils'
+import { RecordSyncStatusBanner } from '@/components/record-sync-status-banner'
 
 const TIME_OPTIONS: RecordTimePreset[] = ['all', 'today', 'last7Days', 'last30Days']
 
@@ -199,6 +200,11 @@ export function MobileRecordStream() {
 
   async function handleDelete(mark: Mark) {
     if (trashState) {
+      const accepted = await confirm(`${t('record.mark.toolbar.deleteForever')}?\n${t('record.trash.syncWarning')}`, {
+        title: t('record.trash.title'),
+        kind: 'warning',
+      })
+      if (!accepted) return
       await delMarkForever(mark.id)
     } else {
       await delMark(mark.id)
@@ -212,7 +218,7 @@ export function MobileRecordStream() {
   }
 
   async function handleClearTrash() {
-    const accepted = await confirm(t('record.trash.confirm'), {
+    const accepted = await confirm(`${t('record.trash.confirm')}\n${t('record.trash.syncWarning')}`, {
       title: t('record.trash.title'),
       kind: 'warning',
     })
@@ -286,12 +292,19 @@ export function MobileRecordStream() {
 
   async function handleDeleteSelected() {
     const targets = filteredRecords.filter((item: Mark) => selectedIds.has(item.id))
-    for (const item of targets) {
-      if (trashState) {
+    if (trashState && targets.length > 0) {
+      const accepted = await confirm(`${t('record.mark.toolbar.deleteSelectedForever', { count: targets.length })}\n${t('record.trash.syncWarning')}`, {
+        title: t('record.trash.title'),
+        kind: 'warning',
+      })
+      if (!accepted) return
+    }
+    if (trashState) {
+      for (const item of targets) {
         await delMarkForever(item.id)
-      } else {
-        await delMark(item.id)
       }
+    } else {
+      await deleteMarks(targets.map((item) => item.id))
     }
     setSelectedIds(new Set())
     await refreshRecords()
@@ -447,6 +460,8 @@ export function MobileRecordStream() {
           )}
         </div>
       </div>
+
+      <RecordSyncStatusBanner settingsHref="/mobile/setting/pages/sync" compact />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
         {!trashState && queues.length > 0 && (

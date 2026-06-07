@@ -26,12 +26,14 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { invoke } from '@tauri-apps/api/core'
 import { TextSizeProvider } from "@/contexts/text-size-context"
 import { SyncConfirmDialog } from "@/components/sync-confirm-dialog"
+import { AutoDataSyncConflictDialog } from "@/components/auto-data-sync-conflict-dialog"
 import { applyThemeColors } from "@/lib/theme-utils"
 import emitter from "@/lib/emitter"
 import { isEditableKeyboardTarget } from "@/lib/is-editable-keyboard-target"
 import useArticleStore from "@/stores/article"
 import { resolveOpenedMarkdownPath } from "@/lib/opened-files"
 import { useToast } from "@/hooks/use-toast"
+import { initAutoDataSyncRuntime } from "@/lib/sync/auto-data-sync-queue"
 
 export default function RootLayout({
   children,
@@ -133,6 +135,8 @@ export default function RootLayout({
 
         // 先完成数据库和默认工作区初始化，避免首次启动时其他逻辑抢先读取空目录或未建表数据库。
         await initAllDatabases()
+        if (cancelled) return
+        await initAutoDataSyncRuntime()
         if (cancelled) return
 
         initShortcut()
@@ -247,6 +251,7 @@ export default function RootLayout({
         <ActivityDrawer open={activityOpen} onOpenChange={setActivityOpen} />
         <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
         <SyncConfirmDialog />
+        <AutoDataSyncConflictDialog />
       </TextSizeProvider>
     </ThemeProvider>
   );
