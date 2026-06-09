@@ -46,6 +46,19 @@
     "info": "Info",
     "configureSync": "Configure Sync"
   },
+  "tray": {
+    "quickRecord": "Quick Record",
+    "moreRecord": "More Records",
+    "open": "Open",
+    "showMain": "Show Main Window",
+    "newNote": "New Note",
+    "newFolder": "New Folder",
+    "settings": "Settings",
+    "window": "Window",
+    "pinToggle": "Pin/Unpin",
+    "hideWindow": "Hide to Tray",
+    "quit": "Quit NoteGen"
+  },
   "settings": {
     "defaultModels": {
       "title": "Default Models"

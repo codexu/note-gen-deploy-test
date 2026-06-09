@@ -43,6 +43,19 @@
     "saving": "Salvando",
     "configureSync": "Configurar Sincronização"
   },
+  "tray": {
+    "quickRecord": "Registro rápido",
+    "moreRecord": "Mais registros",
+    "open": "Abrir",
+    "showMain": "Mostrar janela principal",
+    "newNote": "Nova nota",
+    "newFolder": "Nova pasta",
+    "settings": "Configurações",
+    "window": "Janela",
+    "pinToggle": "Fixar/Desafixar",
+    "hideWindow": "Ocultar na bandeja",
+    "quit": "Sair do NoteGen"
+  },
   "settings": {
     "defaultModels": {
       "title": "Modelos Padrão"

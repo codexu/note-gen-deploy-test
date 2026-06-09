@@ -41,6 +41,19 @@
     "saving": "保存中...",
     "configureSync": "配置同步"
   },
+  "tray": {
+    "quickRecord": "快速記錄",
+    "moreRecord": "更多記錄",
+    "open": "打開",
+    "showMain": "顯示主視窗",
+    "newNote": "新建筆記",
+    "newFolder": "新建資料夾",
+    "settings": "設置",
+    "window": "視窗",
+    "pinToggle": "置頂/取消置頂",
+    "hideWindow": "隱藏到托盤",
+    "quit": "退出 NoteGen"
+  },
   "settings": {
     "defaultModels": {
       "title": "預設模型"

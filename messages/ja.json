@@ -41,6 +41,19 @@
     "saving": "保存中...",
     "configureSync": "同期を構成"
   },
+  "tray": {
+    "quickRecord": "クイック記録",
+    "moreRecord": "その他の記録",
+    "open": "開く",
+    "showMain": "メインウィンドウを表示",
+    "newNote": "新規ノート",
+    "newFolder": "新規フォルダー",
+    "settings": "設定",
+    "window": "ウィンドウ",
+    "pinToggle": "ピン留め/解除",
+    "hideWindow": "トレイに隠す",
+    "quit": "NoteGenを終了"
+  },
   "settings": {
     "defaultModels": {
       "title": "デフォルトモデル"

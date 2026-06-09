@@ -34,13 +34,15 @@ import useArticleStore from "@/stores/article"
 import { resolveOpenedMarkdownPath } from "@/lib/opened-files"
 import { useToast } from "@/hooks/use-toast"
 import { initAutoDataSyncRuntime } from "@/lib/sync/auto-data-sync-queue"
+import { useSidebarStore } from "@/stores/sidebar"
+import { useTranslations } from "next-intl"
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { initSettingData, uiScale, customThemeColors } = useSettingStore()
+  const { initSettingData, uiScale, customThemeColors, recordToolbarConfig } = useSettingStore()
   const { initMainHosting } = useImageStore()
   const { currentLocale } = useI18n()
   const { initShortcut } = useShortcutStore()
@@ -49,6 +51,7 @@ export default function RootLayout({
   const { initUpdateStore, checkForUpdates } = useUpdateStore()
   const router = useRouter()
   const pathname = usePathname()
+  const t = useTranslations()
   const { toast } = useToast()
   const [searchOpen, setSearchOpen] = useState(false)
   const [activityOpen, setActivityOpen] = useState(false)
@@ -111,6 +114,166 @@ export default function RootLayout({
       unlistenOpenFiles?.()
     }
   }, [pathname, router, toast])
+
+  useEffect(() => {
+    const recordToolLabels: Record<string, string> = {
+      text: t('record.mark.type.text'),
+      recording: t('record.mark.type.recording'),
+      scan: t('record.mark.type.screenshot'),
+      image: t('record.mark.type.image'),
+      link: t('record.mark.type.link'),
+      file: t('record.mark.type.file'),
+      todo: t('record.mark.type.todo'),
+    }
+
+    void invoke('update_tray_record_toolbar_config', {
+      config: recordToolbarConfig.map((item) => ({
+        ...item,
+        label: recordToolLabels[item.id] || item.id,
+      })),
+      labels: {
+        quickRecord: t('tray.quickRecord'),
+        moreRecord: t('tray.moreRecord'),
+        open: t('tray.open'),
+        showMain: t('tray.showMain'),
+        newNote: t('tray.newNote'),
+        newFolder: t('tray.newFolder'),
+        settings: t('tray.settings'),
+        window: t('tray.window'),
+        pinToggle: t('tray.pinToggle'),
+        hideWindow: t('tray.hideWindow'),
+        quit: t('tray.quit'),
+      },
+    }).catch((error) => {
+      console.debug('Failed to sync tray record toolbar config:', error)
+    })
+  }, [recordToolbarConfig, t])
+
+  useEffect(() => {
+    let cancelled = false
+    let unlistenTrayAction: (() => void) | undefined
+    let unlistenOpenSettings: (() => void) | undefined
+
+    const navigateToMain = async () => {
+      const store = await Store.load('store.json')
+      await store.set('currentPage', '/core/main')
+      await store.save()
+
+      if (pathname !== '/core/main') {
+        router.replace('/core/main')
+      }
+    }
+
+    const showSidebarTab = async (tab: 'files' | 'notes') => {
+      await navigateToMain()
+
+      const sidebar = useSidebarStore.getState()
+      if (!sidebar.leftSidebarVisible) {
+        await sidebar.toggleLeftSidebar()
+      }
+      await useSidebarStore.getState().setLeftSidebarTab(tab)
+    }
+
+    const togglePin = async () => {
+      const store = await Store.load('store.json')
+      const currentPin = await store.get<boolean>('pin')
+      const nextPin = !currentPin
+
+      await getCurrentWindow().setAlwaysOnTop(nextPin)
+      await store.set('pin', nextPin)
+      await store.save()
+      emitter.emit('window-pin-changed', nextPin)
+    }
+
+    const ensureFileTreeLoaded = async () => {
+      const articleStore = useArticleStore.getState()
+      if (articleStore.fileTree.length === 0) {
+        await articleStore.loadFileTree()
+      }
+    }
+
+    const handleTrayAction = async (action: string) => {
+      switch (action) {
+        case 'new-note':
+          await showSidebarTab('files')
+          await ensureFileTreeLoaded()
+          await useArticleStore.getState().newFile()
+          break
+        case 'new-folder':
+          await showSidebarTab('files')
+          await ensureFileTreeLoaded()
+          await useArticleStore.getState().newFolder()
+          break
+        case 'record-audio':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-recording')
+          break
+        case 'record-screenshot':
+        case 'screenshot':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-scan')
+          break
+        case 'record-text':
+        case 'text':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-text')
+          break
+        case 'record-link':
+        case 'link':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-link')
+          break
+        case 'record-image':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-image')
+          break
+        case 'record-file':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-file')
+          break
+        case 'record-todo':
+          await showSidebarTab('notes')
+          emitter.emit('toolbar-shortcut-todo')
+          break
+        case 'pin-window':
+        case 'pin':
+          await togglePin()
+          break
+        default:
+          break
+      }
+    }
+
+    const registerTrayListeners = async () => {
+      const window = getCurrentWindow()
+      const trayActionUnlisten = await window.listen<string>('tray-action', (event) => {
+        void handleTrayAction(event.payload)
+      })
+      const openSettingsUnlisten = await window.listen<string>('open-settings', async () => {
+        const store = await Store.load('store.json')
+        await store.set('currentPage', '/core/setting')
+        await store.save()
+        router.replace('/core/setting')
+      })
+
+      if (cancelled) {
+        trayActionUnlisten()
+        openSettingsUnlisten()
+        return
+      }
+
+      unlistenTrayAction = trayActionUnlisten
+      unlistenOpenSettings = openSettingsUnlisten
+    }
+
+    void registerTrayListeners()
+
+    return () => {
+      cancelled = true
+      unlistenTrayAction?.()
+      unlistenOpenSettings?.()
+    }
+  }, [pathname, router])
 
   // 重定向旧路径到新的 /core/main
   useEffect(() => {

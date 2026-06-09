@@ -72,6 +72,7 @@ interface Events {
   'screenshot-shortcut-register': unknown;
   'text-shortcut-register': unknown;
   'window-pin-register': unknown;
+  'window-pin-changed': boolean;
   'link-shortcut-register': unknown;
   'refresh-marks': unknown;
   'quick-prompt-insert': string;
