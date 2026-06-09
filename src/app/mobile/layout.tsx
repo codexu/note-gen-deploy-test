@@ -26,6 +26,7 @@ import { ControlRecording } from "@/app/core/main/mark/control-recording"
 import { ControlImage } from "@/app/core/main/mark/control-image"
 import { ControlLink } from "@/app/core/main/mark/control-link"
 import { ControlFile } from "@/app/core/main/mark/control-file"
+import { ControlTodo } from "@/app/core/main/mark/control-todo"
 import { initAutoDataSyncRuntime } from "@/lib/sync/auto-data-sync-queue"
 
 export default function RootLayout({
@@ -112,6 +113,7 @@ export default function RootLayout({
             <ControlImage />
             <ControlLink />
             <ControlFile />
+            <ControlTodo />
           </div>
         </TooltipProvider>
         <SyncConfirmDialog />

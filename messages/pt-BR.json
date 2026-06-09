@@ -1495,6 +1495,26 @@
       "detected": "Detectado",
       "save": "Salvar"
     },
+    "capture": {
+      "saveTarget": "Salvar em",
+      "saveTargetPlaceholder": "Selecionar etiqueta",
+      "saved": "Registro salvo",
+      "savedWithType": "{type} salvo. Você pode continuar editando ou organizar.",
+      "viewRecord": "Ver",
+      "processingInBackground": "Processando em segundo plano. Ele aparecerá na lista de registros quando terminar.",
+      "elapsedSeconds": "{seconds}s",
+      "importAudio": "Importar áudio",
+      "smartClipboard": "Área de transferência",
+      "clipboardEmpty": "Área de transferência vazia",
+      "clipboardEmptyDescription": "Copie um texto ou link e tente novamente.",
+      "linkFetchFailed": "Falha ao buscar conteúdo da página",
+      "fileUnsupportedSaved": "Arquivo salvo",
+      "fileUnsupportedDescription": "A extração de texto não é compatível com este tipo de arquivo, então ele foi salvo como anexo.",
+      "fileUnsupportedContent": "A extração de texto não é compatível com este tipo de arquivo. O caminho original foi salvo.",
+      "fileReadFailed": "Falha ao ler o texto do arquivo. O caminho original foi salvo.",
+      "imageUploadFallback": "Imagem salva localmente",
+      "imageUploadFallbackDescription": "Falha no upload para o host de imagens, então a imagem local foi mantida."
+    },
     "syncStatus": {
       "checking_remote": "Verificando atualizações remotas",
       "queued": "Na fila de sincronização",
@@ -2753,6 +2773,8 @@
     "retrySuccess": "Transcrição atualizada",
     "retryError": "Falha ao transcrever novamente",
     "noContentDetected": "Nenhum conteúdo detectado",
+    "pendingTranscription": "Áudio original salvo. Pronto para tentar transcrever novamente.",
+    "pendingModelConfiguration": "Áudio original salvo. Configure o reconhecimento de fala para transcrever.",
     "doubleClickToSelectFile": "Clique duas vezes para selecionar o arquivo de áudio",
     "mode": {
       "builtin": "Reconhecimento do Navegador",

@@ -1464,6 +1464,26 @@
       "record": "Record",
       "detected": "Detected"
     },
+    "capture": {
+      "saveTarget": "Save to",
+      "saveTargetPlaceholder": "Select tag",
+      "saved": "Record saved",
+      "savedWithType": "{type} saved. You can continue editing or organize it.",
+      "viewRecord": "View",
+      "processingInBackground": "Processing in the background. It will appear in the record list when done.",
+      "elapsedSeconds": "{seconds}s",
+      "importAudio": "Import audio",
+      "smartClipboard": "Clipboard",
+      "clipboardEmpty": "Clipboard is empty",
+      "clipboardEmptyDescription": "Copy text or a link, then try again.",
+      "linkFetchFailed": "Failed to fetch webpage content",
+      "fileUnsupportedSaved": "File saved",
+      "fileUnsupportedDescription": "Text extraction is not supported for this file type, so it was saved as an attachment.",
+      "fileUnsupportedContent": "Text extraction is not supported for this file type. The original file path was saved.",
+      "fileReadFailed": "Failed to read file text. The original file path was saved.",
+      "imageUploadFallback": "Image saved locally",
+      "imageUploadFallbackDescription": "Image hosting upload failed, so the local image was kept."
+    },
     "syncStatus": {
       "checking_remote": "Checking remote updates",
       "queued": "Queued for sync",
@@ -2816,6 +2836,8 @@
     "retrySuccess": "Transcription updated",
     "retryError": "Retry transcription failed",
     "noContentDetected": "No content detected",
+    "pendingTranscription": "Original audio saved. Ready to retry transcription.",
+    "pendingModelConfiguration": "Original audio saved. Configure speech recognition to transcribe it.",
     "doubleClickToSelectFile": "Double click to select audio file",
     "mode": {
       "builtin": "Browser Recognition",

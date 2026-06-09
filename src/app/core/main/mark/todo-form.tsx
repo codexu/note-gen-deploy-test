@@ -21,6 +21,8 @@ interface TodoFormProps {
   onTagChange?: (tagId: number) => void
   tags?: Array<{ id: number; name: string }>
   showTagSelector?: boolean
+  onSubmit?: () => void
+  onCancel?: () => void
 }
 
 export function TodoForm({
@@ -31,15 +33,17 @@ export function TodoForm({
   onTagChange,
   tags = [],
   showTagSelector = false,
+  onSubmit,
+  onCancel,
 }: TodoFormProps) {
   const t = useTranslations()
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      // 父组件处理保存
+      onSubmit?.()
     } else if (e.key === 'Escape') {
-      // 父组件处理关闭
+      onCancel?.()
     }
   }
 

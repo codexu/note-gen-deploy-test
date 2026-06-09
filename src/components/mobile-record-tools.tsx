@@ -8,6 +8,7 @@ import useArticleStore from '@/stores/article'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/hooks/use-toast'
 import { useTranslations } from 'next-intl'
+import { hasText, readText } from 'tauri-plugin-clipboard-api'
 
 interface MobileRecordToolsProps {
   onClose?: () => void
@@ -21,11 +22,13 @@ export function MobileRecordTools({ onClose }: MobileRecordToolsProps) {
   // 移动端固定的记录工具（排除截图）
   const mobileTools = [
     { id: 'write' },
+    { id: 'clipboard' },
     { id: 'text' },
     { id: 'recording' },
     { id: 'image' },
     { id: 'link' },
-    { id: 'file' }
+    { id: 'file' },
+    { id: 'todo' },
   ]
 
   const createQuickWriteFile = async () => {
@@ -69,9 +72,46 @@ export function MobileRecordTools({ onClose }: MobileRecordToolsProps) {
     }
   }
 
+  function isValidUrl(text: string): boolean {
+    const trimmed = text.trim()
+    const urlPattern = /^https?:\/\/.+/i
+    const domainPattern = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}/i
+    return urlPattern.test(trimmed) || domainPattern.test(trimmed)
+  }
+
+  const handleSmartClipboard = async () => {
+    try {
+      const hasTextContent = await hasText()
+      if (!hasTextContent) {
+        toast({
+          title: t('record.capture.clipboardEmpty'),
+          description: t('record.capture.clipboardEmptyDescription'),
+        })
+        return
+      }
+
+      const clipboardText = await readText()
+      if (clipboardText && isValidUrl(clipboardText)) {
+        emitter.emit('toolbar-shortcut-link' as any)
+      } else {
+        emitter.emit('toolbar-shortcut-text' as any)
+      }
+      onClose?.()
+    } catch (error) {
+      console.error('Smart clipboard failed:', error)
+      emitter.emit('toolbar-shortcut-text' as any)
+      onClose?.()
+    }
+  }
+
   const handleToolClick = async (toolId: string) => {
     if (toolId === 'write') {
       await handleQuickWrite()
+      return
+    }
+
+    if (toolId === 'clipboard') {
+      await handleSmartClipboard()
       return
     }
 

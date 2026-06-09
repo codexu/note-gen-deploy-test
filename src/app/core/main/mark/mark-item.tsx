@@ -219,6 +219,9 @@ export const MarkWrapper = React.memo(({mark, variant = 'list', interactive = tr
   const lineHeight = useMemo(() => getLineHeight(recordTextSize), [recordTextSize])
   const lineHeightRem = useMemo(() => getLineHeightRem(recordTextSize), [recordTextSize])
   const shouldShowRecordingAction = mark.type === 'recording' && mark.content === NO_TRANSCRIPTION_MESSAGE
+  const recordingPendingTitle = shouldShowRecordingAction
+    ? (sttModel ? recordingT('pendingTranscription') : recordingT('pendingModelConfiguration'))
+    : ''
   const itemContent = useMemo(() => getMarkListItemContent(mark), [mark])
   const listTitleClassName = `block max-w-full truncate text-${recordTextSize} font-semibold ${interactive ? 'hover:underline' : ''}`
   const listPreviewClassName = `max-w-full ${lineHeight} text-${recordTextSize} text-muted-foreground break-words [overflow-wrap:anywhere]`
@@ -549,7 +552,7 @@ export const MarkWrapper = React.memo(({mark, variant = 'list', interactive = tr
               </span>
               <span className={`ml-auto shrink-0 text-${recordTextSize}`}>{dayjs(mark.createdAt).fromNow()}</span>
             </div>
-            {renderListTextBlock(itemContent.title || t(mark.type), itemContent.preview)}
+            {renderListTextBlock(recordingPendingTitle || itemContent.title || t(mark.type), itemContent.preview)}
           </div>
       )
     case 'recording':
@@ -836,8 +839,8 @@ export const MarkItem = React.memo(({mark, variant = 'list', interactive = true}
             : 'w-full min-w-0 max-w-full overflow-hidden border-b border-l-2 border-b-border/60 border-l-transparent bg-background last:border-b-0',
         highlightedMarkId === mark.id && (
           variant === 'list'
-            ? 'record-search-highlight bg-amber-50/80 dark:bg-amber-500/10'
-            : 'record-search-highlight border-amber-400/80 bg-amber-50/80 dark:border-amber-400/70 dark:bg-amber-500/10'
+            ? 'record-search-highlight bg-primary/8 dark:bg-primary/15'
+            : 'record-search-highlight bg-primary/8 dark:bg-primary/15'
         ),
         activeMarkId === mark.id && (
           variant === 'list'

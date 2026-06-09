@@ -20,20 +20,17 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import { insertMark } from "@/db/marks"
-import useMarkStore from "@/stores/mark"
 import useTagStore from "@/stores/tag"
 import { CheckSquare } from "lucide-react"
 import { useState, useCallback, useEffect } from "react"
 import emitter from "@/lib/emitter"
-import { useRouter } from 'next/navigation'
-import { handleRecordComplete } from '@/lib/record-navigation'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { isMobileDevice as checkIsMobileDevice } from '@/lib/check'
 import { TodoForm, TodoFormData } from "./todo-form"
+import { useRecordCompletion } from './use-record-completion'
 
 export function ControlTodo() {
   const t = useTranslations();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<TodoFormData>({
     title: '',
@@ -41,9 +38,9 @@ export function ControlTodo() {
     priority: 'medium'
   })
   const isMobile = useIsMobile() || checkIsMobileDevice()
+  const completeRecord = useRecordCompletion()
 
-  const { currentTagId, fetchTags, getCurrentTag, tags } = useTagStore()
-  const { fetchMarks } = useMarkStore()
+  const { currentTagId, tags } = useTagStore()
   const [selectedTagId, setSelectedTagId] = useState<number>(currentTagId)
 
   async function handleSuccess() {
@@ -57,19 +54,20 @@ export function ControlTodo() {
       priority: formData.priority
     }
 
-    await insertMark({
+    const result = await insertMark({
       tagId: selectedTagId,
       type: 'todo',
       desc: formData.title.trim(),
       content: JSON.stringify(todoData),
       url: ''
     })
+    const markId = Number(result.lastInsertId || 0) || null
 
-    await fetchMarks()
-    await fetchTags()
-    getCurrentTag()
-
-    handleRecordComplete(router)
+    await completeRecord({
+      markId,
+      tagId: selectedTagId,
+      typeLabel: t('record.mark.type.todo'),
+    })
 
     setFormData({
       title: '',
@@ -108,9 +106,11 @@ export function ControlTodo() {
       onChange={setFormData}
       selectedTagId={selectedTagId}
       onTagChange={setSelectedTagId}
-      tags={tags}
-      showTagSelector={true}
-    />
+    tags={tags}
+    showTagSelector={true}
+    onSubmit={handleSuccess}
+    onCancel={() => setOpen(false)}
+  />
   )
 
   return (

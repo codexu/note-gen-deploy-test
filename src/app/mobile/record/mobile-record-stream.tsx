@@ -48,6 +48,9 @@ export function MobileRecordStream() {
     resetRecordFilters,
     setVisibleMarkIds,
     initRecordFilters,
+    pendingScrollMarkId,
+    setPendingScrollMarkId,
+    highlightedMarkId,
   } = useMarkStore()
   const { tags, fetchTags, currentTagId, setCurrentTagId, initTags } = useTagStore()
 
@@ -174,6 +177,39 @@ export function MobileRecordStream() {
     setVisibleMarkIds(filteredRecords.map((mark: Mark) => mark.id))
     return () => setVisibleMarkIds([])
   }, [filteredRecords, setVisibleMarkIds])
+
+  useEffect(() => {
+    if (!pendingScrollMarkId) return
+    if (!filteredRecords.some((mark: Mark) => mark.id === pendingScrollMarkId)) return
+
+    let cancelled = false
+    let attempts = 0
+    const maxAttempts = 20
+
+    const scrollToTarget = () => {
+      if (cancelled) return
+      const target = document.querySelector<HTMLElement>(`[data-mobile-mark-id="${pendingScrollMarkId}"]`)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setPendingScrollMarkId(null)
+        return
+      }
+
+      if (attempts >= maxAttempts) {
+        setPendingScrollMarkId(null)
+        return
+      }
+
+      attempts += 1
+      window.setTimeout(scrollToTarget, 50)
+    }
+
+    scrollToTarget()
+
+    return () => {
+      cancelled = true
+    }
+  }, [filteredRecords, pendingScrollMarkId, setPendingScrollMarkId])
 
   function getDayLabel(day: string) {
     if (dayjs(day).isSame(dayjs(), 'day')) return t('common.today')
@@ -475,6 +511,9 @@ export function MobileRecordStream() {
                   <span className="text-xs text-muted-foreground">{t('common.loading')}</span>
                   <span className="ml-auto text-xs text-muted-foreground">{queue.progress}</span>
                 </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {tagMap.get(queue.tagId) ? `${t('record.capture.saveTarget')}: ${tagMap.get(queue.tagId)} · ` : ''}{t('record.capture.processingInBackground')}
+                </p>
               </div>
             ))}
           </div>
@@ -504,7 +543,14 @@ export function MobileRecordStream() {
                       : 0
 
                   return (
-                  <div key={mark.id} className="relative overflow-hidden rounded-xl bg-background">
+                  <div
+                    key={mark.id}
+                    data-mobile-mark-id={mark.id}
+                    className={cn(
+                      "relative overflow-hidden rounded-xl bg-background transition-colors",
+                      highlightedMarkId === mark.id && "record-search-highlight bg-primary/8 dark:bg-primary/15"
+                    )}
+                  >
                     {!multiMode && (
                       <div className="absolute inset-y-0 right-0 flex items-center gap-2 px-2">
                         {trashState ? (
@@ -575,7 +621,10 @@ export function MobileRecordStream() {
                     )}
 
                     <div
-                      className="rounded-xl border bg-background px-3 py-3 transition-transform duration-200 ease-out"
+                      className={cn(
+                        "rounded-xl border bg-background px-3 py-3 transition-transform duration-200 ease-out",
+                        highlightedMarkId === mark.id && "bg-primary/8 dark:bg-primary/15"
+                      )}
                       style={{ transform: `translateX(${translateX}px)` }}
                       onTouchStart={(e) => handleItemTouchStart(e, mark.id)}
                       onTouchMove={handleItemTouchMove}

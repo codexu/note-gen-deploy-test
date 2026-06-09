@@ -1452,6 +1452,26 @@
       "record": "记录",
       "detected": "检测到"
     },
+    "capture": {
+      "saveTarget": "保存到",
+      "saveTargetPlaceholder": "选择标签",
+      "saved": "记录已保存",
+      "savedWithType": "{type} 已保存，可继续处理或整理",
+      "viewRecord": "查看",
+      "processingInBackground": "后台处理中，完成后会自动出现在记录列表。",
+      "elapsedSeconds": "{seconds}s",
+      "importAudio": "导入音频",
+      "smartClipboard": "剪贴板",
+      "clipboardEmpty": "剪贴板为空",
+      "clipboardEmptyDescription": "复制一段文字或链接后再试。",
+      "linkFetchFailed": "网页内容抓取失败",
+      "fileUnsupportedSaved": "文件已保存",
+      "fileUnsupportedDescription": "暂不支持提取该类型的文本，已作为附件记录。",
+      "fileUnsupportedContent": "暂不支持提取该类型文件的文本，已保存原文件路径。",
+      "fileReadFailed": "文件文本读取失败，已保存原文件路径。",
+      "imageUploadFallback": "图片已保存到本地",
+      "imageUploadFallbackDescription": "图床上传失败，已继续使用本地图片。"
+    },
     "syncStatus": {
       "checking_remote": "正在检查远程更新",
       "queued": "已加入同步队列",
@@ -2718,6 +2738,8 @@
     "retrySuccess": "重新识别完成",
     "retryError": "重新识别失败",
     "noContentDetected": "未识别到内容",
+    "pendingTranscription": "原音频已保存，待重新识别",
+    "pendingModelConfiguration": "原音频已保存，配置语音识别后可转写",
     "doubleClickToSelectFile": "双击选择音频文件",
     "mode": {
       "builtin": "浏览器识别",

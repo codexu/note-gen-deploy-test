@@ -14,17 +14,17 @@ import { uploadImage } from "@/lib/imageHosting"
 import { useRef, useEffect, useCallback } from 'react'
 import { isMobileDevice } from '@/lib/check'
 import emitter from '@/lib/emitter'
-import { useRouter } from 'next/navigation'
-import { handleRecordComplete } from '@/lib/record-navigation'
+import { toast } from '@/hooks/use-toast'
+import { useRecordCompletion } from './use-record-completion'
 
 export function ControlImage() {
   const t = useTranslations();
-  const router = useRouter();
-  const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
+  const { currentTagId } = useTagStore()
   const { primaryModel, primaryImageMethod, enableImageRecognition } = useSettingStore()
-  const { fetchMarks, addQueue, setQueue, removeQueue } = useMarkStore()
+  const { addQueue, setQueue, removeQueue } = useMarkStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isMobile = isMobileDevice()
+  const completeRecord = useRecordCompletion()
 
   const handleSelectImages = useCallback(() => {
     selectImages()
@@ -59,10 +59,7 @@ export function ControlImage() {
         }]
       });
       if (!filePaths) return
-      
-      // 记录完成后的导航处理（桌面端切换tab，移动端跳转页面）
-      handleRecordComplete(router)
-      
+
       filePaths.forEach(async (path) => {
         await upload(path)
       })
@@ -78,9 +75,6 @@ export function ControlImage() {
       if (!files || files.length === 0) {
         return
       }
-      
-      // 记录完成后的导航处理（桌面端切换tab，移动端跳转页面）
-      handleRecordComplete(router)
       
       for (let i = 0; i < files.length; i++) {
         await uploadMobileFile(files[i])
@@ -159,15 +153,22 @@ export function ControlImage() {
         // 继续使用本地文件
       }
       
+      const result = await insertMark(mark)
       removeQueue(queueId)
-      await insertMark(mark)
-      await fetchMarks()
-      await fetchTags()
-      getCurrentTag()
+      const markId = Number(result.lastInsertId || 0) || null
+      await completeRecord({
+        markId,
+        tagId: currentTagId,
+        typeLabel: t('record.mark.type.image'),
+      })
     } catch (error) {
       console.error('Error in uploadMobileFile:', error)
       removeQueue(queueId)
-      // 可以选择显示错误提示给用户
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('common.error'),
+        variant: 'destructive',
+      })
     }
   }
 
@@ -228,17 +229,28 @@ export function ControlImage() {
     
     // 尝试上传图片到图床（如果配置了图床）
     const file = new File([new Uint8Array(fileData)], filename, { type: `image/${ext}` })
-    const url = await uploadImage(file)
-    if (url) {
-      setQueue(queueId, { progress: t('record.mark.progress.uploadImage') });
-      mark.url = url
+    try {
+      const url = await uploadImage(file)
+      if (url) {
+        setQueue(queueId, { progress: t('record.mark.progress.uploadImage') });
+        mark.url = url
+      }
+    } catch (uploadError) {
+      console.error('Failed to upload to image hosting:', uploadError)
+      toast({
+        title: t('record.capture.imageUploadFallback'),
+        description: t('record.capture.imageUploadFallbackDescription'),
+      })
     }
     
+    const result = await insertMark(mark)
     removeQueue(queueId)
-    await insertMark(mark)
-    await fetchMarks()
-    await fetchTags()
-    getCurrentTag()
+    const markId = Number(result.lastInsertId || 0) || null
+    await completeRecord({
+      markId,
+      tagId: currentTagId,
+      typeLabel: t('record.mark.type.image'),
+    })
   }
 
   return (

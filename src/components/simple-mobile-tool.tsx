@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { CopySlash, Mic, ImagePlus, Link, FileText, SquarePen } from "lucide-react"
+import { CheckSquare, Clipboard, CopySlash, Mic, ImagePlus, Link, FileText, SquarePen } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 interface SimpleMobileToolProps {
@@ -14,6 +14,8 @@ export function SimpleMobileTool({ toolId, onToolClick }: SimpleMobileToolProps)
 
   const getToolInfo = (id: string) => {
     switch (id) {
+      case 'clipboard':
+        return { icon: <Clipboard className="w-5 h-5" />, label: t('record.capture.smartClipboard') }
       case 'text':
         return { icon: <CopySlash className="w-5 h-5" />, label: t('record.mark.type.text') }
       case 'recording':
@@ -24,6 +26,8 @@ export function SimpleMobileTool({ toolId, onToolClick }: SimpleMobileToolProps)
         return { icon: <Link className="w-5 h-5" />, label: t('record.mark.type.link') }
       case 'file':
         return { icon: <FileText className="w-5 h-5" />, label: t('record.mark.type.file') }
+      case 'todo':
+        return { icon: <CheckSquare className="w-5 h-5" />, label: t('record.mark.type.todo') }
       case 'write':
         return { icon: <SquarePen className="w-5 h-5" />, label: t('navigation.write') }
       default:

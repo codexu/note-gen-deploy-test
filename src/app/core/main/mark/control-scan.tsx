@@ -33,21 +33,21 @@ import ocr from "@/lib/ocr"
 import { fetchAiDesc, fetchAiDescByImage } from "@/lib/ai/description"
 import { insertMark } from "@/db/marks"
 import emitter from '@/lib/emitter'
-import { useRouter } from 'next/navigation'
-import { handleRecordComplete } from '@/lib/record-navigation'
 import { Button } from "@/components/ui/button"
+import { toast } from "@/hooks/use-toast"
+import { useRecordCompletion } from './use-record-completion'
 
 export function ControlScan() {
   const t = useTranslations();
-  const router = useRouter();
   const [open, setOpen] = useState(false)
   const [selectedImageSrc, setSelectedImageSrc] = useState('')
   const [files, setFiles] = useState<ScreenshotImage[]>([])
   const cropperRef = useRef<Cropper | null>(null);
   const cropBoxRef = useRef<Element | null>(null)
-  const { currentTagId, fetchTags, getCurrentTag } = useTagStore()
-  const { fetchMarks, addQueue, removeQueue, setQueue } = useMarkStore()
+  const { currentTagId } = useTagStore()
+  const { addQueue, removeQueue, setQueue } = useMarkStore()
   const { primaryModel, primaryImageMethod, enableImageRecognition } = useSettingStore()
+  const completeRecord = useRecordCompletion()
 
   const cleanupTempScreenshots = useCallback(async () => {
     try {
@@ -115,50 +115,57 @@ export function ControlScan() {
         baseDir: BaseDirectory.AppData
       })
       
-      // 记录完成后的导航处理（桌面端切换tab，移动端跳转页面）
-      handleRecordComplete(router)
-      
-      let content = ''
-      let desc = ''
-      
-      // Skip image recognition if disabled
-      if (!enableImageRecognition) {
-        addQueue({ queueId, tagId: currentTagId!, progress: t('record.mark.progress.save'), type: 'scan', startTime: Date.now() })
-        content = ''
-        desc = ''
-      } else if (primaryImageMethod === 'vlm') {
-        addQueue({ queueId, tagId: currentTagId!, progress: t('record.mark.progress.aiAnalysis'), type: 'scan', startTime: Date.now() })
-        const base64 = `data:image/png;base64,${Buffer.from(uint8Array).toString('base64')}`
-        content = await fetchAiDescByImage(base64) || 'VLM Error'
-        desc = content
-      } else {
-        addQueue({ queueId, tagId: currentTagId!, progress: t('record.mark.progress.ocr'), type: 'scan', startTime: Date.now() })
-        content = await ocr(`screenshot/${queueId}.png`) || 'OCR Error'
-        if (primaryModel) {
-          setQueue(queueId, { progress: t('record.mark.progress.aiAnalysis') });
-          desc = await fetchAiDesc(content).then(res => res ? res : content) || content
-        } else {
+      try {
+        let content = ''
+        let desc = ''
+
+        // Skip image recognition if disabled
+        if (!enableImageRecognition) {
+          addQueue({ queueId, tagId: currentTagId!, progress: t('record.mark.progress.save'), type: 'scan', startTime: Date.now() })
+          content = ''
+          desc = ''
+        } else if (primaryImageMethod === 'vlm') {
+          addQueue({ queueId, tagId: currentTagId!, progress: t('record.mark.progress.aiAnalysis'), type: 'scan', startTime: Date.now() })
+          const base64 = `data:image/png;base64,${Buffer.from(uint8Array).toString('base64')}`
+          content = await fetchAiDescByImage(base64) || 'VLM Error'
           desc = content
+        } else {
+          addQueue({ queueId, tagId: currentTagId!, progress: t('record.mark.progress.ocr'), type: 'scan', startTime: Date.now() })
+          content = await ocr(`screenshot/${queueId}.png`) || 'OCR Error'
+          if (primaryModel) {
+            setQueue(queueId, { progress: t('record.mark.progress.aiAnalysis') });
+            desc = await fetchAiDesc(content).then(res => res ? res : content) || content
+          } else {
+            desc = content
+          }
         }
+        setQueue(queueId, { progress: t('record.mark.progress.save') });
+        const result = await insertMark({ tagId: currentTagId, type: 'scan', content, url: `${queueId}.png`, desc })
+        removeQueue(queueId)
+        const markId = Number(result.lastInsertId || 0) || null
+        await completeRecord({
+          markId,
+          tagId: currentTagId,
+          typeLabel: t('record.mark.type.screenshot'),
+        })
+      } catch (error) {
+        console.error('Screenshot record failed:', error)
+        removeQueue(queueId)
+        toast({
+          title: t('common.error'),
+          description: error instanceof Error ? error.message : t('common.error'),
+          variant: 'destructive',
+        })
       }
-      setQueue(queueId, { progress: t('record.mark.progress.save') });
-      await insertMark({ tagId: currentTagId, type: 'scan', content, url: `${queueId}.png`, desc })
-      removeQueue(queueId)
-      await fetchMarks()
-      await fetchTags()
-      getCurrentTag()
     })
   }, [
     addQueue,
+    completeRecord,
     currentTagId,
     enableImageRecognition,
-    fetchMarks,
-    fetchTags,
-    getCurrentTag,
     primaryImageMethod,
     primaryModel,
     removeQueue,
-    router,
     setQueue,
     t,
   ])
