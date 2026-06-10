@@ -10,13 +10,14 @@ import useSettingStore from "@/stores/setting"
 import useSyncStore from "@/stores/sync"
 import { UserInfo } from "@/lib/sync/github.types"
 import { getUserInfo } from "@/lib/sync/github"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
 } from '@/components/ui/popover'
 import { MobileRecordTools } from '@/components/mobile-record-tools'
+import { OrganizeNotes } from "@/app/core/main/mark/organize-notes"
 import {
   InteractiveMenu,
   type InteractiveMenuItem,
@@ -110,6 +111,7 @@ export function AppFootbar() {
   const router = useRouter()
   const [quickRecordOpen, setQuickRecordOpen] = useState(false)
   const [autoDataSyncState, setAutoDataSyncState] = useState<AutoDataSyncState>(getAutoDataSyncState())
+  const organizeRef = useRef<{ openOrganize: () => void }>(null)
   const { 
     githubUsername,
     accessToken,
@@ -286,6 +288,13 @@ export function AppFootbar() {
     store.set('currentPage', item.url)
   }
 
+  const handleMobileOrganize = () => {
+    setQuickRecordOpen(false)
+    window.requestAnimationFrame(() => {
+      organizeRef.current?.openOrganize()
+    })
+  }
+
   useEffect(() => {
     if (accessToken || giteeAccessToken || gitlabAccessToken || giteaAccessToken) {
       handleGetUserInfo()
@@ -320,9 +329,13 @@ export function AppFootbar() {
           onOpenAutoFocus={event => event.preventDefault()}
           onCloseAutoFocus={event => event.preventDefault()}
         >
-          <MobileRecordTools onClose={() => setQuickRecordOpen(false)} />
+          <MobileRecordTools
+            onClose={() => setQuickRecordOpen(false)}
+            onOrganize={handleMobileOrganize}
+          />
         </PopoverContent>
       </Popover>
+      <OrganizeNotes ref={organizeRef} />
     </div>
   )
 }

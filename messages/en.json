@@ -3,49 +3,6 @@
     "title": "Note Generator",
     "description": "Your AI-powered note taking assistant"
   },
-  "common": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "theme": "Theme",
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System",
-    "pin": "Pin",
-    "unpin": "Unpin",
-    "settings": "Settings",
-    "back": "Back",
-    "sync": "Sync",
-    "language": "Language",
-    "confirm": "Confirm",
-    "selectPrompt": "Select Prompt",
-    "prompt": "Prompt",
-    "success": "Success",
-    "error": "Failed",
-    "defaultFileName": "Untitled",
-    "restartToApply": ", please restart the application for the configuration to take effect",
-    "unsaved": "Unsaved",
-    "saving": "Saving...",
-    "close": "Close",
-    "open": "Open",
-    "add": "Add",
-    "remove": "Remove",
-    "search": "Search",
-    "filter": "Filter",
-    "sort": "Sort",
-    "export": "Export",
-    "import": "Import",
-    "refresh": "Refresh",
-    "loading": "Loading...",
-    "all": "All",
-    "today": "Today",
-    "yesterday": "Yesterday",
-    "warning": "Warning",
-    "info": "Info",
-    "configureSync": "Configure Sync"
-  },
   "tray": {
     "quickRecord": "Quick Record",
     "moreRecord": "More Records",
@@ -624,7 +581,6 @@
       "tooltip": "Use main model",
       "noModel": "Do not use",
       "placeholder": "Please select or search for models",
-      "main": "Main model",
       "options": {
         "primaryModel": {
           "title": "Main model",
@@ -970,9 +926,7 @@
         },
         "createNewRepo": "Create New Repository",
         "recheckRepo": "Recheck",
-        "recheckingRepo": "Checking...",
-        "createRepo": "Create Repository",
-        "creatingRepo": "Creating..."
+        "recheckingRepo": "Checking..."
       },
       "s3": {
         "title": "S3 Object Storage",
@@ -1096,7 +1050,6 @@
     },
     "theme": {
       "title": "Theme Settings",
-      "desc": "Customize application theme colors",
       "appTheme": "App Color Scheme",
       "previewTheme": "Preview Content Theme",
       "codeTheme": "Code Block Highlight Theme",
@@ -1322,12 +1275,6 @@
       "checkConnection": "Test Connection",
       "model": "Model"
     },
-    "ocr": {
-      "title": "OCR",
-      "languagePacks": "Language Packs",
-      "checkModels": "Check all models here",
-      "modelInstruction": "Separate with commas, e.g.: eng,chi_sim"
-    },
     "file": {
       "title": "File Settings",
       "desc": "Here, you can manage workspace settings and other file-related options.",
@@ -1392,56 +1339,206 @@
           "insert": "Insert"
         },
         "commands": {
-          "undo": { "title": "Undo", "desc": "Undo the previous edit." },
-          "redo": { "title": "Redo", "desc": "Restore the last undone edit." },
-          "setParagraph": { "title": "Paragraph", "desc": "Set the current block to a paragraph." },
-          "toggleHeading1": { "title": "Heading 1", "desc": "Toggle heading level 1." },
-          "toggleHeading2": { "title": "Heading 2", "desc": "Toggle heading level 2." },
-          "toggleHeading3": { "title": "Heading 3", "desc": "Toggle heading level 3." },
-          "toggleHeading4": { "title": "Heading 4", "desc": "Toggle heading level 4." },
-          "toggleHeading5": { "title": "Heading 5", "desc": "Toggle heading level 5." },
-          "toggleHeading6": { "title": "Heading 6", "desc": "Toggle heading level 6." },
-          "openSearch": { "title": "Find / Replace", "desc": "Open editor search." },
-          "openSlashCommand": { "title": "Slash menu", "desc": "Open the editor command menu at the cursor." },
-          "toggleOutline": { "title": "Outline", "desc": "Show or hide the current document outline." },
-          "toggleBold": { "title": "Bold", "desc": "Toggle bold for selected text or future input." },
-          "toggleItalic": { "title": "Italic", "desc": "Toggle italic." },
-          "toggleStrike": { "title": "Strikethrough", "desc": "Toggle strikethrough." },
-          "toggleUnderline": { "title": "Underline", "desc": "Toggle underline." },
-          "toggleInlineCode": { "title": "Inline code", "desc": "Toggle inline code." },
-          "toggleHighlight": { "title": "Highlight", "desc": "Toggle highlight." },
-          "openLinkInput": { "title": "Link", "desc": "Open the link input." },
-          "toggleBlockquote": { "title": "Blockquote", "desc": "Toggle blockquote." },
-          "toggleBulletList": { "title": "Bullet list", "desc": "Toggle bullet list." },
-          "toggleOrderedList": { "title": "Ordered list", "desc": "Toggle ordered list." },
-          "toggleTaskList": { "title": "Task list", "desc": "Toggle task list." },
-          "toggleCodeBlock": { "title": "Code block", "desc": "Toggle code block." },
-          "quoteToChat": { "title": "Quote to chat", "desc": "Send the selected content to the AI chat quote area." },
-          "openAiMenu": { "title": "AI actions menu", "desc": "Open AI actions for the selected text." },
-          "aiContinue": { "title": "AI continue", "desc": "Continue writing from the content before the cursor." },
-          "aiPolish": { "title": "AI polish", "desc": "Polish the selected text." },
-          "aiConcise": { "title": "AI concise", "desc": "Make the selected text more concise." },
-          "aiExpand": { "title": "AI expand", "desc": "Expand the selected text." },
-          "aiTranslate": { "title": "AI translate", "desc": "Open translation actions for the selected text." },
-          "acceptAiSuggestion": { "title": "Accept AI suggestion", "desc": "Accept the current AI suggestion when the suggestion panel is open." },
-          "rejectAiSuggestion": { "title": "Reject AI suggestion", "desc": "Restore the original text when the AI suggestion panel is open." },
-          "abortAiGeneration": { "title": "Abort AI generation", "desc": "Stop the current AI generation task." },
-          "insertTable": { "title": "Insert table", "desc": "Insert a default 3-column table." },
-          "addColumnBefore": { "title": "Insert column left", "desc": "Insert a column before the current cell." },
-          "addColumnAfter": { "title": "Insert column right", "desc": "Insert a column after the current cell." },
-          "addRowBefore": { "title": "Insert row above", "desc": "Insert a row above the current cell." },
-          "addRowAfter": { "title": "Insert row below", "desc": "Insert a row below the current cell." },
-          "deleteColumn": { "title": "Delete column", "desc": "Delete the current table column." },
-          "deleteRow": { "title": "Delete row", "desc": "Delete the current table row." },
-          "deleteTable": { "title": "Delete table", "desc": "Delete the current table." },
-          "alignLeft": { "title": "Align left", "desc": "Align text or the current table cell left." },
-          "alignCenter": { "title": "Align center", "desc": "Center text or the current table cell." },
-          "alignRight": { "title": "Align right", "desc": "Align text or the current table cell right." },
-          "insertImage": { "title": "Insert image", "desc": "Choose and insert a local image." },
-          "insertInlineMath": { "title": "Insert inline math", "desc": "Open the inline LaTeX input." },
-          "insertBlockMath": { "title": "Insert block math", "desc": "Open the block LaTeX input." },
-          "insertMermaid": { "title": "Insert Mermaid diagram", "desc": "Insert a default Mermaid flowchart." },
-          "insertHorizontalRule": { "title": "Insert divider", "desc": "Insert a horizontal rule at the cursor." }
+          "undo": {
+            "title": "Undo",
+            "desc": "Undo the previous edit."
+          },
+          "redo": {
+            "title": "Redo",
+            "desc": "Restore the last undone edit."
+          },
+          "setParagraph": {
+            "title": "Paragraph",
+            "desc": "Set the current block to a paragraph."
+          },
+          "toggleHeading1": {
+            "title": "Heading 1",
+            "desc": "Toggle heading level 1."
+          },
+          "toggleHeading2": {
+            "title": "Heading 2",
+            "desc": "Toggle heading level 2."
+          },
+          "toggleHeading3": {
+            "title": "Heading 3",
+            "desc": "Toggle heading level 3."
+          },
+          "toggleHeading4": {
+            "title": "Heading 4",
+            "desc": "Toggle heading level 4."
+          },
+          "toggleHeading5": {
+            "title": "Heading 5",
+            "desc": "Toggle heading level 5."
+          },
+          "toggleHeading6": {
+            "title": "Heading 6",
+            "desc": "Toggle heading level 6."
+          },
+          "openSearch": {
+            "title": "Find / Replace",
+            "desc": "Open editor search."
+          },
+          "openSlashCommand": {
+            "title": "Slash menu",
+            "desc": "Open the editor command menu at the cursor."
+          },
+          "toggleOutline": {
+            "title": "Outline",
+            "desc": "Show or hide the current document outline."
+          },
+          "toggleBold": {
+            "title": "Bold",
+            "desc": "Toggle bold for selected text or future input."
+          },
+          "toggleItalic": {
+            "title": "Italic",
+            "desc": "Toggle italic."
+          },
+          "toggleStrike": {
+            "title": "Strikethrough",
+            "desc": "Toggle strikethrough."
+          },
+          "toggleUnderline": {
+            "title": "Underline",
+            "desc": "Toggle underline."
+          },
+          "toggleInlineCode": {
+            "title": "Inline code",
+            "desc": "Toggle inline code."
+          },
+          "toggleHighlight": {
+            "title": "Highlight",
+            "desc": "Toggle highlight."
+          },
+          "openLinkInput": {
+            "title": "Link",
+            "desc": "Open the link input."
+          },
+          "toggleBlockquote": {
+            "title": "Blockquote",
+            "desc": "Toggle blockquote."
+          },
+          "toggleBulletList": {
+            "title": "Bullet list",
+            "desc": "Toggle bullet list."
+          },
+          "toggleOrderedList": {
+            "title": "Ordered list",
+            "desc": "Toggle ordered list."
+          },
+          "toggleTaskList": {
+            "title": "Task list",
+            "desc": "Toggle task list."
+          },
+          "toggleCodeBlock": {
+            "title": "Code block",
+            "desc": "Toggle code block."
+          },
+          "quoteToChat": {
+            "title": "Quote to chat",
+            "desc": "Send the selected content to the AI chat quote area."
+          },
+          "openAiMenu": {
+            "title": "AI actions menu",
+            "desc": "Open AI actions for the selected text."
+          },
+          "aiContinue": {
+            "title": "AI continue",
+            "desc": "Continue writing from the content before the cursor."
+          },
+          "aiPolish": {
+            "title": "AI polish",
+            "desc": "Polish the selected text."
+          },
+          "aiConcise": {
+            "title": "AI concise",
+            "desc": "Make the selected text more concise."
+          },
+          "aiExpand": {
+            "title": "AI expand",
+            "desc": "Expand the selected text."
+          },
+          "aiTranslate": {
+            "title": "AI translate",
+            "desc": "Open translation actions for the selected text."
+          },
+          "acceptAiSuggestion": {
+            "title": "Accept AI suggestion",
+            "desc": "Accept the current AI suggestion when the suggestion panel is open."
+          },
+          "rejectAiSuggestion": {
+            "title": "Reject AI suggestion",
+            "desc": "Restore the original text when the AI suggestion panel is open."
+          },
+          "abortAiGeneration": {
+            "title": "Abort AI generation",
+            "desc": "Stop the current AI generation task."
+          },
+          "insertTable": {
+            "title": "Insert table",
+            "desc": "Insert a default 3-column table."
+          },
+          "addColumnBefore": {
+            "title": "Insert column left",
+            "desc": "Insert a column before the current cell."
+          },
+          "addColumnAfter": {
+            "title": "Insert column right",
+            "desc": "Insert a column after the current cell."
+          },
+          "addRowBefore": {
+            "title": "Insert row above",
+            "desc": "Insert a row above the current cell."
+          },
+          "addRowAfter": {
+            "title": "Insert row below",
+            "desc": "Insert a row below the current cell."
+          },
+          "deleteColumn": {
+            "title": "Delete column",
+            "desc": "Delete the current table column."
+          },
+          "deleteRow": {
+            "title": "Delete row",
+            "desc": "Delete the current table row."
+          },
+          "deleteTable": {
+            "title": "Delete table",
+            "desc": "Delete the current table."
+          },
+          "alignLeft": {
+            "title": "Align left",
+            "desc": "Align text or the current table cell left."
+          },
+          "alignCenter": {
+            "title": "Align center",
+            "desc": "Center text or the current table cell."
+          },
+          "alignRight": {
+            "title": "Align right",
+            "desc": "Align text or the current table cell right."
+          },
+          "insertImage": {
+            "title": "Insert image",
+            "desc": "Choose and insert a local image."
+          },
+          "insertInlineMath": {
+            "title": "Insert inline math",
+            "desc": "Open the inline LaTeX input."
+          },
+          "insertBlockMath": {
+            "title": "Insert block math",
+            "desc": "Open the block LaTeX input."
+          },
+          "insertMermaid": {
+            "title": "Insert Mermaid diagram",
+            "desc": "Insert a default Mermaid flowchart."
+          },
+          "insertHorizontalRule": {
+            "title": "Insert divider",
+            "desc": "Insert a horizontal rule at the cursor."
+          }
         }
       },
       "shortcuts": {
@@ -1458,7 +1555,8 @@
           "desc": "Quickly open the main window and switch to text recording."
         }
       }
-    }
+    },
+    "title": "Settings"
   },
   "record": {
     "trash": {
@@ -1579,9 +1677,7 @@
         "cacheScreenshot": "Caching screenshot",
         "textAnalysis": "Text analysis",
         "save": "Saving",
-        "saveImage": "Saving image",
-        "newToken": "Create access token",
-        "newTokenDesc": "New token must be configured with repo permission, configuration will automatically create file repository (private) and image repository."
+        "saveImage": "Saving image"
       },
       "imageGallery": {
         "expand": "Expand",
@@ -1716,25 +1812,8 @@
             "subtitle": "Use Chat or Agent mode to interact with AI",
             "currentModel": "Current Model",
             "currentPrompt": "Current Prompt",
-            "currentMode": "Conversation Mode",
             "noModel": "No model set",
             "noPrompt": "No prompt set",
-            "configureModel": "Configure Model",
-            "recentConversations": "Recent Conversations",
-            "deleteConversation": "Delete conversation",
-            "conversationHistory": "History",
-            "viewMore": "View more",
-            "messages": "messages",
-            "searchPlaceholder": "Search conversations...",
-            "noMatchingConversations": "No matching conversations found",
-            "noConversationHistory": "No conversation history",
-            "quickPrompts": {
-              "title": "Quick Start",
-              "writeNote": "Help me write a note",
-              "summarize": "Help me summarize this content",
-              "brainstorm": "Help me brainstorm ideas",
-              "explain": "Help me explain this concept"
-            },
             "modeHint": "Click the",
             "modeHintSuffix": "button on the left side of the input box to switch conversation mode"
           },
@@ -1825,14 +1904,6 @@
         "viewFolder": "View Folder",
         "viewFile": "View Original File",
         "deleteForever": "Delete Forever",
-        "sortByName": "Sort by Name",
-        "sortByCreated": "Sort by Created",
-        "sortByModified": "Sort by Modified",
-        "sortAsc": "Sort Ascending",
-        "sortDesc": "Sort Descending",
-        "sort": "Sort",
-        "processingVectors": "Processing Vector Data",
-        "calculateVectors": "Calculate Document Vectors",
         "multiSelect": "Multi Select",
         "multiSelectMode": "Multi Select Mode",
         "exitMultiSelect": "Exit Multi Select",
@@ -1893,20 +1964,6 @@
         "message": "Condensed {count} historical messages"
       },
       "empty": {
-        "features": [
-          {
-            "chat": "Chat with AI bot"
-          },
-          {
-            "linked": "Linked with your records or notes"
-          },
-          {
-            "clipboard": "Recognize clipboard records or images"
-          },
-          {
-            "organize": "Organize your records into notes"
-          }
-        ],
         "title": "Start chatting with AI",
         "subtitle": "Interact with AI using Chat or Agent mode",
         "currentModel": "Current Model",
@@ -2189,6 +2246,10 @@
           "searchPlaceholder": "Search files...",
           "noFiles": "No files found",
           "loading": "Loading..."
+        },
+        "clearChat": "Clear chat",
+        "clearContext": {
+          "tooltip": "Clear context"
         }
       },
       "header": {
@@ -2251,10 +2312,6 @@
     "results": "{count} search results",
     "noResults": "No search results",
     "tryDifferentKeywords": "Try using different keywords",
-    "mode": {
-      "fuzzy": "Fuzzy",
-      "exact": "Exact"
-    },
     "item": {
       "record": "Record",
       "article": "Article",
@@ -2300,7 +2357,8 @@
     "hideCenterPanel": "Hide Editor",
     "showRightSidebar": "Show Right Sidebar",
     "hideRightSidebar": "Hide Right Sidebar",
-    "searchPlaceholder": "Search notes or records..."
+    "searchPlaceholder": "Search notes or records...",
+    "navigate": "Navigate"
   },
   "activity": {
     "title": "Activity Calendar",
@@ -2363,8 +2421,7 @@
   "article": {
     "sync": {
       "syncingRemote": "Pulling remote file...",
-      "syncComplete": "Sync Complete",
-      "pullingRemote": "Fetching latest content from remote server..."
+      "syncComplete": "Sync Complete"
     },
     "syncConfirm": {
       "title": "Remote File Update Detected",
@@ -2598,43 +2655,6 @@
         "pasteFailed": "Paste operation failed",
         "empty": "Clipboard is empty",
         "confirmOverwrite": "File already exists, do you want to overwrite it?",
-        "mark": {
-          "title": "Records",
-          "tooltip": "Use Records",
-          "description": "Convert records into content to insert into the article.",
-          "noRecords": "No records",
-          "ocrNoContent": "OCR did not recognize any content"
-        },
-        "question": {
-          "tooltip": "Q&A",
-          "selectContent": "Please select content first",
-          "promptTemplate": "Reference text: \n{content}\nBased on the question: \n{question}\n, directly provide the answer content."
-        },
-        "continue": {
-          "tooltip": "Continue",
-          "promptTemplate": "Based on the preceding text: \n{content}\n continue writing and return content not exceeding 100 words.\nYou can reference the following text: \n{endContent}\n, but avoid duplicating its content."
-        },
-        "polish": {
-          "tooltip": "Polish",
-          "selectContent": "Please select content first",
-          "promptTemplate": "Polish this text: \n{content}\n, keep the language unchanged, fix typos and grammatical errors, directly return the polished result."
-        },
-        "eraser": {
-          "tooltip": "Simplify",
-          "selectContent": "Please select content first",
-          "promptTemplate": "Simplify this text: \n{content}\n, this text is too verbose, reduce the word count by at least half, keep the language unchanged, directly return the optimized result."
-        },
-        "expansion": {
-          "tooltip": "Expand",
-          "selectContent": "Please select content first",
-          "promptTemplate": "Expand this text: \n{content}\n, this text is too short, increase the word count by at least half, keep the language unchanged, directly return the expanded result."
-        },
-        "translation": {
-          "tooltip": "Translate",
-          "description": "Translate the selected text",
-          "selectContent": "Please select content first",
-          "promptTemplate": "Translate this text: \n{content}\n, into {language}, directly return the translated result."
-        },
         "notSupported": "Operation not supported"
       },
       "mobile": {
@@ -2678,9 +2698,6 @@
         }
       },
       "toolbar": {
-        "organize": {
-          "tooltip": "Organize Notes"
-        },
         "mark": {
           "title": "Records",
           "tooltip": "Records",
@@ -2840,7 +2857,10 @@
         "tools": {
           "title": "Tools",
           "newChat": "New Chat",
-          "start": "Start"
+          "start": "Start",
+          "clear": "Clear",
+          "clearChat": "Clear Chat",
+          "clearContext": "Clear Context"
         },
         "attachments": {
           "title": "Attachments",
@@ -2898,34 +2918,6 @@
       "builtinDesc": "Free, real-time recognition",
       "model": "AI Model Recognition",
       "modelDesc": "Requires STT model, more accurate"
-    }
-  },
-  "footer": {
-    "wordCount": "Words",
-    "sync": {
-      "sync": "Sync",
-      "synced": "Synced",
-      "syncing": "Syncing",
-      "syncFailed": "Sync Failed",
-      "checkNetworkOrToken": "Please check network connection or token",
-      "quickSync": "Quick Sync"
-    },
-    "history": {
-      "loadingHistory": "Loading history",
-      "historyRecords": "History Records",
-      "noHistory": "No History",
-      "loading": "Loading",
-      "recordsCount": "records",
-      "filterQuickSync": "Filter Quick Syncs",
-      "committedAt": "committed at",
-      "pull": "Pull",
-      "quickSync": "Quick Sync"
-    },
-    "vectorCalc": {
-      "tooltip": "Vector Calculation: Auto-calculate 30s after editing, or click to calculate now",
-      "calculating": "Calculating",
-      "pending": "Pending {progress}%",
-      "synced": "Synced"
     }
   },
   "quickRecord": {
@@ -3025,7 +3017,8 @@
       "delete": "Delete Image",
       "reset": "Reset",
       "confirm": "Confirm",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "failed": "Image processing failed"
     },
     "mermaid": {
       "rendering": "Rendering...",

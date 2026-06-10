@@ -3,44 +3,6 @@
     "title": "ノート生成ツール",
     "description": "あなたのAI搭載ノートアシスタント"
   },
-  "common": {
-    "save": "保存",
-    "cancel": "キャンセル",
-    "delete": "削除",
-    "confirm": "確認",
-    "edit": "編集",
-    "create": "作成",
-    "theme": "テーマ",
-    "light": "ライトモード",
-    "dark": "ダークモード",
-    "system": "システム設定に従う",
-    "pin": "ピン留め",
-    "unpin": "ピン留めを解除",
-    "settings": "設定",
-    "back": "戻る",
-    "sync": "同期",
-    "language": "言語",
-    "success": "成功",
-    "error": "失敗",
-    "defaultFileName": "無題のドキュメント",
-    "restartToApply": "、設定を有効にするにはアプリケーションを再起動してください",
-    "close": "閉じる",
-    "open": "開く",
-    "add": "追加",
-    "remove": "削除",
-    "search": "検索",
-    "filter": "フィルター",
-    "sort": "並べ替え",
-    "export": "エクスポート",
-    "import": "インポート",
-    "refresh": "更新",
-    "loading": "読み込み中...",
-    "warning": "警告",
-    "info": "情報",
-    "unsaved": "未保存",
-    "saving": "保存中...",
-    "configureSync": "同期を構成"
-  },
   "tray": {
     "quickRecord": "クイック記録",
     "moreRecord": "その他の記録",
@@ -349,8 +311,7 @@
       "runtimeInstallCancelFailed": "インストールの停止に失敗しました",
       "runtimeInstallSuccess": "ランタイムのインストールが完了しました",
       "runtimeInstallFailed": "ランタイムのインストールに失敗しました",
-      "runtimeNoGuidedSupport": "このコマンドにはまだガイド付きランタイム補助がありません。"
-      ,
+      "runtimeNoGuidedSupport": "このコマンドにはまだガイド付きランタイム補助がありません。",
       "enableTitle": "启用 MCP 功能",
       "enableDesc": "启用后，AI 可以调用配置的 MCP 服务器提供的工具。"
     },
@@ -487,7 +448,6 @@
       "stats": {
         "total": "総記憶数",
         "preferences": "設定",
-        "knowledge": "知識",
         "memories": "记忆"
       },
       "form": {
@@ -496,7 +456,6 @@
         "contentPlaceholder": "例：中国語で回答してほしい、Reactエキスパートです...",
         "categoryLabel": "タイプ",
         "preferenceDesc": "設定（言語、形式、スタイルなど）",
-        "knowledgeDesc": "知識（事実、経験、専門分野など）",
         "save": "記憶を保存",
         "saving": "保存中...",
         "categoryDescription": "记忆分为两种类型：",
@@ -511,13 +470,11 @@
       "empty": "まだ記憶がありません。最初の記憶を追加しましょう！",
       "emptyHint": "手動で記憶を追加するか、会話で「覚えて」「これを覚えて」などのフレーズを使うとAIが自動的に記憶を作成します。",
       "preference": "設定",
-      "knowledge": "知識",
       "replaced": "置換済み",
       "accessCount": "{count} 回アクセス",
       "tabs": {
         "all": "すべて",
         "preference": "設定",
-        "knowledge": "知識",
         "memory": "记忆"
       },
       "success": "成功",
@@ -541,7 +498,6 @@
       "tooltip": "メインモデルを使用",
       "noModel": "使用しない",
       "placeholder": "モデルを選択または検索してください",
-      "main": "メインモデル",
       "options": {
         "primaryModel": {
           "title": "メインモデル",
@@ -579,17 +535,23 @@
       "mainModel": "メインモデル"
     },
     "readAloud": {
-      "title": "音声読み上げ",
-      "desc": "ここでは、音声読み上げ関連の設定を構成し、チャットコンテンツに音声再生機能を提供できます。",
-      "noModel": "モデルを使用しない",
+      "title": "読み上げ",
+      "desc": "読み上げ方法を設定します。既定ではシステム音声を優先し、モデル音声は強化用として利用します。",
       "options": {
+        "mode": {
+          "title": "モード",
+          "desc": "自動モードではシステム音声を優先し、ローカル音声が使えない場合のみモデルを試します。",
+          "auto": "自動（推奨）",
+          "local": "ローカルのみ",
+          "model": "モデルのみ"
+        },
         "audioModel": {
-          "title": "音声モデル",
-          "desc": "テキストから音声への変換にAIモデルを選択し、様々な音声タイプとパラメータ設定をサポートします。"
+          "title": "読み上げモデル",
+          "desc": "任意です。自動モードの強化やモデル専用モードで利用できます。"
         },
         "speed": {
-          "title": "読み上げ速度",
-          "desc": "音声の再生速度を調整します。0.25倍から4倍の範囲で設定でき、1倍が通常の速度です。"
+          "title": "速度",
+          "desc": "読み上げ速度を0.5倍から2倍まで調整できます。既定値は1倍です。"
         }
       }
     },
@@ -878,9 +840,7 @@
         },
         "createNewRepo": "新しいリポジトリを作成",
         "recheckRepo": "再確認",
-        "recheckingRepo": "確認中...",
-        "createRepo": "リポジトリを作成",
-        "creatingRepo": "作成中..."
+        "recheckingRepo": "確認中..."
       },
       "s3": {
         "title": "S3オブジェクトストレージ",
@@ -1230,12 +1190,6 @@
       "checkConnection": "接続をテスト",
       "model": "モデル"
     },
-    "ocr": {
-      "title": "OCR",
-      "languagePacks": "言語パック",
-      "checkModels": "在此查询全部模型",
-      "modelInstruction": "以逗号分隔，例如：eng,chi_sim"
-    },
     "file": {
       "title": "ファイル管理",
       "desc": "ここで同期リポジトリを設定し、執筆中のファイルをリポジトリと同期できます。画像ホスティングもサポートしています。",
@@ -1300,56 +1254,206 @@
           "insert": "挿入"
         },
         "commands": {
-          "undo": { "title": "元に戻す", "desc": "前の編集を元に戻します。" },
-          "redo": { "title": "やり直し", "desc": "取り消した編集をやり直します。" },
-          "setParagraph": { "title": "段落", "desc": "現在のブロックを段落にします。" },
-          "toggleHeading1": { "title": "見出し 1", "desc": "見出しレベル 1 を切り替えます。" },
-          "toggleHeading2": { "title": "見出し 2", "desc": "見出しレベル 2 を切り替えます。" },
-          "toggleHeading3": { "title": "見出し 3", "desc": "見出しレベル 3 を切り替えます。" },
-          "toggleHeading4": { "title": "見出し 4", "desc": "見出しレベル 4 を切り替えます。" },
-          "toggleHeading5": { "title": "見出し 5", "desc": "見出しレベル 5 を切り替えます。" },
-          "toggleHeading6": { "title": "見出し 6", "desc": "見出しレベル 6 を切り替えます。" },
-          "openSearch": { "title": "検索 / 置換", "desc": "エディタ内検索を開きます。" },
-          "openSlashCommand": { "title": "Slash メニュー", "desc": "カーソル位置でコマンドメニューを開きます。" },
-          "toggleOutline": { "title": "アウトライン", "desc": "文書アウトラインの表示を切り替えます。" },
-          "toggleBold": { "title": "太字", "desc": "太字を切り替えます。" },
-          "toggleItalic": { "title": "斜体", "desc": "斜体を切り替えます。" },
-          "toggleStrike": { "title": "取り消し線", "desc": "取り消し線を切り替えます。" },
-          "toggleUnderline": { "title": "下線", "desc": "下線を切り替えます。" },
-          "toggleInlineCode": { "title": "インラインコード", "desc": "インラインコードを切り替えます。" },
-          "toggleHighlight": { "title": "ハイライト", "desc": "ハイライトを切り替えます。" },
-          "openLinkInput": { "title": "リンク", "desc": "リンク入力を開きます。" },
-          "toggleBlockquote": { "title": "引用ブロック", "desc": "引用ブロックを切り替えます。" },
-          "toggleBulletList": { "title": "箇条書き", "desc": "箇条書きを切り替えます。" },
-          "toggleOrderedList": { "title": "番号付きリスト", "desc": "番号付きリストを切り替えます。" },
-          "toggleTaskList": { "title": "タスクリスト", "desc": "タスクリストを切り替えます。" },
-          "toggleCodeBlock": { "title": "コードブロック", "desc": "コードブロックを切り替えます。" },
-          "quoteToChat": { "title": "チャットへ引用", "desc": "選択内容を AI チャットの引用に送ります。" },
-          "openAiMenu": { "title": "AI アクションメニュー", "desc": "選択テキストの AI 操作を開きます。" },
-          "aiContinue": { "title": "AI 続き書き", "desc": "カーソル前の内容から続きを書きます。" },
-          "aiPolish": { "title": "AI 推敲", "desc": "選択テキストを推敲します。" },
-          "aiConcise": { "title": "AI 要約", "desc": "選択テキストを簡潔にします。" },
-          "aiExpand": { "title": "AI 展開", "desc": "選択テキストを展開します。" },
-          "aiTranslate": { "title": "AI 翻訳", "desc": "選択テキストの翻訳メニューを開きます。" },
-          "acceptAiSuggestion": { "title": "AI 提案を採用", "desc": "AI 提案パネルが開いているときに採用します。" },
-          "rejectAiSuggestion": { "title": "AI 提案を却下", "desc": "AI 提案パネルが開いているときに原文へ戻します。" },
-          "abortAiGeneration": { "title": "AI 生成を停止", "desc": "現在の AI 生成を停止します。" },
-          "insertTable": { "title": "表を挿入", "desc": "既定の 3 列テーブルを挿入します。" },
-          "addColumnBefore": { "title": "左に列を挿入", "desc": "現在のセルの左に列を挿入します。" },
-          "addColumnAfter": { "title": "右に列を挿入", "desc": "現在のセルの右に列を挿入します。" },
-          "addRowBefore": { "title": "上に行を挿入", "desc": "現在のセルの上に行を挿入します。" },
-          "addRowAfter": { "title": "下に行を挿入", "desc": "現在のセルの下に行を挿入します。" },
-          "deleteColumn": { "title": "列を削除", "desc": "現在の列を削除します。" },
-          "deleteRow": { "title": "行を削除", "desc": "現在の行を削除します。" },
-          "deleteTable": { "title": "表を削除", "desc": "現在の表を削除します。" },
-          "alignLeft": { "title": "左揃え", "desc": "テキストまたはセルを左揃えにします。" },
-          "alignCenter": { "title": "中央揃え", "desc": "テキストまたはセルを中央揃えにします。" },
-          "alignRight": { "title": "右揃え", "desc": "テキストまたはセルを右揃えにします。" },
-          "insertImage": { "title": "画像を挿入", "desc": "ローカル画像を選択して挿入します。" },
-          "insertInlineMath": { "title": "インライン数式を挿入", "desc": "インライン LaTeX 入力を開きます。" },
-          "insertBlockMath": { "title": "ブロック数式を挿入", "desc": "ブロック LaTeX 入力を開きます。" },
-          "insertMermaid": { "title": "Mermaid 図を挿入", "desc": "既定の Mermaid フローチャートを挿入します。" },
-          "insertHorizontalRule": { "title": "区切り線を挿入", "desc": "カーソル位置に水平線を挿入します。" }
+          "undo": {
+            "title": "元に戻す",
+            "desc": "前の編集を元に戻します。"
+          },
+          "redo": {
+            "title": "やり直し",
+            "desc": "取り消した編集をやり直します。"
+          },
+          "setParagraph": {
+            "title": "段落",
+            "desc": "現在のブロックを段落にします。"
+          },
+          "toggleHeading1": {
+            "title": "見出し 1",
+            "desc": "見出しレベル 1 を切り替えます。"
+          },
+          "toggleHeading2": {
+            "title": "見出し 2",
+            "desc": "見出しレベル 2 を切り替えます。"
+          },
+          "toggleHeading3": {
+            "title": "見出し 3",
+            "desc": "見出しレベル 3 を切り替えます。"
+          },
+          "toggleHeading4": {
+            "title": "見出し 4",
+            "desc": "見出しレベル 4 を切り替えます。"
+          },
+          "toggleHeading5": {
+            "title": "見出し 5",
+            "desc": "見出しレベル 5 を切り替えます。"
+          },
+          "toggleHeading6": {
+            "title": "見出し 6",
+            "desc": "見出しレベル 6 を切り替えます。"
+          },
+          "openSearch": {
+            "title": "検索 / 置換",
+            "desc": "エディタ内検索を開きます。"
+          },
+          "openSlashCommand": {
+            "title": "Slash メニュー",
+            "desc": "カーソル位置でコマンドメニューを開きます。"
+          },
+          "toggleOutline": {
+            "title": "アウトライン",
+            "desc": "文書アウトラインの表示を切り替えます。"
+          },
+          "toggleBold": {
+            "title": "太字",
+            "desc": "太字を切り替えます。"
+          },
+          "toggleItalic": {
+            "title": "斜体",
+            "desc": "斜体を切り替えます。"
+          },
+          "toggleStrike": {
+            "title": "取り消し線",
+            "desc": "取り消し線を切り替えます。"
+          },
+          "toggleUnderline": {
+            "title": "下線",
+            "desc": "下線を切り替えます。"
+          },
+          "toggleInlineCode": {
+            "title": "インラインコード",
+            "desc": "インラインコードを切り替えます。"
+          },
+          "toggleHighlight": {
+            "title": "ハイライト",
+            "desc": "ハイライトを切り替えます。"
+          },
+          "openLinkInput": {
+            "title": "リンク",
+            "desc": "リンク入力を開きます。"
+          },
+          "toggleBlockquote": {
+            "title": "引用ブロック",
+            "desc": "引用ブロックを切り替えます。"
+          },
+          "toggleBulletList": {
+            "title": "箇条書き",
+            "desc": "箇条書きを切り替えます。"
+          },
+          "toggleOrderedList": {
+            "title": "番号付きリスト",
+            "desc": "番号付きリストを切り替えます。"
+          },
+          "toggleTaskList": {
+            "title": "タスクリスト",
+            "desc": "タスクリストを切り替えます。"
+          },
+          "toggleCodeBlock": {
+            "title": "コードブロック",
+            "desc": "コードブロックを切り替えます。"
+          },
+          "quoteToChat": {
+            "title": "チャットへ引用",
+            "desc": "選択内容を AI チャットの引用に送ります。"
+          },
+          "openAiMenu": {
+            "title": "AI アクションメニュー",
+            "desc": "選択テキストの AI 操作を開きます。"
+          },
+          "aiContinue": {
+            "title": "AI 続き書き",
+            "desc": "カーソル前の内容から続きを書きます。"
+          },
+          "aiPolish": {
+            "title": "AI 推敲",
+            "desc": "選択テキストを推敲します。"
+          },
+          "aiConcise": {
+            "title": "AI 要約",
+            "desc": "選択テキストを簡潔にします。"
+          },
+          "aiExpand": {
+            "title": "AI 展開",
+            "desc": "選択テキストを展開します。"
+          },
+          "aiTranslate": {
+            "title": "AI 翻訳",
+            "desc": "選択テキストの翻訳メニューを開きます。"
+          },
+          "acceptAiSuggestion": {
+            "title": "AI 提案を採用",
+            "desc": "AI 提案パネルが開いているときに採用します。"
+          },
+          "rejectAiSuggestion": {
+            "title": "AI 提案を却下",
+            "desc": "AI 提案パネルが開いているときに原文へ戻します。"
+          },
+          "abortAiGeneration": {
+            "title": "AI 生成を停止",
+            "desc": "現在の AI 生成を停止します。"
+          },
+          "insertTable": {
+            "title": "表を挿入",
+            "desc": "既定の 3 列テーブルを挿入します。"
+          },
+          "addColumnBefore": {
+            "title": "左に列を挿入",
+            "desc": "現在のセルの左に列を挿入します。"
+          },
+          "addColumnAfter": {
+            "title": "右に列を挿入",
+            "desc": "現在のセルの右に列を挿入します。"
+          },
+          "addRowBefore": {
+            "title": "上に行を挿入",
+            "desc": "現在のセルの上に行を挿入します。"
+          },
+          "addRowAfter": {
+            "title": "下に行を挿入",
+            "desc": "現在のセルの下に行を挿入します。"
+          },
+          "deleteColumn": {
+            "title": "列を削除",
+            "desc": "現在の列を削除します。"
+          },
+          "deleteRow": {
+            "title": "行を削除",
+            "desc": "現在の行を削除します。"
+          },
+          "deleteTable": {
+            "title": "表を削除",
+            "desc": "現在の表を削除します。"
+          },
+          "alignLeft": {
+            "title": "左揃え",
+            "desc": "テキストまたはセルを左揃えにします。"
+          },
+          "alignCenter": {
+            "title": "中央揃え",
+            "desc": "テキストまたはセルを中央揃えにします。"
+          },
+          "alignRight": {
+            "title": "右揃え",
+            "desc": "テキストまたはセルを右揃えにします。"
+          },
+          "insertImage": {
+            "title": "画像を挿入",
+            "desc": "ローカル画像を選択して挿入します。"
+          },
+          "insertInlineMath": {
+            "title": "インライン数式を挿入",
+            "desc": "インライン LaTeX 入力を開きます。"
+          },
+          "insertBlockMath": {
+            "title": "ブロック数式を挿入",
+            "desc": "ブロック LaTeX 入力を開きます。"
+          },
+          "insertMermaid": {
+            "title": "Mermaid 図を挿入",
+            "desc": "既定の Mermaid フローチャートを挿入します。"
+          },
+          "insertHorizontalRule": {
+            "title": "区切り線を挿入",
+            "desc": "カーソル位置に水平線を挿入します。"
+          }
         }
       },
       "shortcuts": {
@@ -1453,27 +1557,7 @@
         }
       }
     },
-    "readAloud": {
-      "title": "読み上げ",
-      "desc": "読み上げ方法を設定します。既定ではシステム音声を優先し、モデル音声は強化用として利用します。",
-      "options": {
-        "mode": {
-          "title": "モード",
-          "desc": "自動モードではシステム音声を優先し、ローカル音声が使えない場合のみモデルを試します。",
-          "auto": "自動（推奨）",
-          "local": "ローカルのみ",
-          "model": "モデルのみ"
-        },
-        "audioModel": {
-          "title": "読み上げモデル",
-          "desc": "任意です。自動モードの強化やモデル専用モードで利用できます。"
-        },
-        "speed": {
-          "title": "速度",
-          "desc": "読み上げ速度を0.5倍から2倍まで調整できます。既定値は1倍です。"
-        }
-      }
-    }
+    "title": "設定"
   },
   "record": {
     "trash": {
@@ -1728,25 +1812,8 @@
             "subtitle": "ChatまたはAgentモードでAIと対話",
             "currentModel": "現在のモデル",
             "currentPrompt": "現在のPrompt",
-            "currentMode": "会話モード",
             "noModel": "モデルが設定されていません",
             "noPrompt": "Promptが設定されていません",
-            "configureModel": "モデルを設定",
-            "recentConversations": "最近の会話",
-            "deleteConversation": "会話を削除",
-            "conversationHistory": "会話履歴",
-            "viewMore": "もっと見る",
-            "messages": "件のメッセージ",
-            "searchPlaceholder": "会話を検索...",
-            "noMatchingConversations": "一致する会話が見つかりませんでした",
-            "noConversationHistory": "会話履歴はありません",
-            "quickPrompts": {
-              "title": "クイックスタート",
-              "writeNote": "ノートを書くのを手伝って",
-              "summarize": "この内容を要約して",
-              "brainstorm": "アイデアを出し合って",
-              "explain": "この概念を説明して"
-            },
             "modeHint": "入力ボックスの左側の",
             "modeHintSuffix": "ボタンをクリックして会話モードを切り替え"
           },
@@ -1855,20 +1922,6 @@
     },
     "chat": {
       "empty": {
-        "features": [
-          {
-            "chat": "AIボットと対話する"
-          },
-          {
-            "linked": "あなたの記録に関連付けられています"
-          },
-          {
-            "clipboard": "クリップボードの記録を識別"
-          },
-          {
-            "organize": "あなたの記録をノートに整理します"
-          }
-        ],
         "title": "AIとの会話を開始",
         "subtitle": "チャットまたはエージェントモードでAIと対話",
         "currentModel": "現在のモデル",
@@ -2202,7 +2255,8 @@
     "showRightSidebar": "右サイドバーを表示",
     "searchPlaceholder": "ノートまたは記録を検索...",
     "showCenterPanel": "显示编辑器",
-    "hideCenterPanel": "隐藏编辑器"
+    "hideCenterPanel": "隐藏编辑器",
+    "navigate": "ナビゲーション"
   },
   "activity": {
     "title": "アクティビティカレンダー",
@@ -2240,121 +2294,7 @@
       "empty": "日付を選択すると当日の活動詳細が表示されます。"
     }
   },
-  "chat": {
-    "placeholder": {
-      "default": "メッセージを入力...",
-      "noApiKey": "無 API KEY 設定、AI 話題できません...",
-      "on": "AIサジェスト有効",
-      "off": "AIサジェスト無効",
-      "noPrimaryModel": "無主模型設定、AI 話題できません..."
-    },
-    "translate": {
-      "tooltip": "翻訳",
-      "translating": "翻訳中...",
-      "showOriginal": "原文表示",
-      "alreadyTranslated": "翻訳済み"
-    },
-    "clipboardMonitor": {
-      "enable": "クリップボード監視(有効)",
-      "disable": "クリップボード監視(無効)"
-    },
-    "mcp": {
-      "tooltip": "MCP サーバー"
-    },
-    "send": "送信",
-    "stop": "停止",
-    "terminate": "終了",
-    "tagLink": {
-      "on": "タグとリンク済み",
-      "off": "タグとリンクなし"
-    },
-    "modelSelect": {
-      "tooltip": "AIモデルを選択",
-      "placeholder": "AIモデルを検索",
-      "noModel": "モデルが見つかりません"
-    },
-    "promptSelect": {
-      "tooltip": "プロンプトを選択",
-      "placeholder": "プロンプトを検索"
-    },
-    "clearChat": "会話をクリア",
-    "clearContext": {
-      "tooltip": "コンテキストをクリア"
-    },
-    "chatLanguage": {
-      "tooltip": "会話言語を選択",
-      "placeholder": "言語を検索"
-    },
-    "rag": {
-      "notSupported": "ベクトルモデルが利用できません",
-      "enabled": "知識ベース検索有効",
-      "disabled": "知識ベース検索無効"
-    },
-    "modeSelect": {
-      "tooltip": "入力モードを選択",
-      "chat": "チャットモード",
-      "gen": "整理モード",
-      "translate": "翻訳モード"
-    },
-    "fileLink": {
-      "tooltip": "ファイルをリンク",
-      "selectFile": "ファイルを選択",
-      "linkedFile": "リンクされたファイル",
-      "searchPlaceholder": "ファイルを検索...",
-      "noFiles": "ファイルが見つかりません",
-      "loading": "読み込み中..."
-    }
-  },
-  "header": {
-    "configApiKey": "API KEY の設定",
-    "clearChat": "チャットをクリア",
-    "configPrompt": "マスクの設定",
-    "selectPrompt": "マスクを選択",
-    "noModel": "AI モデルが選択されていません"
-  },
-  "clipboard": {
-    "image": {
-      "detected": "クリップボードに画像が存在します：",
-      "recording": "記録中",
-      "recorded": "記録済み",
-      "record": "記録"
-    },
-    "text": {
-      "detected": "クリップボードにテキストが存在します：",
-      "recorded": "記録済み",
-      "record": "記録"
-    }
-  },
-  "messageControl": {
-    "words": "字",
-    "readAloud": "音声読み上げ",
-    "playing": "再生中",
-    "loading": "準備中",
-    "stop": "停止",
-    "copy": "コピー",
-    "copied": "コピーしました"
-  },
-  "ragSources": {
-    "label": "参照ファイル"
-  },
-  "preview": {
-    "close": "关闭",
-    "copy": "复制",
-    "copied": "已复制！"
-  },
-  "control": {
-    "edit": "編集",
-    "save": "保存",
-    "cancel": "キャンセル",
-    "delete": "削除",
-    "deleteConfirm": "本当に削除しますか？"
-  },
-  "content": {
-    "organize": "将你的記録整理为文章："
-  },
   "note": {
-    "organize": "整理",
-    "writing": "執筆",
     "convert": "文章に変換",
     "description": "現在のノートはAIによって生成され、編集できません。ノートを文章（ローカルファイル）に変換して、執筆ページで二次創作できます。",
     "filename": "ファイル名",
@@ -2362,14 +2302,7 @@
     "rootDirectory": "ルートディレクトリ",
     "deleteTag": "削除タグ、記録とノート（ゴミ箱で復元可能）",
     "warning": "変換後、執筆ページに移動します。",
-    "convert_button": "変換",
-    "organizeAs": "記録を整理します...",
-    "templateContent": "テンプレート内容",
-    "recordRange": "記録範囲を選択",
-    "filterThinkingContent": "思考の記録を削除します",
-    "startOrganize": "開始整理",
-    "manageTemplate": "管理テンプレート",
-    "cancel": "キャンセル"
+    "convert_button": "変換"
   },
   "search": {
     "placeholder": "ノートと記事を検索...",
@@ -2408,8 +2341,7 @@
   "article": {
     "sync": {
       "syncingRemote": "リモートファイルをプル中...",
-      "syncComplete": "同期完了",
-      "pullingRemote": "リモートサーバーから最新コンテンツを取得中..."
+      "syncComplete": "同期完了"
     },
     "syncConfirm": {
       "title": "リモートファイルの更新を検出",
@@ -2675,9 +2607,6 @@
         }
       },
       "toolbar": {
-        "organize": {
-          "tooltip": "ノート整理"
-        },
         "mark": {
           "title": "記録を使用",
           "tooltip": "記録を使用",
@@ -2824,9 +2753,7 @@
         "tools": {
           "title": "ツール",
           "clearContext": "コンテキストをクリア",
-          "clearContextDesc": "会話のコンテキストをクリアし、チャット履歴を保持",
           "clearChat": "チャットをクリア",
-          "clearChatDesc": "すべてのチャット記録を削除",
           "clear": "クリア",
           "newChat": "开始新对话",
           "start": "开始"
@@ -2986,7 +2913,8 @@
       "delete": "画像を削除",
       "reset": "リセット",
       "confirm": "確認",
-      "cancel": "キャンセル"
+      "cancel": "キャンセル",
+      "failed": "画像処理に失敗しました"
     },
     "mermaid": {
       "rendering": "レンダリング中...",

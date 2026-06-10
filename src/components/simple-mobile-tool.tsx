@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { CheckSquare, ChevronRight, ImagePlus, Link, Mic, Paperclip, SquarePen, Type } from "lucide-react"
+import { CheckSquare, ChevronRight, ImagePlus, Link, Mic, Paperclip, Sparkles, SquarePen, Type } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
@@ -9,9 +9,10 @@ interface SimpleMobileToolProps {
   toolId: string
   onToolClick?: (toolId: string) => void
   featured?: boolean
+  label?: string
 }
 
-export function SimpleMobileTool({ toolId, onToolClick, featured = false }: SimpleMobileToolProps) {
+export function SimpleMobileTool({ toolId, onToolClick, featured = false, label }: SimpleMobileToolProps) {
   const t = useTranslations()
 
   const getToolInfo = (id: string) => {
@@ -29,13 +30,16 @@ export function SimpleMobileTool({ toolId, onToolClick, featured = false }: Simp
       case 'todo':
         return { icon: <CheckSquare className="size-4" />, label: t('record.mark.type.todo') }
       case 'write':
-        return { icon: <SquarePen className="size-5" />, label: t('navigation.write') }
+        return { icon: <SquarePen className="size-4" />, label: t('navigation.write') }
+      case 'organize':
+        return { icon: <Sparkles className="size-4" />, label: t('record.chat.note.organize') }
       default:
         return { icon: null, label: '' }
     }
   }
 
   const toolInfo = getToolInfo(toolId)
+  const toolLabel = label ?? toolInfo.label
 
   const handleClick = () => {
     if (onToolClick) {
@@ -53,8 +57,8 @@ export function SimpleMobileTool({ toolId, onToolClick, featured = false }: Simp
           ? "min-h-14 w-full justify-start gap-2.5 px-2.5 py-2.5"
           : "min-h-12 justify-start gap-2 px-2.5 py-2"
       )}
-      aria-label={toolInfo.label}
-      title={toolInfo.label}
+      aria-label={toolLabel}
+      title={toolLabel}
     >
       <span
         className={cn(
@@ -69,7 +73,7 @@ export function SimpleMobileTool({ toolId, onToolClick, featured = false }: Simp
           "min-w-0 flex-1 truncate text-left text-sm font-medium leading-none text-foreground"
         )}
       >
-        {toolInfo.label}
+        {toolLabel}
       </span>
       {featured ? (
         <ChevronRight className="size-4 shrink-0 text-[hsl(var(--component-inactive-color))] transition-transform group-active:translate-x-0.5" />

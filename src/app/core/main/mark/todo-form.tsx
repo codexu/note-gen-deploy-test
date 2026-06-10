@@ -17,6 +17,8 @@ interface TodoFormProps {
   mode: 'create' | 'edit'
   data: TodoFormData
   onChange: (data: TodoFormData) => void
+  autoFocus?: boolean
+  titleInputRef?: React.Ref<HTMLInputElement>
   selectedTagId?: number
   onTagChange?: (tagId: number) => void
   tags?: Array<{ id: number; name: string }>
@@ -29,6 +31,8 @@ export function TodoForm({
   mode,
   data,
   onChange,
+  autoFocus = true,
+  titleInputRef,
   selectedTagId,
   onTagChange,
   tags = [],
@@ -72,12 +76,13 @@ export function TodoForm({
       <div>
         <Label htmlFor={`todo-title-${mode}`}>{t('record.mark.todo.title')} *</Label>
         <Input
+          ref={titleInputRef}
           id={`todo-title-${mode}`}
           value={data.title}
           onChange={(e) => onChange({ ...data, title: e.target.value })}
           placeholder={t('record.mark.todo.titlePlaceholder')}
           onKeyDown={handleKeyDown}
-          autoFocus
+          autoFocus={autoFocus}
           className="mt-1.5"
         />
       </div>

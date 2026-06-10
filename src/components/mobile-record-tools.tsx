@@ -12,9 +12,10 @@ import { Separator } from '@/components/ui/separator'
 
 interface MobileRecordToolsProps {
   onClose?: () => void
+  onOrganize?: () => void
 }
 
-export function MobileRecordTools({ onClose }: MobileRecordToolsProps) {
+export function MobileRecordTools({ onClose, onOrganize }: MobileRecordToolsProps) {
   const router = useRouter()
   const t = useTranslations()
   const { loadFileTree, setActiveFilePath } = useArticleStore()
@@ -75,6 +76,11 @@ export function MobileRecordTools({ onClose }: MobileRecordToolsProps) {
       return
     }
 
+    if (toolId === 'organize') {
+      onOrganize?.()
+      return
+    }
+
     // 发射工具快捷键事件
     emitter.emit(`toolbar-shortcut-${toolId}` as any)
     // 点击后关闭弹窗
@@ -85,11 +91,21 @@ export function MobileRecordTools({ onClose }: MobileRecordToolsProps) {
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <SimpleMobileTool
-        toolId="write"
-        featured
-        onToolClick={handleToolClick}
-      />
+      <div className="flex items-center gap-2 px-2 py-1">
+        <span className="text-xs font-medium text-[hsl(var(--component-inactive-color))]">{t('navigation.write')}</span>
+        <Separator className="flex-1 bg-border/60" />
+      </div>
+      <div className="grid w-full grid-cols-2 gap-1.5">
+        <SimpleMobileTool
+          toolId="write"
+          label={t('navigation.files')}
+          onToolClick={handleToolClick}
+        />
+        <SimpleMobileTool
+          toolId="organize"
+          onToolClick={handleToolClick}
+        />
+      </div>
       <div className="flex items-center gap-2 px-2 py-1">
         <span className="text-xs font-medium text-[hsl(var(--component-inactive-color))]">{t('navigation.record')}</span>
         <Separator className="flex-1 bg-border/60" />

@@ -3,46 +3,6 @@
     "title": "Gerador de Notas",
     "description": "Seu assistente de anotações com IA"
   },
-  "common": {
-    "save": "Salvar",
-    "cancel": "Cancelar",
-    "delete": "Excluir",
-    "edit": "Editar",
-    "create": "Criar",
-    "theme": "Tema",
-    "light": "Claro",
-    "dark": "Escuro",
-    "system": "Sistema",
-    "pin": "Fixar",
-    "unpin": "Desafixar",
-    "settings": "Configurações",
-    "back": "Voltar",
-    "sync": "Sincronizar",
-    "language": "Idioma",
-    "confirm": "Confirmar",
-    "selectPrompt": "Selecionar Prompt",
-    "prompt": "Instrução",
-    "success": "Sucesso",
-    "error": "Falha",
-    "defaultFileName": "Sem Título",
-    "restartToApply": ", por favor reinicie o aplicativo para que a configuração entre em vigor",
-    "close": "Fechar",
-    "open": "Abrir",
-    "add": "Adicionar",
-    "remove": "Remover",
-    "search": "Pesquisar",
-    "filter": "Filtrar",
-    "sort": "Ordenar",
-    "export": "Exportar",
-    "import": "Importar",
-    "refresh": "Atualizar",
-    "loading": "Carregando",
-    "warning": "Aviso",
-    "info": "Informação",
-    "unsaved": "Não salvo",
-    "saving": "Salvando",
-    "configureSync": "Configurar Sincronização"
-  },
   "tray": {
     "quickRecord": "Registro rápido",
     "moreRecord": "Mais registros",
@@ -133,13 +93,9 @@
           "import": {
             "title": "Importar configuração",
             "button": "Importar",
-            "placeholder": "Cole aqui a configuração para importar",
-            "error": "Falha ao importar: formato inválido",
-            "success": "Importado com sucesso"
+            "placeholder": "Cole aqui a configuração para importar"
           },
           "presets": {
-            "title": "Predefinições",
-            "desc": "Escolha uma paleta de cores pronta",
             "apply": "Aplicar",
             "reset": {
               "name": "Restaurar padrão"
@@ -521,7 +477,6 @@
       "stats": {
         "total": "Total de Memórias",
         "preferences": "Preferências",
-        "knowledge": "Conhecimento",
         "memories": "记忆"
       },
       "form": {
@@ -530,7 +485,6 @@
         "contentPlaceholder": "ex: Prefiro respostas em chinês, sou um especialista em React...",
         "categoryLabel": "Tipo",
         "preferenceDesc": "Preferência (idioma, formato, estilo, etc.)",
-        "knowledgeDesc": "Conhecimento (fatos, experiência, especialização, etc.)",
         "save": "Salvar Memória",
         "saving": "Salvando...",
         "categoryDescription": "记忆分为两种类型：",
@@ -545,13 +499,11 @@
       "empty": "Nenhuma memória ainda, adicione sua primeira memória!",
       "emptyHint": "Você pode adicionar memórias manualmente ou usar frases como \"por favor, lembre-se\" ou \"lembre-se disso\" nas conversas para que a IA crie memórias automaticamente.",
       "preference": "Preferência",
-      "knowledge": "Conhecimento",
       "replaced": "Substituído",
       "accessCount": "Acessado {count} vezes",
       "tabs": {
         "all": "Todas",
         "preference": "Preferências",
-        "knowledge": "Conhecimento",
         "memory": "记忆"
       },
       "success": "Sucesso",
@@ -575,7 +527,6 @@
       "tooltip": "Usar modelo principal",
       "noModel": "Não usar",
       "placeholder": "Por favor, selecione ou procure por modelos",
-      "main": "Modelo principal",
       "options": {
         "primaryModel": {
           "title": "Modelo principal",
@@ -596,10 +547,6 @@
         "commit": {
           "title": "Gerar Mensagem de Commit Automaticamente",
           "desc": "Usado para gerar automaticamente mensagens de commit Git, gerando inteligentemente mensagens de commit descritivas com base nas alterações do conteúdo do arquivo."
-        },
-        "translate": {
-          "title": "Tradução",
-          "desc": "Usado para cenários de tradução de conteúdo."
         },
         "embedding": {
           "title": "Modelo de Embedding",
@@ -649,23 +596,16 @@
       }
     },
     "readAloud": {
-      "title": "Ler em Voz Alta",
-      "desc": "Configure o comportamento da leitura em voz alta. As vozes do sistema são preferidas por padrão, e a voz de modelo funciona como aprimoramento.",
+      "title": "Leitura em voz alta",
+      "desc": "Aqui você pode configurar opções de leitura em voz alta para reproduzir o conteúdo do chat em áudio.",
       "options": {
-        "mode": {
-          "title": "Modo",
-          "desc": "O modo automático prefere as vozes do sistema e só tenta um modelo quando a fala local não está disponível.",
-          "auto": "Automático (Recomendado)",
-          "local": "Somente local",
-          "model": "Somente modelo"
-        },
         "audioModel": {
-          "title": "Modelo de Leitura",
-          "desc": "Opcional. Configure um modelo para aprimorar o modo automático ou usar o modo somente modelo."
+          "title": "Modelo de áudio",
+          "desc": "Escolha o modelo de IA para texto-para-fala (TTS). Suporta diferentes vozes e parâmetros."
         },
         "speed": {
           "title": "Velocidade",
-          "desc": "Ajuste a velocidade da leitura entre 0.5x e 2x, com 1x como padrão."
+          "desc": "Ajuste a velocidade da voz (de 0,25× a 4×). O padrão é 1×."
         }
       }
     },
@@ -925,9 +865,7 @@
         },
         "createNewRepo": "Criar Novo Repositório",
         "recheckRepo": "Verificar Novamente",
-        "recheckingRepo": "Verificando...",
-        "createRepo": "Criar Repositório",
-        "creatingRepo": "Criando..."
+        "recheckingRepo": "Verificando..."
       },
       "s3": {
         "title": "Armazenamento de Objetos S3",
@@ -1264,10 +1202,6 @@
           "type": "Modelo de Conclusão",
           "desc": "Conclusão inline de IA para editor Markdown, semelhante ao GitHub Copilot, gera rapidamente conteúdo de continuação"
         },
-        "commit": {
-          "title": "Mensagem de Commit",
-          "desc": "Usado para gerar automaticamente mensagens de commit Git, gerando inteligentemente mensagens de commit descritivas com base nas alterações do conteúdo do arquivo."
-        },
         "poweredBy": "Fornecido por SiliconFlow"
       },
       "connectionFailed": "Falha na conexão",
@@ -1280,12 +1214,6 @@
       "newModel": "Novo modelo",
       "checkConnection": "Testar conexão",
       "model": "Modelo"
-    },
-    "ocr": {
-      "title": "OCR",
-      "languagePacks": "Pacotes de Idioma",
-      "checkModels": "Verifique todos os modelos aqui",
-      "modelInstruction": "Separe com vírgulas, ex: eng,chi_sim"
     },
     "file": {
       "title": "Configurações de Arquivo",
@@ -1351,56 +1279,206 @@
           "insert": "Inserir"
         },
         "commands": {
-          "undo": { "title": "Desfazer", "desc": "Desfaz a edição anterior." },
-          "redo": { "title": "Refazer", "desc": "Refaz a edição desfeita." },
-          "setParagraph": { "title": "Parágrafo", "desc": "Define o bloco atual como parágrafo." },
-          "toggleHeading1": { "title": "Título 1", "desc": "Alterna o título de nível 1." },
-          "toggleHeading2": { "title": "Título 2", "desc": "Alterna o título de nível 2." },
-          "toggleHeading3": { "title": "Título 3", "desc": "Alterna o título de nível 3." },
-          "toggleHeading4": { "title": "Título 4", "desc": "Alterna o título de nível 4." },
-          "toggleHeading5": { "title": "Título 5", "desc": "Alterna o título de nível 5." },
-          "toggleHeading6": { "title": "Título 6", "desc": "Alterna o título de nível 6." },
-          "openSearch": { "title": "Localizar / Substituir", "desc": "Abre a busca do editor." },
-          "openSlashCommand": { "title": "Menu Slash", "desc": "Abre o menu de comandos na posição do cursor." },
-          "toggleOutline": { "title": "Sumário", "desc": "Mostra ou oculta o sumário do documento." },
-          "toggleBold": { "title": "Negrito", "desc": "Alterna negrito no texto selecionado ou na próxima digitação." },
-          "toggleItalic": { "title": "Itálico", "desc": "Alterna itálico." },
-          "toggleStrike": { "title": "Tachado", "desc": "Alterna tachado." },
-          "toggleUnderline": { "title": "Sublinhado", "desc": "Alterna sublinhado." },
-          "toggleInlineCode": { "title": "Código inline", "desc": "Alterna código inline." },
-          "toggleHighlight": { "title": "Destaque", "desc": "Alterna destaque." },
-          "openLinkInput": { "title": "Link", "desc": "Abre o campo de link." },
-          "toggleBlockquote": { "title": "Citação", "desc": "Alterna bloco de citação." },
-          "toggleBulletList": { "title": "Lista com marcadores", "desc": "Alterna lista com marcadores." },
-          "toggleOrderedList": { "title": "Lista numerada", "desc": "Alterna lista numerada." },
-          "toggleTaskList": { "title": "Lista de tarefas", "desc": "Alterna lista de tarefas." },
-          "toggleCodeBlock": { "title": "Bloco de código", "desc": "Alterna bloco de código." },
-          "quoteToChat": { "title": "Citar no chat", "desc": "Envia o conteúdo selecionado para a área de citação do chat com IA." },
-          "openAiMenu": { "title": "Menu de ações de IA", "desc": "Abre ações de IA para o texto selecionado." },
-          "aiContinue": { "title": "Continuar com IA", "desc": "Continua escrevendo a partir do conteúdo antes do cursor." },
-          "aiPolish": { "title": "Polir com IA", "desc": "Polir o texto selecionado." },
-          "aiConcise": { "title": "Resumir com IA", "desc": "Deixa o texto selecionado mais conciso." },
-          "aiExpand": { "title": "Expandir com IA", "desc": "Expande o texto selecionado." },
-          "aiTranslate": { "title": "Traduzir com IA", "desc": "Abre ações de tradução para o texto selecionado." },
-          "acceptAiSuggestion": { "title": "Aceitar sugestão de IA", "desc": "Aceita a sugestão atual quando o painel de IA está aberto." },
-          "rejectAiSuggestion": { "title": "Rejeitar sugestão de IA", "desc": "Restaura o texto original quando o painel de IA está aberto." },
-          "abortAiGeneration": { "title": "Interromper geração de IA", "desc": "Interrompe a geração de IA atual." },
-          "insertTable": { "title": "Inserir tabela", "desc": "Insere uma tabela padrão com 3 colunas." },
-          "addColumnBefore": { "title": "Inserir coluna à esquerda", "desc": "Insere uma coluna antes da célula atual." },
-          "addColumnAfter": { "title": "Inserir coluna à direita", "desc": "Insere uma coluna depois da célula atual." },
-          "addRowBefore": { "title": "Inserir linha acima", "desc": "Insere uma linha acima da célula atual." },
-          "addRowAfter": { "title": "Inserir linha abaixo", "desc": "Insere uma linha abaixo da célula atual." },
-          "deleteColumn": { "title": "Excluir coluna", "desc": "Exclui a coluna atual da tabela." },
-          "deleteRow": { "title": "Excluir linha", "desc": "Exclui a linha atual da tabela." },
-          "deleteTable": { "title": "Excluir tabela", "desc": "Exclui a tabela atual." },
-          "alignLeft": { "title": "Alinhar à esquerda", "desc": "Alinha texto ou célula da tabela à esquerda." },
-          "alignCenter": { "title": "Centralizar", "desc": "Centraliza texto ou célula da tabela." },
-          "alignRight": { "title": "Alinhar à direita", "desc": "Alinha texto ou célula da tabela à direita." },
-          "insertImage": { "title": "Inserir imagem", "desc": "Escolhe e insere uma imagem local." },
-          "insertInlineMath": { "title": "Inserir fórmula inline", "desc": "Abre a entrada LaTeX inline." },
-          "insertBlockMath": { "title": "Inserir fórmula em bloco", "desc": "Abre a entrada LaTeX em bloco." },
-          "insertMermaid": { "title": "Inserir diagrama Mermaid", "desc": "Insere um fluxograma Mermaid padrão." },
-          "insertHorizontalRule": { "title": "Inserir divisor", "desc": "Insere uma linha horizontal no cursor." }
+          "undo": {
+            "title": "Desfazer",
+            "desc": "Desfaz a edição anterior."
+          },
+          "redo": {
+            "title": "Refazer",
+            "desc": "Refaz a edição desfeita."
+          },
+          "setParagraph": {
+            "title": "Parágrafo",
+            "desc": "Define o bloco atual como parágrafo."
+          },
+          "toggleHeading1": {
+            "title": "Título 1",
+            "desc": "Alterna o título de nível 1."
+          },
+          "toggleHeading2": {
+            "title": "Título 2",
+            "desc": "Alterna o título de nível 2."
+          },
+          "toggleHeading3": {
+            "title": "Título 3",
+            "desc": "Alterna o título de nível 3."
+          },
+          "toggleHeading4": {
+            "title": "Título 4",
+            "desc": "Alterna o título de nível 4."
+          },
+          "toggleHeading5": {
+            "title": "Título 5",
+            "desc": "Alterna o título de nível 5."
+          },
+          "toggleHeading6": {
+            "title": "Título 6",
+            "desc": "Alterna o título de nível 6."
+          },
+          "openSearch": {
+            "title": "Localizar / Substituir",
+            "desc": "Abre a busca do editor."
+          },
+          "openSlashCommand": {
+            "title": "Menu Slash",
+            "desc": "Abre o menu de comandos na posição do cursor."
+          },
+          "toggleOutline": {
+            "title": "Sumário",
+            "desc": "Mostra ou oculta o sumário do documento."
+          },
+          "toggleBold": {
+            "title": "Negrito",
+            "desc": "Alterna negrito no texto selecionado ou na próxima digitação."
+          },
+          "toggleItalic": {
+            "title": "Itálico",
+            "desc": "Alterna itálico."
+          },
+          "toggleStrike": {
+            "title": "Tachado",
+            "desc": "Alterna tachado."
+          },
+          "toggleUnderline": {
+            "title": "Sublinhado",
+            "desc": "Alterna sublinhado."
+          },
+          "toggleInlineCode": {
+            "title": "Código inline",
+            "desc": "Alterna código inline."
+          },
+          "toggleHighlight": {
+            "title": "Destaque",
+            "desc": "Alterna destaque."
+          },
+          "openLinkInput": {
+            "title": "Link",
+            "desc": "Abre o campo de link."
+          },
+          "toggleBlockquote": {
+            "title": "Citação",
+            "desc": "Alterna bloco de citação."
+          },
+          "toggleBulletList": {
+            "title": "Lista com marcadores",
+            "desc": "Alterna lista com marcadores."
+          },
+          "toggleOrderedList": {
+            "title": "Lista numerada",
+            "desc": "Alterna lista numerada."
+          },
+          "toggleTaskList": {
+            "title": "Lista de tarefas",
+            "desc": "Alterna lista de tarefas."
+          },
+          "toggleCodeBlock": {
+            "title": "Bloco de código",
+            "desc": "Alterna bloco de código."
+          },
+          "quoteToChat": {
+            "title": "Citar no chat",
+            "desc": "Envia o conteúdo selecionado para a área de citação do chat com IA."
+          },
+          "openAiMenu": {
+            "title": "Menu de ações de IA",
+            "desc": "Abre ações de IA para o texto selecionado."
+          },
+          "aiContinue": {
+            "title": "Continuar com IA",
+            "desc": "Continua escrevendo a partir do conteúdo antes do cursor."
+          },
+          "aiPolish": {
+            "title": "Polir com IA",
+            "desc": "Polir o texto selecionado."
+          },
+          "aiConcise": {
+            "title": "Resumir com IA",
+            "desc": "Deixa o texto selecionado mais conciso."
+          },
+          "aiExpand": {
+            "title": "Expandir com IA",
+            "desc": "Expande o texto selecionado."
+          },
+          "aiTranslate": {
+            "title": "Traduzir com IA",
+            "desc": "Abre ações de tradução para o texto selecionado."
+          },
+          "acceptAiSuggestion": {
+            "title": "Aceitar sugestão de IA",
+            "desc": "Aceita a sugestão atual quando o painel de IA está aberto."
+          },
+          "rejectAiSuggestion": {
+            "title": "Rejeitar sugestão de IA",
+            "desc": "Restaura o texto original quando o painel de IA está aberto."
+          },
+          "abortAiGeneration": {
+            "title": "Interromper geração de IA",
+            "desc": "Interrompe a geração de IA atual."
+          },
+          "insertTable": {
+            "title": "Inserir tabela",
+            "desc": "Insere uma tabela padrão com 3 colunas."
+          },
+          "addColumnBefore": {
+            "title": "Inserir coluna à esquerda",
+            "desc": "Insere uma coluna antes da célula atual."
+          },
+          "addColumnAfter": {
+            "title": "Inserir coluna à direita",
+            "desc": "Insere uma coluna depois da célula atual."
+          },
+          "addRowBefore": {
+            "title": "Inserir linha acima",
+            "desc": "Insere uma linha acima da célula atual."
+          },
+          "addRowAfter": {
+            "title": "Inserir linha abaixo",
+            "desc": "Insere uma linha abaixo da célula atual."
+          },
+          "deleteColumn": {
+            "title": "Excluir coluna",
+            "desc": "Exclui a coluna atual da tabela."
+          },
+          "deleteRow": {
+            "title": "Excluir linha",
+            "desc": "Exclui a linha atual da tabela."
+          },
+          "deleteTable": {
+            "title": "Excluir tabela",
+            "desc": "Exclui a tabela atual."
+          },
+          "alignLeft": {
+            "title": "Alinhar à esquerda",
+            "desc": "Alinha texto ou célula da tabela à esquerda."
+          },
+          "alignCenter": {
+            "title": "Centralizar",
+            "desc": "Centraliza texto ou célula da tabela."
+          },
+          "alignRight": {
+            "title": "Alinhar à direita",
+            "desc": "Alinha texto ou célula da tabela à direita."
+          },
+          "insertImage": {
+            "title": "Inserir imagem",
+            "desc": "Escolhe e insere uma imagem local."
+          },
+          "insertInlineMath": {
+            "title": "Inserir fórmula inline",
+            "desc": "Abre a entrada LaTeX inline."
+          },
+          "insertBlockMath": {
+            "title": "Inserir fórmula em bloco",
+            "desc": "Abre a entrada LaTeX em bloco."
+          },
+          "insertMermaid": {
+            "title": "Inserir diagrama Mermaid",
+            "desc": "Insere um fluxograma Mermaid padrão."
+          },
+          "insertHorizontalRule": {
+            "title": "Inserir divisor",
+            "desc": "Insere uma linha horizontal no cursor."
+          }
         }
       },
       "shortcuts": {
@@ -1472,25 +1550,7 @@
       "deleteSkillDesc": "Tem certeza de que deseja excluir esta Skill? Esta ação não pode ser desfeita.",
       "skillDeleted": "Skill excluída com sucesso"
     },
-    "readAloud": {
-      "title": "Leitura em voz alta",
-      "desc": "Aqui você pode configurar opções de leitura em voz alta para reproduzir o conteúdo do chat em áudio.",
-      "noModel": "Não usar modelo",
-      "alert": {
-        "title": "Você está usando a leitura do sistema",
-        "description": "Nenhum modelo de áudio foi configurado. Usando a leitura do próprio sistema."
-      },
-      "options": {
-        "audioModel": {
-          "title": "Modelo de áudio",
-          "desc": "Escolha o modelo de IA para texto-para-fala (TTS). Suporta diferentes vozes e parâmetros."
-        },
-        "speed": {
-          "title": "Velocidade",
-          "desc": "Ajuste a velocidade da voz (de 0,25× a 4×). O padrão é 1×."
-        }
-      }
-    }
+    "title": "Configurações"
   },
   "record": {
     "trash": {
@@ -1610,9 +1670,7 @@
         "cacheScreenshot": "Armazenando captura de tela em cache",
         "textAnalysis": "Análise de texto",
         "save": "Salvando",
-        "saveImage": "Salvando imagem",
-        "newToken": "Criar token de acesso",
-        "newTokenDesc": "O novo token deve ser configurado com permissão de 'repo', a configuração criará automaticamente um repositório de arquivos (privado) e um repositório de imagens."
+        "saveImage": "Salvando imagem"
       },
       "text": {
         "title": "Gravar Texto",
@@ -1743,27 +1801,10 @@
             "subtitle": "Use o modo Chat ou Agent para interagir com IA",
             "currentModel": "Modelo Atual",
             "currentPrompt": "Prompt Atual",
-            "currentMode": "Modo de Conversa",
             "noModel": "Nenhum modelo definido",
             "noPrompt": "Nenhum prompt definido",
-            "configureModel": "Configurar Modelo",
             "modeHint": "Toque no botão à esquerda do campo de entrada",
-            "modeHintSuffix": "para alternar o modo de conversa",
-            "recentConversations": "Conversas Recentes",
-            "deleteConversation": "Excluir conversa",
-            "conversationHistory": "Histórico",
-            "viewMore": "Ver mais",
-            "messages": "mensagens",
-            "searchPlaceholder": "Pesquisar conversas...",
-            "noMatchingConversations": "Nenhuma conversa correspondente encontrada",
-            "noConversationHistory": "Sem histórico de conversa",
-            "quickPrompts": {
-              "title": "Início Rápido",
-              "writeNote": "Ajude-me a escrever uma nota",
-              "summarize": "Ajude-me a resumir este conteúdo",
-              "brainstorm": "Ajude-me a brainstormar ideias",
-              "explain": "Ajude-me a explicar este conceito"
-            }
+            "modeHintSuffix": "para alternar o modo de conversa"
           },
           "content": {
             "organize": "Organize seus registros em um artigo:"
@@ -1777,14 +1818,7 @@
             "rootDirectory": "Diretório raiz",
             "deleteTag": "Excluir tag atual, registros e notas (pode ser restaurado da lixeira)",
             "warning": "Após a conversão, você será redirecionado para a página de escrita.",
-            "convert_button": "Converter",
-            "organizeAs": "Organize seus registros em um artigo:",
-            "templateContent": "Conteúdo do template",
-            "recordRange": "Intervalo de registros",
-            "filterThinkingContent": "Remover conteúdo de 'pensamento' dos registros",
-            "startOrganize": "Começar a organizar",
-            "manageTemplate": "Gerenciar template",
-            "cancel": "Cancelar"
+            "convert_button": "Converter"
           },
           "mark": {
             "recorded": "Gravado",
@@ -1840,14 +1874,6 @@
         "viewFolder": "Ver na Pasta",
         "viewFile": "Ver Arquivo Original",
         "deleteForever": "Excluir Permanentemente",
-        "sortByName": "Ordenar por Nome",
-        "sortByCreated": "Ordenar por Data de Criação",
-        "sortByModified": "Ordenar por Data de Modificação",
-        "sortAsc": "Ordem Crescente",
-        "sortDesc": "Ordem Decrescente",
-        "sort": "Ordenar",
-        "processingVectors": "Processando Dados Vetoriais",
-        "calculateVectors": "Calcular Vetores de Documento",
         "multiSelect": "Seleção Múltipla",
         "multiSelectMode": "Modo de Seleção Múltipla",
         "exitMultiSelect": "Sair da Seleção Múltipla",
@@ -1895,24 +1921,8 @@
         "currentPrompt": "Prompt Atual",
         "noModel": "Nenhum modelo definido",
         "noPrompt": "Nenhum prompt definido",
-        "modeHint": "Clique no botão",
-        "modeHintSuffix": "à esquerda da caixa de entrada para alternar o modo de conversa",
         "currentMode": "Modo de conversa",
         "configureModel": "Configurar modelo",
-        "features": [
-          {
-            "chat": "Converse com o assistente de IA"
-          },
-          {
-            "linked": "Vinculado aos seus registros ou notas"
-          },
-          {
-            "clipboard": "Reconhece texto e imagens da área de transferência"
-          },
-          {
-            "organize": "Organiza seus registros em notas"
-          }
-        ],
         "recentConversations": "Conversas Recentes",
         "deleteConversation": "Excluir Conversa",
         "conversationHistory": "Histórico",
@@ -2210,10 +2220,6 @@
       "article": "Artigo",
       "matches": "{count} correspondências",
       "scanType": "digitalização"
-    },
-    "mode": {
-      "fuzzy": "Aproximada",
-      "exact": "Exata"
     }
   },
   "image": {
@@ -2254,7 +2260,8 @@
     "showRightSidebar": "Mostrar Barra Lateral Direita",
     "searchPlaceholder": "Pesquisar notas ou registros...",
     "showCenterPanel": "Mostrar editor",
-    "hideCenterPanel": "Ocultar editor"
+    "hideCenterPanel": "Ocultar editor",
+    "navigate": "Navegar"
   },
   "activity": {
     "title": "Calendário de Atividade",
@@ -2317,8 +2324,7 @@
   "article": {
     "sync": {
       "syncingRemote": "Buscando arquivo remoto...",
-      "syncComplete": "Sincronização Concluída",
-      "pullingRemote": "Obtendo conteúdo mais recente do servidor remoto..."
+      "syncComplete": "Sincronização Concluída"
     },
     "syncConfirm": {
       "title": "Atualização de Arquivo Remoto Detectada",
@@ -2552,43 +2558,6 @@
         "pasteFailed": "Falha na operação de colar",
         "empty": "A área de transferência está vazia",
         "confirmOverwrite": "O arquivo já existe, deseja sobrescrevê-lo?",
-        "mark": {
-          "title": "Registros",
-          "tooltip": "Usar Registros",
-          "description": "Converta registros em conteúdo para inserir no artigo.",
-          "noRecords": "Nenhum registro",
-          "ocrNoContent": "OCR não reconheceu nenhum conteúdo"
-        },
-        "question": {
-          "tooltip": "Perguntas e Respostas",
-          "selectContent": "Por favor, selecione o conteúdo primeiro",
-          "promptTemplate": "Texto de referência: \n{content}\nCom base na pergunta: \n{question}\n, forneça diretamente o conteúdo da resposta."
-        },
-        "continue": {
-          "tooltip": "Continuar",
-          "promptTemplate": "Com base no texto anterior: \n{content}\n continue escrevendo e retorne um conteúdo que não exceda 100 palavras.\nVocê pode referenciar o seguinte texto: \n{endContent}\n, mas evite duplicar seu conteúdo."
-        },
-        "polish": {
-          "tooltip": "Polir",
-          "selectContent": "Por favor, selecione o conteúdo primeiro",
-          "promptTemplate": "Polir este texto: \n{content}\n, mantenha o idioma inalterado, corrija erros de digitação e gramaticais, retorne diretamente o resultado polido."
-        },
-        "eraser": {
-          "tooltip": "Simplificar",
-          "selectContent": "Por favor, selecione o conteúdo primeiro",
-          "promptTemplate": "Simplificar este texto: \n{content}\n, este texto está muito verboso, reduza a contagem de palavras pela metade, mantenha o idioma inalterado, retorne diretamente o resultado otimizado."
-        },
-        "expansion": {
-          "tooltip": "Expandir",
-          "selectContent": "Por favor, selecione o conteúdo primeiro",
-          "promptTemplate": "Expandir este texto: \n{content}\n, este texto está muito curto, aumente a contagem de palavras pela metade, mantenha o idioma inalterado, retorne diretamente o resultado expandido."
-        },
-        "translation": {
-          "tooltip": "Traduzir",
-          "description": "Traduzir o texto selecionado",
-          "selectContent": "Por favor, selecione o conteúdo primeiro",
-          "promptTemplate": "Traduzir este texto: \n{content}\n, para {language}, retorne diretamente o resultado traduzido."
-        },
         "notSupported": "Esta ação não é suportada"
       },
       "deleteConfirm": "Confirmar exclusão deste arquivo?"
@@ -2616,9 +2585,6 @@
         }
       },
       "toolbar": {
-        "organize": {
-          "tooltip": "Organizar Notas"
-        },
         "mark": {
           "title": "Registros",
           "tooltip": "Registros",
@@ -2695,8 +2661,6 @@
         "ignoreUpdate": "Ignorar Esta Atualização"
       },
       "sync": {
-        "sync": "Sincronizar",
-        "synced": "Sincronizado",
         "syncing": "Sincronizando",
         "syncFailed": "Falha na Sincronização",
         "checkNetworkOrToken": "Por favor, verifique a conexão de rede ou o token",
@@ -2772,9 +2736,7 @@
         "tools": {
           "title": "Ferramentas",
           "clearContext": "Limpar Contexto",
-          "clearContextDesc": "Limpar contexto da conversa, manter histórico",
           "clearChat": "Limpar Chat",
-          "clearChatDesc": "Excluir todos os registros de chat",
           "clear": "Limpar",
           "newChat": "开始新对话",
           "start": "开始"
@@ -2836,129 +2798,6 @@
       "model": "Reconhecimento por Modelo de IA",
       "modelDesc": "Requer modelo STT, mais preciso"
     }
-  },
-  "editor": {
-    "placeholder": "Digite / para abrir o menu, ou comece a escrever...",
-    "outline": {
-      "title": "Esboço",
-      "open": "Abrir Esboço",
-      "close": "Fechar Esboço",
-      "empty": "Nenhum título",
-      "noResults": "Nenhum título encontrado",
-      "searchPlaceholder": "Pesquisar títulos",
-      "clearSearch": "Limpar pesquisa",
-      "expandHeading": "Expandir {title}",
-      "collapseHeading": "Recolher {title}",
-      "untitledHeading": "Sem título H{level}",
-      "resizeHandle": "Arraste para redimensionar o sumário",
-      "editHeading": "Editar título {title}"
-    },
-    "copySuccess": "Cópia Bem-sucedida",
-    "copySuccessDescription": "Copiado para a área de transferência",
-    "search": {
-      "placeholder": "Localizar no documento",
-      "replacePlaceholder": "Substituir por",
-      "caseSensitive": "Diferenciar maiúsculas e minúsculas",
-      "replace": "Substituir",
-      "replaceAll": "Substituir tudo",
-      "findPrev": "Anterior",
-      "findNext": "Próximo"
-    },
-    "floatbar": {
-      "readAloud": {
-        "start": "Ler em Voz Alta",
-        "stop": "Parar Leitura",
-        "loading": "Carregando..."
-      }
-    },
-    "toolbar": {
-      "mark": {
-        "title": "Registros",
-        "tooltip": "Registros",
-        "description": "Converta registros em conteúdo para inserir no artigo.",
-        "noRecords": "Nenhum registro",
-        "ocrNoContent": "OCR não reconheceu nenhum conteúdo"
-      },
-      "question": {
-        "tooltip": "Perguntas e Respostas",
-        "selectContent": "Por favor, selecione o conteúdo primeiro",
-        "promptTemplate": "Texto de referência: \n{content}\nCom base na pergunta: \n{question}\n, forneça diretamente o conteúdo da resposta."
-      },
-      "continue": {
-        "tooltip": "Continuar",
-        "promptTemplate": "Com base no texto anterior: \n{content}\n continue escrevendo e retorne um conteúdo que não exceda 100 palavras.\nVocê pode referenciar o seguinte texto: \n{endContent}\n, mas evite duplicar seu conteúdo."
-      },
-      "polish": {
-        "tooltip": "Polir",
-        "selectContent": "Por favor, selecione o conteúdo primeiro",
-        "promptTemplate": "Polir este texto: \n{content}\n, mantenha o idioma inalterado, corrija erros de digitação e gramaticais, retorne diretamente o resultado polido."
-      },
-      "eraser": {
-        "tooltip": "Simplificar",
-        "selectContent": "Por favor, selecione o conteúdo primeiro",
-        "promptTemplate": "Simplificar este texto: \n{content}\n, este texto está muito verboso, reduza a contagem de palavras pela metade, mantenha o idioma inalterado, retorne diretamente o resultado otimizado."
-      },
-      "expansion": {
-        "tooltip": "Expandir",
-        "selectContent": "Por favor, selecione o conteúdo primeiro",
-        "promptTemplate": "Expandir este texto: \n{content}\n, este texto está muito curto, aumente a contagem de palavras pela metade, mantenha o idioma inalterado, retorne diretamente o resultado expandido."
-      },
-      "translation": {
-        "tooltip": "Traduzir",
-        "description": "Traduzir o texto selecionado",
-        "selectContent": "Por favor, selecione o conteúdo primeiro",
-        "promptTemplate": "Traduzir este texto: \n{content}\n, para {language}, retorne diretamente o resultado traduzido.",
-        "fail": "Falha na tradução",
-        "failNoSelection": "Por favor, selecione o texto para traduzir",
-        "translating": "Traduzindo...",
-        "translatingTo": "Traduzindo para {language}...",
-        "success": "Tradução concluída",
-        "successTo": "Traduzido para {language}",
-        "customLanguageEmpty": "Por favor, digite o idioma de destino",
-        "customLanguageExample": "ex.: Inglês, Japonês, Francês, etc."
-      },
-      "quoteDisplay": {
-        "fromFile": "Citado de {fileName}",
-        "line": "Citado de {fileName} linha {line}",
-        "lines": "Citado de {fileName} linhas {start}-{end}"
-      }
-    },
-    "upload": {
-      "error": "Falha no upload",
-      "needToken": "O upload de imagens precisa configurar o accessToken",
-      "uploading": "Enviando imagem"
-    }
-  },
-  "footer": {
-    "wordCount": "Palavras",
-    "sync": {
-      "push": "Push",
-      "pushed": "Enviado",
-      "syncing": "Enviando",
-      "syncFailed": "Falha no Push",
-      "checkNetworkOrToken": "Por favor, verifique a conexão de rede ou o token",
-      "quickSync": "Sincronização Rápida"
-    },
-    "history": {
-      "loadingHistory": "Carregando histórico",
-      "historyRecords": "Registros do Histórico",
-      "noHistory": "Nenhum Histórico",
-      "loading": "Carregando",
-      "recordsCount": "registros",
-      "filterQuickSync": "Filtrar Sincronizações Rápidas",
-      "committedAt": "enviado em",
-      "pull": "Pull",
-      "quickSync": "Sincronização Rápida"
-    },
-    "vectorCalc": {
-      "tooltip": "Cálculo Vetorial: Cálculo automático 30s após a edição, ou clique para calcular agora",
-      "calculating": "Calculando",
-      "pending": "Pendente {progress}%",
-      "synced": "Sincronizado"
-    }
-  },
-  "quickRecord": {
-    "description": "Clique para selecionar uma ferramenta de registro e criar registros rapidamente"
   },
   "editor": {
     "bubbleMenu": {
@@ -3024,7 +2863,8 @@
       "delete": "Excluir imagem",
       "reset": "Redefinir",
       "confirm": "Confirmar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "failed": "Falha ao processar imagem"
     },
     "mermaid": {
       "rendering": "Renderizando...",
@@ -3119,6 +2959,9 @@
         "failed": "Falha ao inserir imagem"
       }
     }
+  },
+  "quickRecord": {
+    "description": "Clique para selecionar uma ferramenta de registro e criar registros rapidamente"
   },
   "tabContext": {
     "close": "Fechar",

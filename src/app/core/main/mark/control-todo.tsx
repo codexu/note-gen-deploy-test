@@ -22,7 +22,7 @@ import {
 import { insertMark } from "@/db/marks"
 import useTagStore from "@/stores/tag"
 import { CheckSquare } from "lucide-react"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import emitter from "@/lib/emitter"
 import { useIsMobile } from '@/hooks/use-mobile'
 import { isMobileDevice as checkIsMobileDevice } from '@/lib/check'
@@ -38,6 +38,7 @@ export function ControlTodo() {
     priority: 'medium'
   })
   const isMobile = useIsMobile() || checkIsMobileDevice()
+  const titleInputRef = useRef<HTMLInputElement | null>(null)
   const completeRecord = useRecordCompletion()
 
   const { currentTagId, tags } = useTagStore()
@@ -99,24 +100,32 @@ export function ControlTodo() {
     }
   }, [open, currentTagId])
 
+  const handleDrawerAnimationEnd = useCallback((drawerOpen: boolean) => {
+    if (!drawerOpen) return
+
+    titleInputRef.current?.focus()
+  }, [])
+
   const formContent = (
     <TodoForm
       mode="create"
       data={formData}
       onChange={setFormData}
+      autoFocus={!isMobile}
+      titleInputRef={titleInputRef}
       selectedTagId={selectedTagId}
       onTagChange={setSelectedTagId}
-    tags={tags}
-    showTagSelector={true}
-    onSubmit={handleSuccess}
-    onCancel={() => setOpen(false)}
-  />
+      tags={tags}
+      showTagSelector={true}
+      onSubmit={handleSuccess}
+      onCancel={() => setOpen(false)}
+    />
   )
 
   return (
     <>
       {isMobile ? (
-        <Drawer open={open} onOpenChange={handleOpenChange}>
+        <Drawer open={open} onOpenChange={handleOpenChange} onAnimationEnd={handleDrawerAnimationEnd}>
           <DrawerTrigger asChild>
             <TooltipButton icon={<CheckSquare />} tooltipText={t('record.mark.type.todo')} />
           </DrawerTrigger>

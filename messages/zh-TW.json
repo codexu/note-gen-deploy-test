@@ -3,44 +3,6 @@
     "title": "筆記生成器",
     "description": "你的 AI 驅動的筆記助手"
   },
-  "common": {
-    "save": "保存",
-    "cancel": "取消",
-    "delete": "刪除",
-    "confirm": "確認",
-    "edit": "編輯",
-    "create": "創建",
-    "theme": "主題",
-    "light": "亮色",
-    "dark": "暗色",
-    "system": "跟隨系統",
-    "pin": "置頂",
-    "unpin": "取消置頂",
-    "settings": "設置",
-    "back": "返回",
-    "sync": "同步",
-    "language": "語言",
-    "success": "成功",
-    "error": "失敗",
-    "defaultFileName": "未命名文件",
-    "restartToApply": "，請重啟應用使配置生效",
-    "close": "關閉",
-    "open": "打開",
-    "add": "添加",
-    "remove": "移除",
-    "search": "搜索",
-    "filter": "篩選",
-    "sort": "排序",
-    "export": "導出",
-    "import": "導入",
-    "refresh": "刷新",
-    "loading": "加載中...",
-    "warning": "警告",
-    "info": "信息",
-    "unsaved": "未保存",
-    "saving": "保存中...",
-    "configureSync": "配置同步"
-  },
   "tray": {
     "quickRecord": "快速記錄",
     "moreRecord": "更多記錄",
@@ -486,7 +448,6 @@
       "stats": {
         "total": "總記憶數",
         "preferences": "偏好",
-        "knowledge": "知識",
         "memories": "记忆"
       },
       "form": {
@@ -495,7 +456,6 @@
         "contentPlaceholder": "例如：我喜歡用中文回答、我是React專家...",
         "categoryLabel": "類型",
         "preferenceDesc": "偏好（語言、格式、風格等）",
-        "knowledgeDesc": "知識（事實、經驗、專長等）",
         "save": "儲存記憶",
         "saving": "儲存中...",
         "categoryDescription": "记忆分为两种类型：",
@@ -510,13 +470,11 @@
       "empty": "暫無記憶，新增第一條記憶吧！",
       "emptyHint": "你可以手動新增記憶，或在對話中使用「請記住」「記住這個」等話術讓 AI 自動記憶。",
       "preference": "偏好",
-      "knowledge": "知識",
       "replaced": "已替換",
       "accessCount": "存取 {count} 次",
       "tabs": {
         "all": "全部",
         "preference": "偏好",
-        "knowledge": "知識",
         "memory": "记忆"
       },
       "success": "成功",
@@ -578,20 +536,22 @@
     },
     "readAloud": {
       "title": "朗讀",
-      "desc": "在這裡，你可以配置朗讀相關設置，為聊天內容提供語音播放功能。",
-      "noModel": "不使用模型",
-      "alert": {
-        "title": "你正在使用系統朗讀",
-        "description": "當前未配置音訊模型，正在使用系統朗讀。"
-      },
+      "desc": "配置文字朗讀方式，預設優先使用系統語音，模型作為增強能力。",
       "options": {
+        "mode": {
+          "title": "運行方式",
+          "desc": "自動模式會優先使用系統語音，不可用時再嘗試模型。",
+          "auto": "自動（推薦）",
+          "local": "僅本地",
+          "model": "僅模型"
+        },
         "audioModel": {
-          "title": "音訊模型",
-          "desc": "選擇用於文本轉語音的AI模型，支持多種語音類型和參數配置。"
+          "title": "朗讀模型",
+          "desc": "可選。配置後可在自動模式下增強體驗，或在僅模型模式下使用。"
         },
         "speed": {
           "title": "語速",
-          "desc": "調整語音播放的速度，範圍從0.25倍到4倍速度，預設為1倍正常速度。"
+          "desc": "調整朗讀速度，範圍從0.5倍到2倍，預設為1倍。"
         }
       }
     },
@@ -1294,56 +1254,206 @@
           "insert": "插入"
         },
         "commands": {
-          "undo": { "title": "復原", "desc": "復原上一次編輯。" },
-          "redo": { "title": "重做", "desc": "恢復剛復原的編輯。" },
-          "setParagraph": { "title": "段落", "desc": "將目前區塊設為普通段落。" },
-          "toggleHeading1": { "title": "標題 1", "desc": "切換一級標題。" },
-          "toggleHeading2": { "title": "標題 2", "desc": "切換二級標題。" },
-          "toggleHeading3": { "title": "標題 3", "desc": "切換三級標題。" },
-          "toggleHeading4": { "title": "標題 4", "desc": "切換四級標題。" },
-          "toggleHeading5": { "title": "標題 5", "desc": "切換五級標題。" },
-          "toggleHeading6": { "title": "標題 6", "desc": "切換六級標題。" },
-          "openSearch": { "title": "查找 / 替換", "desc": "打開編輯器內搜尋面板。" },
-          "openSlashCommand": { "title": "Slash 選單", "desc": "在游標處打開編輯器命令選單。" },
-          "toggleOutline": { "title": "大綱", "desc": "顯示或隱藏目前文件大綱。" },
-          "toggleBold": { "title": "粗體", "desc": "切換選中文本或後續輸入的粗體樣式。" },
-          "toggleItalic": { "title": "斜體", "desc": "切換斜體樣式。" },
-          "toggleStrike": { "title": "刪除線", "desc": "切換刪除線樣式。" },
-          "toggleUnderline": { "title": "底線", "desc": "切換底線樣式。" },
-          "toggleInlineCode": { "title": "行內程式碼", "desc": "切換行內程式碼樣式。" },
-          "toggleHighlight": { "title": "高亮", "desc": "切換高亮樣式。" },
-          "openLinkInput": { "title": "連結", "desc": "打開連結輸入框。" },
-          "toggleBlockquote": { "title": "引用區塊", "desc": "切換引用區塊。" },
-          "toggleBulletList": { "title": "無序列表", "desc": "切換無序列表。" },
-          "toggleOrderedList": { "title": "有序列表", "desc": "切換有序列表。" },
-          "toggleTaskList": { "title": "任務列表", "desc": "切換任務列表。" },
-          "toggleCodeBlock": { "title": "程式碼區塊", "desc": "切換程式碼區塊。" },
-          "quoteToChat": { "title": "引用到聊天", "desc": "將選中內容發送到 AI 對話引用區。" },
-          "openAiMenu": { "title": "AI 動作選單", "desc": "打開選中文本的 AI 操作選單。" },
-          "aiContinue": { "title": "AI 續寫", "desc": "基於游標前內容繼續寫作。" },
-          "aiPolish": { "title": "AI 潤色", "desc": "潤色選中文本。" },
-          "aiConcise": { "title": "AI 精簡", "desc": "精簡選中文本。" },
-          "aiExpand": { "title": "AI 擴寫", "desc": "擴寫選中文本。" },
-          "aiTranslate": { "title": "AI 翻譯", "desc": "打開選中文本的翻譯選單。" },
-          "acceptAiSuggestion": { "title": "接受 AI 建議", "desc": "AI 建議浮層打開時接受目前結果。" },
-          "rejectAiSuggestion": { "title": "拒絕 AI 建議", "desc": "AI 建議浮層打開時還原原文。" },
-          "abortAiGeneration": { "title": "終止 AI 生成", "desc": "終止目前 AI 生成任務。" },
-          "insertTable": { "title": "插入表格", "desc": "插入預設三列表格。" },
-          "addColumnBefore": { "title": "左側插入列", "desc": "在目前儲存格左側插入一列。" },
-          "addColumnAfter": { "title": "右側插入列", "desc": "在目前儲存格右側插入一列。" },
-          "addRowBefore": { "title": "上方插入行", "desc": "在目前儲存格上方插入一行。" },
-          "addRowAfter": { "title": "下方插入行", "desc": "在目前儲存格下方插入一行。" },
-          "deleteColumn": { "title": "刪除列", "desc": "刪除目前表格列。" },
-          "deleteRow": { "title": "刪除行", "desc": "刪除目前表格行。" },
-          "deleteTable": { "title": "刪除表格", "desc": "刪除目前表格。" },
-          "alignLeft": { "title": "左對齊", "desc": "設定文本或表格儲存格左對齊。" },
-          "alignCenter": { "title": "置中對齊", "desc": "設定文本或表格儲存格置中對齊。" },
-          "alignRight": { "title": "右對齊", "desc": "設定文本或表格儲存格右對齊。" },
-          "insertImage": { "title": "插入圖片", "desc": "選擇並插入本機圖片。" },
-          "insertInlineMath": { "title": "插入行內公式", "desc": "打開行內 LaTeX 公式輸入框。" },
-          "insertBlockMath": { "title": "插入區塊公式", "desc": "打開區塊 LaTeX 公式輸入框。" },
-          "insertMermaid": { "title": "插入 Mermaid 圖", "desc": "插入預設 Mermaid 流程圖。" },
-          "insertHorizontalRule": { "title": "插入分割線", "desc": "在目前位置插入水平分割線。" }
+          "undo": {
+            "title": "復原",
+            "desc": "復原上一次編輯。"
+          },
+          "redo": {
+            "title": "重做",
+            "desc": "恢復剛復原的編輯。"
+          },
+          "setParagraph": {
+            "title": "段落",
+            "desc": "將目前區塊設為普通段落。"
+          },
+          "toggleHeading1": {
+            "title": "標題 1",
+            "desc": "切換一級標題。"
+          },
+          "toggleHeading2": {
+            "title": "標題 2",
+            "desc": "切換二級標題。"
+          },
+          "toggleHeading3": {
+            "title": "標題 3",
+            "desc": "切換三級標題。"
+          },
+          "toggleHeading4": {
+            "title": "標題 4",
+            "desc": "切換四級標題。"
+          },
+          "toggleHeading5": {
+            "title": "標題 5",
+            "desc": "切換五級標題。"
+          },
+          "toggleHeading6": {
+            "title": "標題 6",
+            "desc": "切換六級標題。"
+          },
+          "openSearch": {
+            "title": "查找 / 替換",
+            "desc": "打開編輯器內搜尋面板。"
+          },
+          "openSlashCommand": {
+            "title": "Slash 選單",
+            "desc": "在游標處打開編輯器命令選單。"
+          },
+          "toggleOutline": {
+            "title": "大綱",
+            "desc": "顯示或隱藏目前文件大綱。"
+          },
+          "toggleBold": {
+            "title": "粗體",
+            "desc": "切換選中文本或後續輸入的粗體樣式。"
+          },
+          "toggleItalic": {
+            "title": "斜體",
+            "desc": "切換斜體樣式。"
+          },
+          "toggleStrike": {
+            "title": "刪除線",
+            "desc": "切換刪除線樣式。"
+          },
+          "toggleUnderline": {
+            "title": "底線",
+            "desc": "切換底線樣式。"
+          },
+          "toggleInlineCode": {
+            "title": "行內程式碼",
+            "desc": "切換行內程式碼樣式。"
+          },
+          "toggleHighlight": {
+            "title": "高亮",
+            "desc": "切換高亮樣式。"
+          },
+          "openLinkInput": {
+            "title": "連結",
+            "desc": "打開連結輸入框。"
+          },
+          "toggleBlockquote": {
+            "title": "引用區塊",
+            "desc": "切換引用區塊。"
+          },
+          "toggleBulletList": {
+            "title": "無序列表",
+            "desc": "切換無序列表。"
+          },
+          "toggleOrderedList": {
+            "title": "有序列表",
+            "desc": "切換有序列表。"
+          },
+          "toggleTaskList": {
+            "title": "任務列表",
+            "desc": "切換任務列表。"
+          },
+          "toggleCodeBlock": {
+            "title": "程式碼區塊",
+            "desc": "切換程式碼區塊。"
+          },
+          "quoteToChat": {
+            "title": "引用到聊天",
+            "desc": "將選中內容發送到 AI 對話引用區。"
+          },
+          "openAiMenu": {
+            "title": "AI 動作選單",
+            "desc": "打開選中文本的 AI 操作選單。"
+          },
+          "aiContinue": {
+            "title": "AI 續寫",
+            "desc": "基於游標前內容繼續寫作。"
+          },
+          "aiPolish": {
+            "title": "AI 潤色",
+            "desc": "潤色選中文本。"
+          },
+          "aiConcise": {
+            "title": "AI 精簡",
+            "desc": "精簡選中文本。"
+          },
+          "aiExpand": {
+            "title": "AI 擴寫",
+            "desc": "擴寫選中文本。"
+          },
+          "aiTranslate": {
+            "title": "AI 翻譯",
+            "desc": "打開選中文本的翻譯選單。"
+          },
+          "acceptAiSuggestion": {
+            "title": "接受 AI 建議",
+            "desc": "AI 建議浮層打開時接受目前結果。"
+          },
+          "rejectAiSuggestion": {
+            "title": "拒絕 AI 建議",
+            "desc": "AI 建議浮層打開時還原原文。"
+          },
+          "abortAiGeneration": {
+            "title": "終止 AI 生成",
+            "desc": "終止目前 AI 生成任務。"
+          },
+          "insertTable": {
+            "title": "插入表格",
+            "desc": "插入預設三列表格。"
+          },
+          "addColumnBefore": {
+            "title": "左側插入列",
+            "desc": "在目前儲存格左側插入一列。"
+          },
+          "addColumnAfter": {
+            "title": "右側插入列",
+            "desc": "在目前儲存格右側插入一列。"
+          },
+          "addRowBefore": {
+            "title": "上方插入行",
+            "desc": "在目前儲存格上方插入一行。"
+          },
+          "addRowAfter": {
+            "title": "下方插入行",
+            "desc": "在目前儲存格下方插入一行。"
+          },
+          "deleteColumn": {
+            "title": "刪除列",
+            "desc": "刪除目前表格列。"
+          },
+          "deleteRow": {
+            "title": "刪除行",
+            "desc": "刪除目前表格行。"
+          },
+          "deleteTable": {
+            "title": "刪除表格",
+            "desc": "刪除目前表格。"
+          },
+          "alignLeft": {
+            "title": "左對齊",
+            "desc": "設定文本或表格儲存格左對齊。"
+          },
+          "alignCenter": {
+            "title": "置中對齊",
+            "desc": "設定文本或表格儲存格置中對齊。"
+          },
+          "alignRight": {
+            "title": "右對齊",
+            "desc": "設定文本或表格儲存格右對齊。"
+          },
+          "insertImage": {
+            "title": "插入圖片",
+            "desc": "選擇並插入本機圖片。"
+          },
+          "insertInlineMath": {
+            "title": "插入行內公式",
+            "desc": "打開行內 LaTeX 公式輸入框。"
+          },
+          "insertBlockMath": {
+            "title": "插入區塊公式",
+            "desc": "打開區塊 LaTeX 公式輸入框。"
+          },
+          "insertMermaid": {
+            "title": "插入 Mermaid 圖",
+            "desc": "插入預設 Mermaid 流程圖。"
+          },
+          "insertHorizontalRule": {
+            "title": "插入分割線",
+            "desc": "在目前位置插入水平分割線。"
+          }
         }
       },
       "shortcuts": {
@@ -1447,27 +1557,7 @@
         }
       }
     },
-    "readAloud": {
-      "title": "朗讀",
-      "desc": "配置文字朗讀方式，預設優先使用系統語音，模型作為增強能力。",
-      "options": {
-        "mode": {
-          "title": "運行方式",
-          "desc": "自動模式會優先使用系統語音，不可用時再嘗試模型。",
-          "auto": "自動（推薦）",
-          "local": "僅本地",
-          "model": "僅模型"
-        },
-        "audioModel": {
-          "title": "朗讀模型",
-          "desc": "可選。配置後可在自動模式下增強體驗，或在僅模型模式下使用。"
-        },
-        "speed": {
-          "title": "語速",
-          "desc": "調整朗讀速度，範圍從0.5倍到2倍，預設為1倍。"
-        }
-      }
-    }
+    "title": "設定"
   },
   "record": {
     "trash": {
@@ -1727,25 +1817,8 @@
             "subtitle": "使用 Chat 或 Agent 模式與 AI 互動",
             "currentModel": "當前模型",
             "currentPrompt": "當前 Prompt",
-            "currentMode": "對話模式",
             "noModel": "未設置模型",
             "noPrompt": "未設置 Prompt",
-            "configureModel": "配置模型",
-            "recentConversations": "最近對話",
-            "deleteConversation": "刪除對話",
-            "conversationHistory": "歷史對話",
-            "viewMore": "查看更多",
-            "messages": "條消息",
-            "searchPlaceholder": "搜索對話...",
-            "noMatchingConversations": "沒有找到匹配的對話",
-            "noConversationHistory": "暫無歷史對話",
-            "quickPrompts": {
-              "title": "快速開始",
-              "writeNote": "幫我寫一篇筆記",
-              "summarize": "幫我總結這段內容",
-              "brainstorm": "幫我頭腦風暴一些想法",
-              "explain": "幫我解釋這個概念"
-            },
             "modeHint": "點擊輸入框左側的",
             "modeHintSuffix": "按鈕可切換對話模式"
           },
@@ -1849,20 +1922,6 @@
     },
     "chat": {
       "empty": {
-        "features": [
-          {
-            "chat": "與 AI 機器人進行聊天"
-          },
-          {
-            "linked": "已與你的紀錄或筆記關聯"
-          },
-          {
-            "clipboard": "識別剪貼簿中的文字和圖片"
-          },
-          {
-            "organize": "將你的紀錄整理為筆記"
-          }
-        ],
         "title": "開始與 AI 對話",
         "subtitle": "使用 Chat 或 Agent 模式與 AI 互動",
         "currentModel": "當前模型",
@@ -2163,10 +2222,6 @@
     "results": "{count} 個搜索結果",
     "noResults": "暫無搜索結果",
     "tryDifferentKeywords": "嘗試使用不同的關鍵字搜索",
-    "mode": {
-      "fuzzy": "模糊",
-      "exact": "精確"
-    },
     "item": {
       "record": "記錄",
       "article": "文章",
@@ -2212,7 +2267,8 @@
     "showRightSidebar": "顯示右側邊欄",
     "searchPlaceholder": "搜索筆記或記錄...",
     "showCenterPanel": "显示编辑器",
-    "hideCenterPanel": "隐藏编辑器"
+    "hideCenterPanel": "隐藏编辑器",
+    "navigate": "導覽"
   },
   "activity": {
     "title": "活躍度日曆",
@@ -2275,8 +2331,7 @@
   "article": {
     "sync": {
       "syncingRemote": "正在拉取遠端檔案...",
-      "syncComplete": "同步完成",
-      "pullingRemote": "正在從遠端伺服器獲取最新內容..."
+      "syncComplete": "同步完成"
     },
     "syncConfirm": {
       "title": "檢測到遠端檔案更新",
@@ -2542,9 +2597,6 @@
         "uploading": "正在上傳圖片"
       },
       "toolbar": {
-        "organize": {
-          "tooltip": "整理筆記"
-        },
         "mark": {
           "title": "使用記錄",
           "tooltip": "使用記錄",
@@ -2691,9 +2743,7 @@
         "tools": {
           "title": "工具",
           "clearContext": "清除上下文",
-          "clearContextDesc": "清除對話上下文，保留聊天記錄",
           "clearChat": "清空對話",
-          "clearChatDesc": "刪除所有聊天記錄",
           "clear": "清除",
           "newChat": "开始新对话",
           "start": "开始"
@@ -2853,7 +2903,8 @@
       "delete": "刪除圖片",
       "reset": "重置",
       "confirm": "確認",
-      "cancel": "取消"
+      "cancel": "取消",
+      "failed": "圖片處理失敗"
     },
     "mermaid": {
       "rendering": "渲染中...",

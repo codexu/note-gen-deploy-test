@@ -3,47 +3,6 @@
     "title": "笔记生成器",
     "description": "你的 AI 驱动的笔记助手"
   },
-  "common": {
-    "save": "保存",
-    "cancel": "取消",
-    "delete": "删除",
-    "confirm": "确认",
-    "edit": "编辑",
-    "create": "创建",
-    "theme": "主题",
-    "light": "亮色",
-    "dark": "暗色",
-    "system": "跟随系统",
-    "pin": "置顶",
-    "unpin": "取消置顶",
-    "settings": "设置",
-    "sync": "同步",
-    "language": "语言",
-    "success": "成功",
-    "error": "失败",
-    "defaultFileName": "未命名文档",
-    "back": "返回",
-    "close": "关闭",
-    "open": "打开",
-    "add": "添加",
-    "remove": "移除",
-    "search": "搜索",
-    "filter": "筛选",
-    "sort": "排序",
-    "export": "导出",
-    "import": "导入",
-    "refresh": "刷新",
-    "loading": "加载中...",
-    "all": "全部",
-    "today": "今天",
-    "yesterday": "昨天",
-    "warning": "警告",
-    "info": "信息",
-    "restartToApply": "，请重启应用使配置生效",
-    "unsaved": "未保存",
-    "saving": "保存中...",
-    "configureSync": "配置同步"
-  },
   "tray": {
     "quickRecord": "快速记录",
     "moreRecord": "更多记录",
@@ -1380,56 +1339,206 @@
           "insert": "插入"
         },
         "commands": {
-          "undo": { "title": "撤销", "desc": "撤销上一次编辑。" },
-          "redo": { "title": "重做", "desc": "恢复刚撤销的编辑。" },
-          "setParagraph": { "title": "段落", "desc": "将当前块设置为普通段落。" },
-          "toggleHeading1": { "title": "标题 1", "desc": "切换一级标题。" },
-          "toggleHeading2": { "title": "标题 2", "desc": "切换二级标题。" },
-          "toggleHeading3": { "title": "标题 3", "desc": "切换三级标题。" },
-          "toggleHeading4": { "title": "标题 4", "desc": "切换四级标题。" },
-          "toggleHeading5": { "title": "标题 5", "desc": "切换五级标题。" },
-          "toggleHeading6": { "title": "标题 6", "desc": "切换六级标题。" },
-          "openSearch": { "title": "查找 / 替换", "desc": "打开编辑器内搜索面板。" },
-          "openSlashCommand": { "title": "Slash 菜单", "desc": "在光标处打开编辑器命令菜单。" },
-          "toggleOutline": { "title": "大纲", "desc": "显示或隐藏当前文档大纲。" },
-          "toggleBold": { "title": "加粗", "desc": "切换选中文本或后续输入的加粗样式。" },
-          "toggleItalic": { "title": "斜体", "desc": "切换斜体样式。" },
-          "toggleStrike": { "title": "删除线", "desc": "切换删除线样式。" },
-          "toggleUnderline": { "title": "下划线", "desc": "切换下划线样式。" },
-          "toggleInlineCode": { "title": "行内代码", "desc": "切换行内代码样式。" },
-          "toggleHighlight": { "title": "高亮", "desc": "切换高亮样式。" },
-          "openLinkInput": { "title": "链接", "desc": "打开链接输入框。" },
-          "toggleBlockquote": { "title": "引用块", "desc": "切换引用块。" },
-          "toggleBulletList": { "title": "无序列表", "desc": "切换无序列表。" },
-          "toggleOrderedList": { "title": "有序列表", "desc": "切换有序列表。" },
-          "toggleTaskList": { "title": "任务列表", "desc": "切换任务列表。" },
-          "toggleCodeBlock": { "title": "代码块", "desc": "切换代码块。" },
-          "quoteToChat": { "title": "引用到聊天", "desc": "将选中内容发送到 AI 对话引用区。" },
-          "openAiMenu": { "title": "AI 动作菜单", "desc": "打开选中文本的 AI 操作菜单。" },
-          "aiContinue": { "title": "AI 续写", "desc": "基于光标前内容继续写作。" },
-          "aiPolish": { "title": "AI 润色", "desc": "润色选中文本。" },
-          "aiConcise": { "title": "AI 精简", "desc": "精简选中文本。" },
-          "aiExpand": { "title": "AI 扩写", "desc": "扩写选中文本。" },
-          "aiTranslate": { "title": "AI 翻译", "desc": "打开选中文本的翻译菜单。" },
-          "acceptAiSuggestion": { "title": "接受 AI 建议", "desc": "AI 建议浮层打开时接受当前结果。" },
-          "rejectAiSuggestion": { "title": "拒绝 AI 建议", "desc": "AI 建议浮层打开时还原原文。" },
-          "abortAiGeneration": { "title": "终止 AI 生成", "desc": "终止当前 AI 生成任务。" },
-          "insertTable": { "title": "插入表格", "desc": "插入默认三列表格。" },
-          "addColumnBefore": { "title": "左侧插入列", "desc": "在当前单元格左侧插入一列。" },
-          "addColumnAfter": { "title": "右侧插入列", "desc": "在当前单元格右侧插入一列。" },
-          "addRowBefore": { "title": "上方插入行", "desc": "在当前单元格上方插入一行。" },
-          "addRowAfter": { "title": "下方插入行", "desc": "在当前单元格下方插入一行。" },
-          "deleteColumn": { "title": "删除列", "desc": "删除当前表格列。" },
-          "deleteRow": { "title": "删除行", "desc": "删除当前表格行。" },
-          "deleteTable": { "title": "删除表格", "desc": "删除当前表格。" },
-          "alignLeft": { "title": "左对齐", "desc": "设置文本或表格单元格左对齐。" },
-          "alignCenter": { "title": "居中对齐", "desc": "设置文本或表格单元格居中对齐。" },
-          "alignRight": { "title": "右对齐", "desc": "设置文本或表格单元格右对齐。" },
-          "insertImage": { "title": "插入图片", "desc": "选择并插入本地图片。" },
-          "insertInlineMath": { "title": "插入行内公式", "desc": "打开行内 LaTeX 公式输入框。" },
-          "insertBlockMath": { "title": "插入块级公式", "desc": "打开块级 LaTeX 公式输入框。" },
-          "insertMermaid": { "title": "插入 Mermaid 图", "desc": "插入默认 Mermaid 流程图。" },
-          "insertHorizontalRule": { "title": "插入分割线", "desc": "在当前位置插入水平分割线。" }
+          "undo": {
+            "title": "撤销",
+            "desc": "撤销上一次编辑。"
+          },
+          "redo": {
+            "title": "重做",
+            "desc": "恢复刚撤销的编辑。"
+          },
+          "setParagraph": {
+            "title": "段落",
+            "desc": "将当前块设置为普通段落。"
+          },
+          "toggleHeading1": {
+            "title": "标题 1",
+            "desc": "切换一级标题。"
+          },
+          "toggleHeading2": {
+            "title": "标题 2",
+            "desc": "切换二级标题。"
+          },
+          "toggleHeading3": {
+            "title": "标题 3",
+            "desc": "切换三级标题。"
+          },
+          "toggleHeading4": {
+            "title": "标题 4",
+            "desc": "切换四级标题。"
+          },
+          "toggleHeading5": {
+            "title": "标题 5",
+            "desc": "切换五级标题。"
+          },
+          "toggleHeading6": {
+            "title": "标题 6",
+            "desc": "切换六级标题。"
+          },
+          "openSearch": {
+            "title": "查找 / 替换",
+            "desc": "打开编辑器内搜索面板。"
+          },
+          "openSlashCommand": {
+            "title": "Slash 菜单",
+            "desc": "在光标处打开编辑器命令菜单。"
+          },
+          "toggleOutline": {
+            "title": "大纲",
+            "desc": "显示或隐藏当前文档大纲。"
+          },
+          "toggleBold": {
+            "title": "加粗",
+            "desc": "切换选中文本或后续输入的加粗样式。"
+          },
+          "toggleItalic": {
+            "title": "斜体",
+            "desc": "切换斜体样式。"
+          },
+          "toggleStrike": {
+            "title": "删除线",
+            "desc": "切换删除线样式。"
+          },
+          "toggleUnderline": {
+            "title": "下划线",
+            "desc": "切换下划线样式。"
+          },
+          "toggleInlineCode": {
+            "title": "行内代码",
+            "desc": "切换行内代码样式。"
+          },
+          "toggleHighlight": {
+            "title": "高亮",
+            "desc": "切换高亮样式。"
+          },
+          "openLinkInput": {
+            "title": "链接",
+            "desc": "打开链接输入框。"
+          },
+          "toggleBlockquote": {
+            "title": "引用块",
+            "desc": "切换引用块。"
+          },
+          "toggleBulletList": {
+            "title": "无序列表",
+            "desc": "切换无序列表。"
+          },
+          "toggleOrderedList": {
+            "title": "有序列表",
+            "desc": "切换有序列表。"
+          },
+          "toggleTaskList": {
+            "title": "任务列表",
+            "desc": "切换任务列表。"
+          },
+          "toggleCodeBlock": {
+            "title": "代码块",
+            "desc": "切换代码块。"
+          },
+          "quoteToChat": {
+            "title": "引用到聊天",
+            "desc": "将选中内容发送到 AI 对话引用区。"
+          },
+          "openAiMenu": {
+            "title": "AI 动作菜单",
+            "desc": "打开选中文本的 AI 操作菜单。"
+          },
+          "aiContinue": {
+            "title": "AI 续写",
+            "desc": "基于光标前内容继续写作。"
+          },
+          "aiPolish": {
+            "title": "AI 润色",
+            "desc": "润色选中文本。"
+          },
+          "aiConcise": {
+            "title": "AI 精简",
+            "desc": "精简选中文本。"
+          },
+          "aiExpand": {
+            "title": "AI 扩写",
+            "desc": "扩写选中文本。"
+          },
+          "aiTranslate": {
+            "title": "AI 翻译",
+            "desc": "打开选中文本的翻译菜单。"
+          },
+          "acceptAiSuggestion": {
+            "title": "接受 AI 建议",
+            "desc": "AI 建议浮层打开时接受当前结果。"
+          },
+          "rejectAiSuggestion": {
+            "title": "拒绝 AI 建议",
+            "desc": "AI 建议浮层打开时还原原文。"
+          },
+          "abortAiGeneration": {
+            "title": "终止 AI 生成",
+            "desc": "终止当前 AI 生成任务。"
+          },
+          "insertTable": {
+            "title": "插入表格",
+            "desc": "插入默认三列表格。"
+          },
+          "addColumnBefore": {
+            "title": "左侧插入列",
+            "desc": "在当前单元格左侧插入一列。"
+          },
+          "addColumnAfter": {
+            "title": "右侧插入列",
+            "desc": "在当前单元格右侧插入一列。"
+          },
+          "addRowBefore": {
+            "title": "上方插入行",
+            "desc": "在当前单元格上方插入一行。"
+          },
+          "addRowAfter": {
+            "title": "下方插入行",
+            "desc": "在当前单元格下方插入一行。"
+          },
+          "deleteColumn": {
+            "title": "删除列",
+            "desc": "删除当前表格列。"
+          },
+          "deleteRow": {
+            "title": "删除行",
+            "desc": "删除当前表格行。"
+          },
+          "deleteTable": {
+            "title": "删除表格",
+            "desc": "删除当前表格。"
+          },
+          "alignLeft": {
+            "title": "左对齐",
+            "desc": "设置文本或表格单元格左对齐。"
+          },
+          "alignCenter": {
+            "title": "居中对齐",
+            "desc": "设置文本或表格单元格居中对齐。"
+          },
+          "alignRight": {
+            "title": "右对齐",
+            "desc": "设置文本或表格单元格右对齐。"
+          },
+          "insertImage": {
+            "title": "插入图片",
+            "desc": "选择并插入本地图片。"
+          },
+          "insertInlineMath": {
+            "title": "插入行内公式",
+            "desc": "打开行内 LaTeX 公式输入框。"
+          },
+          "insertBlockMath": {
+            "title": "插入块级公式",
+            "desc": "打开块级 LaTeX 公式输入框。"
+          },
+          "insertMermaid": {
+            "title": "插入 Mermaid 图",
+            "desc": "插入默认 Mermaid 流程图。"
+          },
+          "insertHorizontalRule": {
+            "title": "插入分割线",
+            "desc": "在当前位置插入水平分割线。"
+          }
         }
       },
       "shortcuts": {
@@ -1446,7 +1555,8 @@
           "desc": "快速打开程序主窗口，并调出文本记录。"
         }
       }
-    }
+    },
+    "title": "设置"
   },
   "record": {
     "trash": {
@@ -2051,6 +2161,10 @@
           "searchPlaceholder": "搜索文件...",
           "noFiles": "未找到文件",
           "loading": "加载中..."
+        },
+        "clearChat": "清空对话",
+        "clearContext": {
+          "tooltip": "清除上下文"
         }
       },
       "header": {
@@ -2243,7 +2357,8 @@
     "hideCenterPanel": "隐藏编辑器",
     "showRightSidebar": "显示右侧边栏",
     "hideRightSidebar": "隐藏右侧边栏",
-    "searchPlaceholder": "搜索笔记或记录..."
+    "searchPlaceholder": "搜索笔记或记录...",
+    "navigate": "导航"
   },
   "activity": {
     "title": "活跃度日历",
@@ -2742,7 +2857,10 @@
         "tools": {
           "title": "工具",
           "newChat": "开始新对话",
-          "start": "开始"
+          "start": "开始",
+          "clear": "清除",
+          "clearChat": "清空对话",
+          "clearContext": "清除上下文"
         },
         "attachments": {
           "title": "附件",
@@ -2899,7 +3017,8 @@
       "delete": "删除图片",
       "reset": "重置",
       "confirm": "确认",
-      "cancel": "取消"
+      "cancel": "取消",
+      "failed": "图片处理失败"
     },
     "mermaid": {
       "rendering": "渲染中...",

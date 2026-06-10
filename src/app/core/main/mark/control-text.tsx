@@ -176,14 +176,20 @@ export function ControlText() {
   }, [currentTagId, open])
 
   useEffect(() => {
-    if (!open) return
+    if (!open || isMobile) return
 
     const focusTimer = window.setTimeout(() => {
       textAreaRef.current?.focus()
     }, 50)
 
     return () => window.clearTimeout(focusTimer)
-  }, [open])
+  }, [isMobile, open])
+
+  const handleDrawerAnimationEnd = useCallback((drawerOpen: boolean) => {
+    if (!drawerOpen) return
+
+    textAreaRef.current?.focus()
+  }, [])
 
   useEffect(() => {
     const handleOnboardingPrefillChange = (payload?: { prefillText?: string }) => {
@@ -206,7 +212,7 @@ export function ControlText() {
   return (
     <>
       {isMobile ? (
-        <Drawer open={open} onOpenChange={handleOpenChange}>
+        <Drawer open={open} onOpenChange={handleOpenChange} onAnimationEnd={handleDrawerAnimationEnd}>
           <DrawerTrigger asChild>
             <TooltipButton buttonId="onboarding-target-record-text" icon={<CopySlash />} tooltipText={t('record.mark.type.text')} />
           </DrawerTrigger>
@@ -229,7 +235,6 @@ export function ControlText() {
                 rows={10}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                autoFocus
               />
             </div>
             <DrawerFooter className="flex items-center justify-between gap-4">

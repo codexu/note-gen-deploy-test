@@ -34,6 +34,7 @@ import { joinRelativePath } from "@/lib/path"
 import { toast } from "@/hooks/use-toast"
 import emitter from "@/lib/emitter"
 import { shouldEmitOrganizeOnboardingComplete } from "./organize-onboarding"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -124,6 +125,7 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
   const { activeFilePath, fileTree, setActiveFilePath, loadFileTree, readArticle, setCurrentArticle, setSkipSyncOnSave, setAiGeneratingFilePath, setAiTerminateFn } = useArticleStore()
   const { setLeftSidebarTab } = useSidebarStore()
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [tab, setTab] = useState('0')
   const [genTemplate, setGenTemplate] = useState<GenTemplate[]>([])
   const [loading, setLoading] = useState(false)
@@ -325,16 +327,10 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
   ])
   const activeStepItem = stepItems[organizeStepIndex] ?? stepItems[0]
 
-  const handleStepSelect = useCallback((step: OrganizeStep) => {
-    if (step === 'records' && marksByRange.length === 0) return
-    if (step === 'settings' && selectedMarksByRange.length === 0) return
-    setOrganizeStep(step)
-  }, [marksByRange.length, selectedMarksByRange.length])
-
   const handleManageTemplate = useCallback(() => {
     setOpen(false)
-    router.push('/core/setting/template')
-  }, [router])
+    router.push(isMobile ? '/mobile/setting/pages/template' : '/core/setting/template')
+  }, [isMobile, router])
 
   const getMarkTypeLabel = useCallback((type: Mark['type']) => {
     return tGlobal(`record.mark.type.${type}`)
@@ -469,6 +465,10 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
 
       // Switch to files tab in sidebar
       await setLeftSidebarTab('files')
+
+      if (isMobile) {
+        router.push('/mobile/writing')
+      }
 
       await new Promise(resolve => setTimeout(resolve, 500))
 
@@ -751,7 +751,9 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
     setCurrentArticle,
     setLeftSidebarTab,
     setSkipSyncOnSave,
+    isMobile,
     tMark,
+    router,
     terminateGeneration,
   ])
 
@@ -793,13 +795,31 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
   return (
     <AlertDialog onOpenChange={setOpen} open={open}>
       <AlertDialogContent
-        className="flex h-[calc(100vh-2rem)] max-h-[760px] w-[calc(100vw-2rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0"
+        className={cn(
+          "flex flex-col gap-0 overflow-hidden p-0",
+          isMobile
+            ? "left-0 top-0 h-[100dvh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 rounded-none border-0 duration-0 data-[state=closed]:animate-none data-[state=open]:animate-none sm:rounded-none"
+            : "h-[calc(100vh-2rem)] max-h-[760px] w-[calc(100vw-2rem)] max-w-5xl"
+        )}
         onKeyDown={handleDialogKeyDown}
+        style={isMobile ? { animation: 'none' } : undefined}
       >
-        <AlertDialogHeader className="shrink-0 min-w-0 border-b px-6 py-4">
-          <div className="flex min-w-0 items-start justify-between gap-4">
+        <AlertDialogHeader
+          className={cn(
+            "shrink-0 min-w-0 border-b",
+            isMobile ? "px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]" : "px-6 py-4"
+          )}
+        >
+          <div className="flex min-w-0 items-start justify-between gap-3">
             <div className="min-w-0">
-              <AlertDialogTitle className="text-xl">{t('organizeAs')}</AlertDialogTitle>
+              <AlertDialogTitle className={cn(isMobile ? "text-lg leading-6" : "text-xl")}>{t('organizeAs')}</AlertDialogTitle>
+              {
+                isMobile ? (
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    {activeStepItem.title} · {selectedTemplateRangeLabel}
+                  </p>
+                ) : null
+              }
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Badge variant="secondary">
@@ -817,72 +837,90 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
             </div>
           </div>
         </AlertDialogHeader>
-        <div className="shrink-0 border-b bg-muted/20 px-5 py-4">
-          <div className="w-full min-w-0 overflow-x-auto">
-            <div className="grid min-w-[42rem] grid-cols-3 gap-2">
+        <div
+          className={cn(
+            "shrink-0 border-b",
+            isMobile ? "bg-background px-3 py-2" : "bg-muted/20 px-5 py-4"
+          )}
+        >
+          <div className={cn("w-full min-w-0", !isMobile && "overflow-x-auto")}>
+            <div className={cn("grid grid-cols-3 gap-2", !isMobile && "min-w-[42rem]")}>
               {
                 stepItems.map((item, index) => {
                   const Icon = item.icon
                   const isActive = item.value === organizeStep
                   const isComplete = index < organizeStepIndex
                   return (
-                    <button
+                    <div
                       aria-current={isActive ? 'step' : undefined}
                       className={cn(
-                        "flex min-w-0 items-center gap-3 rounded-md border p-3 text-left transition-colors",
+                        "min-w-0 rounded-md border text-left",
+                        isMobile ? "flex flex-col items-center gap-1.5 px-2 py-2" : "flex items-center gap-3 p-3",
                         isActive && 'border-primary bg-background shadow-sm',
-                        !isActive && isComplete && 'border-border bg-background/80 hover:bg-background',
-                        !isActive && !isComplete && 'border-transparent hover:bg-background/70',
-                        item.disabled && 'cursor-not-allowed opacity-50'
+                        !isActive && isComplete && 'border-border bg-background/80',
+                        !isActive && !isComplete && 'border-transparent',
+                        item.disabled && 'opacity-50'
                       )}
-                      disabled={item.disabled}
                       key={item.value}
-                      type="button"
-                      onClick={() => handleStepSelect(item.value)}
                     >
                       <span
                         className={cn(
-                          "flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold",
+                          "flex shrink-0 items-center justify-center rounded-full border font-semibold",
+                          isMobile ? "size-7 text-xs" : "size-9 text-sm",
                           isActive && 'border-primary bg-primary text-primary-foreground',
                           !isActive && isComplete && 'border-primary bg-primary/10 text-primary',
                           !isActive && !isComplete && 'bg-background text-muted-foreground'
                         )}
                       >
-                        {isComplete ? <Check className="size-4" /> : item.number}
+                        {isComplete ? <Check className={cn(isMobile ? "size-3.5" : "size-4")} /> : item.number}
                       </span>
-                      <span className="min-w-0">
-                        <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
+                      <span className={cn("min-w-0", isMobile && "text-center")}>
+                        <span className={cn("flex min-w-0 items-center gap-1.5 font-medium", isMobile ? "justify-center text-xs" : "text-sm")}>
                           <Icon className="size-4 shrink-0" />
                           <span className="truncate">{item.title}</span>
                         </span>
-                        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{item.meta}</span>
+                        <span className={cn("mt-0.5 truncate text-xs text-muted-foreground", isMobile ? "hidden" : "block")}>{item.meta}</span>
                       </span>
-                    </button>
+                    </div>
                   )
                 })
               }
             </div>
           </div>
         </div>
-        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden px-6 py-5">
-          <div className="flex h-full w-full min-h-0 min-w-0 flex-col gap-4">
+        <main className={cn("flex min-h-0 min-w-0 flex-1 overflow-hidden", isMobile ? "px-3 py-3" : "px-6 py-5")}>
+          <div className={cn("flex h-full w-full min-h-0 min-w-0 flex-col", isMobile ? "gap-3" : "gap-4")}>
           {
             organizeStep === 'template' ? (
-              <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-4 overflow-y-auto pr-1">
-                <div className="flex min-w-0 flex-col gap-2">
+              <div className={cn(
+                "flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-y-auto",
+                isMobile ? "gap-3 pb-2" : "gap-4 pr-1"
+              )}>
+                <div className={cn("flex min-w-0 flex-col gap-2", isMobile && "rounded-2xl border bg-background p-3")}>
                   <div className="flex min-w-0 items-center justify-between gap-2">
                     <Label>{t('selectTemplate')}</Label>
-                    <Button className="h-8 gap-1 px-2" variant="outline" disabled={loading} onClick={handleManageTemplate}>
+                    <Button className={cn("h-8 gap-1 px-2", isMobile && "rounded-full text-xs")} variant="outline" disabled={loading} onClick={handleManageTemplate}>
                       <Pencil className="size-4" />
                       {t('manageTemplate')}
                     </Button>
                   </div>
                   <Tabs className="min-w-0" value={tab} onValueChange={handleTemplateChange}>
                     <div className="w-full min-w-0 overflow-x-auto pb-1">
-                    <TabsList className="min-w-full justify-start">
+                    <TabsList className={cn(
+                      "min-w-full justify-start",
+                      isMobile && "h-auto min-w-max gap-1 bg-transparent p-0"
+                    )}>
                       {
                         primaryTemplates.map(item => (
-                          <TabsTrigger className="shrink-0" value={item.id} key={item.id} title={item.title}>
+                          <TabsTrigger
+                            className={cn(
+                              "shrink-0",
+                              isMobile && "rounded-full border bg-background px-3 py-1.5 text-xs shadow-none data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
+                            )}
+                            value={item.id}
+                            key={item.id}
+                            title={item.title}
+                          >
                             <span className="max-w-32 truncate">{item.title}</span>
                           </TabsTrigger>
                         ))
@@ -891,12 +929,12 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                         overflowTemplates.length > 0 ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button className="h-7 shrink-0 gap-1 rounded-md px-2 text-sm" variant="ghost">
+                              <Button className={cn("h-7 shrink-0 gap-1 rounded-md px-2 text-sm", isMobile && "rounded-full border bg-background text-xs")} variant="ghost">
                                 {t('moreTemplates')}
                                 <ChevronDown className="size-3.5" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-72">
+                            <DropdownMenuContent align="start" className={cn("w-72", isMobile && "w-[calc(100vw-2rem)]")}>
                               <div className="flex items-center gap-2 px-2 py-1.5">
                                 <Search className="size-4 text-muted-foreground" />
                                 <Input
@@ -937,13 +975,13 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                     </Badge>
                   </div>
                 </div>
-                <div className="flex min-w-0 flex-col gap-1">
+                <div className={cn("flex min-w-0 flex-col gap-1", isMobile && "rounded-2xl border bg-background p-3")}>
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <Label htmlFor="name">{t('templateContent')}</Label>
                     {
                       shouldShowTemplateExpand ? (
                         <Button
-                          className="h-7 px-2 text-xs"
+                          className={cn("h-7 px-2 text-xs", isMobile && "rounded-full")}
                           variant="ghost"
                           onClick={() => setIsTemplatePreviewExpanded(current => !current)}
                         >
@@ -952,7 +990,12 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                       ) : null
                     }
                   </div>
-                  <ScrollArea className={`${isTemplatePreviewExpanded ? 'h-64' : 'h-28'} w-full min-w-0 rounded-md border p-2`}>
+                  <ScrollArea
+                    className={cn(
+                      "w-full min-w-0 rounded-md border p-2",
+                      isTemplatePreviewExpanded ? (isMobile ? "h-72" : "h-64") : (isMobile ? "h-40" : "h-28")
+                    )}
+                  >
                     <p className="whitespace-pre-wrap break-words text-xs text-muted-foreground">
                       { selectedTemplate?.content || tGlobal('settings.template.noContent') }
                     </p>
@@ -961,8 +1004,14 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
               </div>
             ) : organizeStep === 'records' ? (
               <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-3">
-                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                  <div className="flex min-w-0 flex-wrap gap-1.5">
+                <div className={cn(
+                  "flex min-w-0 gap-2",
+                  isMobile ? "flex-col rounded-2xl border bg-background p-3" : "flex-wrap items-center justify-between"
+                )}>
+                  <div className={cn(
+                    "flex min-w-0 gap-1.5",
+                    isMobile ? "flex-nowrap overflow-x-auto pb-1" : "flex-wrap"
+                  )}>
                     {
                       Object.entries(recordTypeCounts)
                         .filter(([, count]) => count > 0)
@@ -974,35 +1023,44 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                         ))
                     }
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                    <Select
-                      value={selectedRecordTagId ? String(selectedRecordTagId) : ''}
-                      onValueChange={(value) => setSelectedRecordTagId(Number(value))}
-                    >
-                      <SelectTrigger className="h-8 w-40">
-                        <SelectValue placeholder={tMark('toolbar.filter.tag')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {
-                            tags.map(tag => (
-                              <SelectItem key={tag.id} value={String(tag.id)}>{tag.name}</SelectItem>
-                            ))
-                          }
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <Button className="h-8 px-2" variant="outline" onClick={selectAllPreviewRecords}>{t('selectAllRecords')}</Button>
-                    <Button className="h-8 px-2" variant="outline" onClick={clearSelectedPreviewRecords}>{t('clearRecordSelection')}</Button>
+                  <div className={cn(
+                    "shrink-0 gap-2",
+                    isMobile ? "grid grid-cols-2" : "flex flex-wrap items-center justify-end"
+                  )}>
+                    <div className={cn(isMobile && "col-span-2")}>
+                      <Select
+                        value={selectedRecordTagId ? String(selectedRecordTagId) : ''}
+                        onValueChange={(value) => setSelectedRecordTagId(Number(value))}
+                      >
+                        <SelectTrigger className={cn("h-8 w-40", isMobile && "h-9 w-full rounded-xl")}>
+                          <SelectValue placeholder={tMark('toolbar.filter.tag')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {
+                              tags.map(tag => (
+                                <SelectItem key={tag.id} value={String(tag.id)}>{tag.name}</SelectItem>
+                              ))
+                            }
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button className={cn("h-8 px-2", isMobile && "h-9 rounded-xl")} variant="outline" onClick={selectAllPreviewRecords}>{t('selectAllRecords')}</Button>
+                    <Button className={cn("h-8 px-2", isMobile && "h-9 rounded-xl")} variant="outline" onClick={clearSelectedPreviewRecords}>{t('clearRecordSelection')}</Button>
                   </div>
                 </div>
-                <ScrollArea className="min-h-0 flex-1 rounded-md border bg-muted/20">
-                  <div className="flex flex-col gap-2 p-2">
+                <ScrollArea className={cn("min-h-0 flex-1 border bg-muted/20", isMobile ? "rounded-2xl" : "rounded-md")}>
+                  <div className={cn("flex flex-col gap-2", isMobile ? "p-2.5" : "p-2")}>
                     {
                       recordPreviewMarks.length > 0 ? (
                         recordPreviewMarks.map(mark => (
                           <div
-                            className={cn("flex min-w-0 items-start gap-2", !selectedRecordIds.has(mark.id) && 'opacity-60')}
+                            className={cn(
+                              "flex min-w-0 items-start gap-2",
+                              isMobile && "rounded-xl bg-background/80 p-2",
+                              !selectedRecordIds.has(mark.id) && 'opacity-60'
+                            )}
                             key={mark.id}
                           >
                             <div className="flex shrink-0 items-center gap-2 pt-3">
@@ -1025,16 +1083,19 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                 </ScrollArea>
               </div>
             ) : (
-              <div className="min-h-0 w-full flex-1 overflow-y-auto p-1 pr-2">
-                <div className="grid min-w-0 gap-4">
-                  <div className="grid min-w-0 gap-4 md:grid-cols-2">
-                    <div className="grid min-w-0 gap-2">
+              <div className={cn("min-h-0 w-full flex-1 overflow-y-auto", isMobile ? "pb-2" : "p-1 pr-2")}>
+                <div className={cn("grid min-w-0", isMobile ? "gap-3" : "gap-4")}>
+                  <div className={cn("grid min-w-0 md:grid-cols-2", isMobile ? "gap-3" : "gap-4")}>
+                    <div className={cn("grid min-w-0 gap-2", isMobile && "rounded-2xl border bg-background p-3")}>
                       <Label htmlFor="organize-save-folder">{t('saveFolder')}</Label>
                       <Popover open={isFolderTreeOpen} onOpenChange={setIsFolderTreeOpen}>
                         <PopoverTrigger asChild>
                           <button
                             id="organize-save-folder"
-                            className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border bg-background px-3 text-left text-sm transition-colors hover:bg-accent"
+                            className={cn(
+                              "flex h-9 w-full min-w-0 items-center gap-2 rounded-md border bg-background px-3 text-left text-sm transition-colors hover:bg-accent",
+                              isMobile && "rounded-xl"
+                            )}
                             type="button"
                           >
                             <FolderOpen className="size-4 shrink-0 text-muted-foreground" />
@@ -1042,7 +1103,7 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                             <ChevronDown className="ml-auto size-4 shrink-0 text-muted-foreground" />
                           </button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" className="w-80 p-0" portalled={false}>
+                        <PopoverContent align="start" className={cn("w-80 p-0", isMobile && "w-[calc(100vw-2rem)]")} portalled={false}>
                           <div className="border-b px-3 py-2 text-sm font-medium">{t('saveFolder')}</div>
                           <div className="p-1">
                             <button
@@ -1072,37 +1133,38 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                         </PopoverContent>
                       </Popover>
                     </div>
-                    <div className="grid min-w-0 gap-2 md:col-span-2">
+                    <div className={cn("grid min-w-0 gap-2 md:col-span-2", isMobile && "rounded-2xl border bg-background p-3")}>
                       <Label htmlFor="organize-output-title">{t('articleTitle')}</Label>
                       <Input
+                        className={cn(isMobile && "rounded-xl")}
                         id="organize-output-title"
                         value={outputTitle}
                         onChange={(event) => setOutputTitle(event.target.value)}
                         placeholder={t('articleTitlePlaceholder')}
                       />
                     </div>
-                    <div className="flex min-w-0 items-center justify-between gap-3 rounded-md border bg-background p-3">
+                    <div className={cn("flex min-w-0 items-center justify-between gap-3 rounded-md border bg-background p-3", isMobile && "rounded-2xl")}>
                       <div className="min-w-0">
                         <Label htmlFor="organize-include-images">{t('includeImages')}</Label>
                       </div>
                       <Switch id="organize-include-images" checked={includeImages} onCheckedChange={setIncludeImages} />
                     </div>
-                    <div className="flex min-w-0 items-center justify-between gap-3 rounded-md border bg-background p-3">
+                    <div className={cn("flex min-w-0 items-center justify-between gap-3 rounded-md border bg-background p-3", isMobile && "rounded-2xl")}>
                       <div className="min-w-0">
                         <Label htmlFor="organize-include-references">{t('includeReferences')}</Label>
                       </div>
                       <Switch id="organize-include-references" checked={includeReferences} onCheckedChange={setIncludeReferences} />
                     </div>
-                    <div className="flex min-w-0 items-center justify-between gap-3 rounded-md border bg-background p-3">
+                    <div className={cn("flex min-w-0 items-center justify-between gap-3 rounded-md border bg-background p-3", isMobile && "rounded-2xl")}>
                       <div className="min-w-0">
                         <Label htmlFor="remove-thinking">{t('filterThinkingContent')}</Label>
                       </div>
                       <Switch id="remove-thinking" checked={isRemoveThinking} onCheckedChange={setIsRemoveThinking} />
                     </div>
-                    <div className="grid min-w-0 gap-2 md:col-span-2">
+                    <div className={cn("grid min-w-0 gap-2 md:col-span-2", isMobile && "rounded-2xl border bg-background p-3")}>
                       <Label htmlFor="organize-additional-requirement">{t('additionalRequirement')}</Label>
                       <Textarea
-                        className="min-h-28 resize-none"
+                        className={cn("resize-none", isMobile ? "min-h-32 rounded-xl" : "min-h-28")}
                         id="organize-additional-requirement"
                         value={additionalRequirement}
                         onChange={(event) => setAdditionalRequirement(event.target.value)}
@@ -1116,15 +1178,27 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
           }
           {
             organizeStep !== 'template' && organizeDisabledReason ? (
-              <p className="text-xs text-muted-foreground">{organizeDisabledReason}</p>
+              <p className={cn("text-xs text-muted-foreground", isMobile && "rounded-xl bg-muted/40 px-3 py-2")}>{organizeDisabledReason}</p>
             ) : null
           }
             </div>
           </main>
-        <AlertDialogFooter className="shrink-0 border-t px-6 py-4">
+        <AlertDialogFooter
+          className={cn(
+            "shrink-0 border-t",
+            isMobile
+              ? "flex-row items-center justify-between gap-2 space-x-0 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
+              : "px-6 py-4"
+          )}
+        >
           {
             organizeStep !== 'template' ? (
-              <Button variant="ghost" disabled={loading} onClick={() => setOrganizeStep(organizeStep === 'settings' ? 'records' : 'template')}>
+              <Button
+                className={cn(isMobile && "h-10 shrink-0 rounded-xl px-3")}
+                variant="ghost"
+                disabled={loading}
+                onClick={() => setOrganizeStep(organizeStep === 'settings' ? 'records' : 'template')}
+              >
                 <ArrowLeft className="size-4" />
                 {t('previousStep')}
               </Button>
@@ -1134,6 +1208,7 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
             organizeStep === 'template' ? (
               <>
                 <Button
+                  className={cn(isMobile && "h-10 flex-1 rounded-xl px-3")}
                   onClick={() => handleOrganize({ quick: true })}
                   disabled={!primaryModel || !selectedTemplate || marksByRange.length === 0 || loading}
                   title={!primaryModel ? tGlobal('record.chat.input.placeholder.noPrimaryModel') : !selectedTemplate ? t('noTemplateAvailable') : marksByRange.length === 0 ? t('noRecordsInRange') : t('quickOrganizeHelp')}
@@ -1142,6 +1217,7 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                   {t('quickOrganize')}
                 </Button>
                 <Button
+                  className={cn(isMobile && "h-10 flex-1 rounded-xl px-3")}
                   onClick={() => setOrganizeStep('records')}
                   disabled={!selectedTemplate || marksByRange.length === 0 || loading}
                   title={!selectedTemplate ? t('noTemplateAvailable') : marksByRange.length === 0 ? t('noRecordsInRange') : undefined}
@@ -1152,6 +1228,7 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
               </>
             ) : organizeStep === 'records' ? (
               <Button
+                className={cn(isMobile && "h-10 flex-1 rounded-xl px-3")}
                 onClick={() => setOrganizeStep('settings')}
                 disabled={selectedMarksByRange.length === 0 || loading}
                 title={selectedMarksByRange.length === 0 ? t('noRecordsSelected') : undefined}
@@ -1160,7 +1237,14 @@ export const OrganizeNotes = forwardRef<{ openOrganize: () => void }, OrganizeNo
                 <ArrowRight className="size-4" />
               </Button>
             ) : (
-              <Button onClick={() => handleOrganize()} disabled={isOrganizeDisabled} title={organizeDisabledReason || undefined}>{t('startOrganize')}</Button>
+              <Button
+                className={cn(isMobile && "h-10 flex-1 rounded-xl px-3")}
+                onClick={() => handleOrganize()}
+                disabled={isOrganizeDisabled}
+                title={organizeDisabledReason || undefined}
+              >
+                {t('startOrganize')}
+              </Button>
             )
           }
         </AlertDialogFooter>
