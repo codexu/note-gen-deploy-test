@@ -224,14 +224,17 @@ html, body {
   font-size: 0.875rem;
   cursor: pointer;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-.file-manange-item:hover {
-  background-color: hsl(var(--third));
+.file-manange-item:not(.active):not(.file-selected):not(.file-on-drop):hover {
+  background-color: hsl(var(--third) / 0.55);
 }
 
-.dark .file-manange-item:hover {
-  background-color: hsl(var(--muted));
+.dark .file-manange-item:not(.active):not(.file-selected):not(.file-on-drop):hover {
+  background-color: hsl(var(--muted) / 0.65);
 }
 
 .file-manange-item.active {
@@ -251,6 +254,18 @@ html, body {
 
 .dark .file-manange-item.active .bg-primary-foreground {
   background-color: hsl(var(--secondary-foreground));
+}
+
+.file-manange-item.file-selected {
+  background-color: hsl(var(--primary) / 0.12);
+  color: hsl(var(--foreground));
+  box-shadow: inset 2px 0 0 hsl(var(--primary));
+}
+
+.dark .file-manange-item.file-selected {
+  background-color: hsl(var(--primary) / 0.18);
+  color: hsl(var(--foreground));
+  box-shadow: inset 2px 0 0 hsl(var(--primary));
 }
 
 .file-manange-item.file-on-drop {

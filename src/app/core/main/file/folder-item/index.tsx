@@ -4,12 +4,12 @@ import useArticleStore, { DirTree } from "@/stores/article";
 import { BaseDirectory, exists, mkdir, rename } from "@tauri-apps/plugin-fs";
 import { ChevronRight, Folder, FolderDot, FolderDown, FolderOpen, FolderOpenDot, FolderUp, Loader2, LoaderCircle, Database, Sparkles } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react";
-import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
 import { cloneDeep } from "lodash-es";
 import { computedParentPath, getCurrentFolder, joinRelativePath } from "@/lib/path";
 import useSettingStore from '@/stores/setting'
 import { isSkillsFolder } from "@/lib/skills/utils"
+import { cn } from "@/lib/utils"
 import SyncFolder from './sync-folder'
 import { NewFile } from './new-file'
 import { NewFolder } from './new-folder'
@@ -43,8 +43,20 @@ import {
   setFileManagerDragData,
 } from '../file-dnd'
 import { debugSyncPath } from "@/lib/sync/remote-file";
+import { BatchSelectionContextMenu } from "../batch-selection-context-menu";
+import type { FileSelectionEntry } from "../file-selection";
 
-export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar?: () => void }) {
+export function FolderItem({
+  item,
+  focusSidebar,
+  selectedPathSet,
+  selectionEntries,
+}: {
+  item: DirTree
+  focusSidebar?: () => void
+  selectedPathSet: Set<string>
+  selectionEntries: FileSelectionEntry[]
+}) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
   const [name, setName] = useState(item.name)
   const [, setIsComposing] = useState(false)
@@ -88,9 +100,13 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
     vectorIndexedFiles,
     moveLocalEntry,
     syncOpenTabsForPathChange,
+    cleanTabsByDeletedFile,
     cleanTabsByDeletedFolder,
+    selectedFilePaths,
+    setSelectedFilePaths,
+    clearSelectedFilePaths,
   } = useArticleStore()
-  const { setClipboardItem, clipboardItem, clipboardOperation } = useClipboardStore()
+  const { setClipboardItem, clipboardItem, clipboardItems, clipboardOperation } = useClipboardStore()
 
   const path = computedParentPath(item)
   const cacheTree = cloneDeep(fileTree)
@@ -98,7 +114,9 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
   const parentFolder = currentFolder?.parent
 
   // 检查文件夹是否被剪切
-  const isCut = clipboardOperation === 'cut' && clipboardItem?.path === path
+  const isCut = clipboardOperation === 'cut' && clipboardItems.some(entry => entry.path === path)
+  const isSelected = selectedPathSet.has(path)
+  const useSelectionMenu = isSelected && selectionEntries.length > 1
 
   // 计算文件夹的向量状态
   const folderVectorStatus = useCallback(() => {
@@ -140,17 +158,17 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
 
     if (status === 'calculating') {
       return (
-        <div className="flex items-center mr-2">
-          <LoaderCircle className={`${iconSize} animate-spin`} />
+        <div className="mr-2 flex shrink-0 items-center">
+          <LoaderCircle className={`${iconSize} shrink-0 animate-spin`} />
         </div>
       )
     } else if (status === 'completed' || vectorStatus.hasVector) {
       return (
-        <div className="flex items-center mr-2">
+        <div className="mr-2 flex shrink-0 items-center">
           <span className={`text-xs text-muted-foreground ${vectorStatus.isComplete ? 'opacity-100' : 'opacity-60'}`}>
             {vectorStatus.indexedCount}/{vectorStatus.totalCount}
           </span>
-          <Database className={`${iconSize} text-muted-foreground ml-1 ${vectorStatus.isComplete ? 'opacity-100' : 'opacity-60'}`} />
+          <Database className={`${iconSize} ml-1 shrink-0 text-muted-foreground ${vectorStatus.isComplete ? 'opacity-100' : 'opacity-60'}`} />
         </div>
       )
     }
@@ -246,6 +264,7 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
   async function handlePasteInFolder() {
     await pasteIntoFolder({
       clipboardItem,
+      clipboardItems,
       clipboardOperation,
       folderPath: path,
       emptyToastTitle: t('clipboard.empty'),
@@ -253,6 +272,8 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
       pasteFailedToastTitle: t('clipboard.pasteFailed'),
       loadFileTree,
       setClipboardItem,
+      cleanTabsByDeletedFile,
+      cleanTabsByDeletedFolder,
     })
   }
 
@@ -596,6 +617,31 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
     }
   }
 
+  function handleFolderClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    if (e.metaKey || e.ctrlKey) {
+      e.preventDefault()
+      e.stopPropagation()
+      focusSidebar?.()
+      setSelectedFilePaths(
+        isSelected
+          ? selectedFilePaths.filter(selectedPath => selectedPath !== path)
+          : [...selectedFilePaths, path]
+      )
+      return
+    }
+
+    clearSelectedFilePaths()
+    void handleSelectFolder()
+  }
+
+  function handleFolderContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    e.stopPropagation()
+    focusSidebar?.()
+    if (!isSelected) {
+      setSelectedFilePaths([path])
+    }
+  }
+
 
 
   function handleEditEnd() {
@@ -691,51 +737,58 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
   const modKey = currentPlatform === 'macos' ? '⌘' : 'Ctrl'
   const deleteKey = currentPlatform === 'macos' ? '⌫' : 'Del'
   const renameKey = currentPlatform === 'macos' ? '↩' : 'F2'
+  const isExpanded = collapsibleList.includes(path)
 
   return (
-    <CollapsibleTrigger className="w-full select-none">
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div
-            className={`${isDragging ? 'file-on-drop' : ''} ${path === activeFilePath ? 'active' : ''} group file-manange-item flex select-none`}
-            draggable={!isMobile && item.isLocale && !isEditing}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDrop={(e) => handleDrop(e)}
-            onDragOver={e => handleDragOver(e)}
-            onDragLeave={(e) => handleDragleave(e)}
-            onClick={() => handleSelectFolder()}
-            onContextMenu={(e) => {
-              // 右键打开菜单时阻止冒泡，防止触发折叠/展开
-              e.stopPropagation();
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          data-file-manager-item-path={path}
+          data-file-manager-item-kind="folder"
+          className={cn(
+            "group file-manange-item flex min-w-0 select-none overflow-hidden",
+            isDragging && "file-on-drop",
+            path === activeFilePath && "active",
+            isSelected && "file-selected"
+          )}
+          onDragEnd={handleDragEnd}
+          onDrop={(e) => handleDrop(e)}
+          onDragOver={e => handleDragOver(e)}
+          onDragLeave={(e) => handleDragleave(e)}
+          onClick={handleFolderClick}
+          onContextMenu={handleFolderContextMenu}
+        >
+          <button
+            type="button"
+            data-file-manager-toggle
+            className="ml-1 inline-flex shrink-0 items-center justify-center bg-sidebar group-hover:bg-transparent"
+            onClick={async (e) => {
+              e.stopPropagation()
+              const nextExpanded = !isExpanded
+              await setCollapsibleList(path, nextExpanded)
+              if (nextExpanded) {
+                await loadCollapsibleFiles(path)
+              }
             }}
           >
             <ChevronRight
-              className="transition-transform size-4 ml-1 bg-sidebar group-hover:bg-transparent"
-              onClick={async (e) => {
-                // 点击折叠箭头时只触发展开/折叠，阻止冒泡避免触发 handleSelectFolder
-                e.stopPropagation();
-                e.preventDefault();
-                // 切换折叠状态
-                const isExpanded = collapsibleList.includes(path)
-                await setCollapsibleList(path, !isExpanded)
-                // 如果是展开操作，加载文件夹内容
-                if (!isExpanded) {
-                  await loadCollapsibleFiles(path)
-                }
-              }}
+              className={cn(
+                "transition-transform size-4",
+                isExpanded && "rotate-90"
+              )}
             />
+          </button>
             {
               isEditing ?
                 <>
                   {
                     item.isLocale ?
-                      <Folder className={iconSize} /> :
-                      <FolderDown className={iconSize} />
+                      <Folder className={`${iconSize} shrink-0`} /> :
+                      <FolderDown className={`${iconSize} shrink-0`} />
                   }
                   <Input
                     ref={inputRef}
-                    className={`h-5 rounded-sm text-${fileManagerTextSize} px-1 font-normal flex-1 mr-1`}
+                    className={`h-5 min-w-0 flex-1 rounded-sm text-${fileManagerTextSize} px-1 font-normal mr-1`}
                     value={name}
                     onBlur={handleRename}
                     onChange={handleInputChange}
@@ -755,19 +808,24 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
                   />
                 </> :
                 <div
-                  className={`${!item.isLocale || isCut ? 'opacity-50' : ''} flex gap-1 items-center flex-1 select-none`}
+                  className={`${!item.isLocale || isCut ? 'opacity-50' : ''} flex min-w-0 flex-1 items-center justify-between gap-1 overflow-hidden select-none`}
                 >
-                  <div className="flex flex-1 gap-1 select-none relative items-center">
+                  <div
+                    data-file-manager-drag-handle
+                    draggable={!isMobile && item.isLocale && !isEditing}
+                    onDragStart={handleDragStart}
+                    className="relative flex min-w-0 flex-1 cursor-grab select-none items-center gap-1 overflow-hidden active:cursor-grabbing"
+                  >
                     {item.loading ? (
-                      <Loader2 className={`${iconSize} animate-spin text-primary`} />
+                      <Loader2 className={`${iconSize} shrink-0 animate-spin text-primary`} />
                     ) : isSkillsFolder(item.name) ? (
-                      <Sparkles className={`${iconSize} text-primary`} />
+                      <Sparkles className={`${iconSize} shrink-0 text-primary`} />
                     ) : collapsibleList.includes(path) ? (
-                      assetsPath === item.name ? <FolderOpenDot className={iconSize} /> : (!item.isLocale ? <FolderDown className={iconSize} /> : (item.sha ? <FolderUp className={iconSize} /> : <FolderOpen className={iconSize} />))
+                      assetsPath === item.name ? <FolderOpenDot className={`${iconSize} shrink-0`} /> : (!item.isLocale ? <FolderDown className={`${iconSize} shrink-0`} /> : (item.sha ? <FolderUp className={`${iconSize} shrink-0`} /> : <FolderOpen className={`${iconSize} shrink-0`} />))
                     ) : (
-                      assetsPath === item.name ? <FolderDot className={iconSize} /> : (!item.isLocale ? <FolderDown className={iconSize} /> : (item.sha ? <FolderUp className={iconSize} /> : <Folder className={iconSize} />))
+                      assetsPath === item.name ? <FolderDot className={`${iconSize} shrink-0`} /> : (!item.isLocale ? <FolderDown className={`${iconSize} shrink-0`} /> : (item.sha ? <FolderUp className={`${iconSize} shrink-0`} /> : <Folder className={`${iconSize} shrink-0`} />))
                     )}
-                    <span className={`text-${fileManagerTextSize} line-clamp-1 ${item.loading ? 'text-muted-foreground' : ''}`}>{item.name}</span>
+                    <span className={`text-${fileManagerTextSize} min-w-0 flex-1 truncate ${item.loading ? 'text-muted-foreground' : ''}`}>{item.name}</span>
                   </div>
                   {/* 向量状态指示器 - 放在最右侧，skills 文件夹及其子内容不显示 */}
                   {renderFolderVectorIcon()}
@@ -807,39 +865,44 @@ export function FolderItem({ item, focusSidebar }: { item: DirTree; focusSidebar
                   )}
                 </div>
             }
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <NewFile item={item} />
-          <NewFolder item={item} />
-          <ViewDirectory item={item} />
-          <ContextMenuSeparator />
-          {/* skills 文件夹及其子内容不显示知识库选项 */}
-          {!isInSkillsFolder(path) && (
-            <>
-              <ContextMenuSub>
-                <ContextMenuSubTrigger>
-                  <Database className="mr-2 h-4 w-4" />
-                  {t('context.knowledgeBase')}
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent>
-                  <FolderVectorMenu item={item} />
-                </ContextMenuSubContent>
-              </ContextMenuSub>
-              <ContextMenuSeparator />
-            </>
-          )}
-          <CutFolder item={item} shortcut={`${modKey}X`} />
-          <CopyFolder item={item} shortcut={`${modKey}C`} />
-          <DuplicateFolder item={item} />
-          <PasteInFolder item={item} shortcut={`${modKey}V`} />
-          <ContextMenuSeparator />
-          <SyncFolder item={item} />
-          <ContextMenuSeparator />
-          <RenameFolder item={item} onStartRename={handleStartRename} shortcut={renameKey} />
-          <DeleteFolder item={item} shortcut={deleteKey} />
-        </ContextMenuContent>
-      </ContextMenu>
-    </CollapsibleTrigger>
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {useSelectionMenu ? (
+          <BatchSelectionContextMenu entries={selectionEntries} modKey={modKey} deleteKey={deleteKey} />
+        ) : (
+          <>
+            <NewFile item={item} />
+            <NewFolder item={item} />
+            <ViewDirectory item={item} />
+            <ContextMenuSeparator />
+            {/* skills 文件夹及其子内容不显示知识库选项 */}
+            {!isInSkillsFolder(path) && (
+              <>
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger>
+                    <Database className="mr-2 h-4 w-4" />
+                    {t('context.knowledgeBase')}
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent>
+                    <FolderVectorMenu item={item} />
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
+                <ContextMenuSeparator />
+              </>
+            )}
+            <CutFolder item={item} shortcut={`${modKey}X`} />
+            <CopyFolder item={item} shortcut={`${modKey}C`} />
+            <DuplicateFolder item={item} />
+            <PasteInFolder item={item} shortcut={`${modKey}V`} />
+            <ContextMenuSeparator />
+            <SyncFolder item={item} />
+            <ContextMenuSeparator />
+            <RenameFolder item={item} onStartRename={handleStartRename} shortcut={renameKey} />
+            <DeleteFolder item={item} shortcut={deleteKey} />
+          </>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

@@ -229,6 +229,9 @@ interface NoteState {
 
   activeFilePath: string
   setActiveFilePath: (name: string) => void
+  selectedFilePaths: string[]
+  setSelectedFilePaths: (paths: string[]) => void
+  clearSelectedFilePaths: () => void
 
   // 当前正在读取的文件路径，用于避免竞态条件
   readFilePath: string
@@ -497,7 +500,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
   setActiveFilePath: async (path: string) => {
     const nextPath = isRecordOpenTabPath(path) ? '' : path
     // 切换文件时，先清空 currentArticle，避免内容覆盖
-    set({ currentArticle: '', activeFilePath: nextPath })
+    set({ currentArticle: '', activeFilePath: nextPath, selectedFilePaths: [] })
     const store = await getStore();
     await store.set('activeFilePath', nextPath)
     // 触发事件，让推送队列重置计时器
@@ -509,6 +512,19 @@ const useArticleStore = create<NoteState>((set, get) => ({
     if (fileName && fileName.includes('.')) {
       get().readArticle(nextPath)
     }
+  },
+  selectedFilePaths: [],
+  setSelectedFilePaths: (paths: string[]) => {
+    const nextPaths = Array.from(new Set(paths))
+    set((state) => {
+      const isSameSelection = state.selectedFilePaths.length === nextPaths.length
+        && state.selectedFilePaths.every((path, index) => path === nextPaths[index])
+
+      return isSameSelection ? state : { selectedFilePaths: nextPaths }
+    })
+  },
+  clearSelectedFilePaths: () => {
+    set((state) => state.selectedFilePaths.length === 0 ? state : { selectedFilePaths: [] })
   },
 
   // Tabs initialization - load from store
