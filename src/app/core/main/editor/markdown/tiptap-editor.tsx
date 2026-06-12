@@ -1025,7 +1025,7 @@ export function TipTapEditor({
                 middleware: [
                   {
                     name: 'editorDragHandleOffset',
-                    fn: ({ x, y }) => ({ x: x + 16, y }),
+                    fn: ({ x, y }) => ({ x: x - 2, y }),
                   },
                 ],
               },
