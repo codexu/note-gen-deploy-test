@@ -1,5 +1,5 @@
 import type OpenAI from 'openai'
-import { createOpenAIClient, getAISettings, handleAIError, validateAIService } from '@/lib/ai/utils'
+import { createOpenAIClient, getAISettings, getSystemPromptContent, handleAIError, validateAIService } from '@/lib/ai/utils'
 import { AgentContextManager } from './context-manager'
 import { agentEventBus } from './event-bus'
 import { AgentPermissionEngine, hasExplicitWriteIntent } from './permission-engine'
@@ -598,7 +598,11 @@ export class AgentRuntime {
     }
 
     const tools = agentToolRegistry.listTools()
-    const systemPrompt = this.promptAssembler.assemble(context, tools)
+    const systemPrompt = this.promptAssembler.assemble(
+      context,
+      tools,
+      await getSystemPromptContent()
+    )
     const baseMessages = this.contextManager.prepareMessages(input.messages || [])
       .map(normalizeBaseMessage)
 

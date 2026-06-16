@@ -494,7 +494,17 @@
       "optimizing": "优化中...",
       "optimizeSuccess": "提示词优化成功",
       "optimizeFailed": "提示词优化失败，请稍后重试",
-      "noContentToOptimize": "请先输入提示词内容"
+      "noContentToOptimize": "请先输入提示词内容",
+      "systemPrompt": {
+        "title": "系统提示词",
+        "desc": "高级选项：编辑 Agent 系统提示词的静态规则部分，不建议频繁修改。",
+        "label": "系统提示词内容",
+        "placeholder": "输入 Agent 的身份定义、工具调用约束和 Core Rules。",
+        "help": "这是高级配置，会影响 Agent 的行为边界。工具列表、当前文件、选区、Skills 和 MCP 上下文仍由系统动态追加。",
+        "reset": "恢复默认",
+        "saveSuccess": "系统提示词已保存",
+        "resetSuccess": "系统提示词已恢复默认"
+      }
     },
     "memories": {
       "title": "记忆管理",

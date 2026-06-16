@@ -686,7 +686,17 @@
       "optimizing": "Optimizing...",
       "optimizeSuccess": "Prompt optimized successfully",
       "optimizeFailed": "Failed to optimize prompt, please try again later",
-      "noContentToOptimize": "Please enter prompt content first"
+      "noContentToOptimize": "Please enter prompt content first",
+      "systemPrompt": {
+        "title": "System Prompt",
+        "desc": "Advanced option: edit the static rules section of the Agent system prompt. Frequent changes are not recommended.",
+        "label": "System prompt content",
+        "placeholder": "Enter the Agent identity, tool-call constraints, and Core Rules.",
+        "help": "This advanced setting affects the Agent behavior boundary. Tool lists, current file, selection, Skills, and MCP context are still appended dynamically by the system.",
+        "reset": "Reset to default",
+        "saveSuccess": "System prompt saved",
+        "resetSuccess": "System prompt reset to default"
+      }
     },
     "sync": {
       "title": "Sync",

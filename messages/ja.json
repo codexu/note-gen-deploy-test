@@ -440,7 +440,17 @@
       "optimizing": "最適化中...",
       "optimizeSuccess": "プロンプトの最適化が成功しました",
       "optimizeFailed": "プロンプトの最適化に失敗しました。後でもう一度お試しください",
-      "noContentToOptimize": "まずプロンプト内容を入力してください"
+      "noContentToOptimize": "まずプロンプト内容を入力してください",
+      "systemPrompt": {
+        "title": "システムプロンプト",
+        "desc": "高度な設定：Agent システムプロンプトの静的ルール部分を編集します。頻繁な変更は推奨されません。",
+        "label": "システムプロンプト内容",
+        "placeholder": "Agent の身分定義、ツール呼び出し制約、Core Rules を入力してください。",
+        "help": "この高度な設定は Agent の動作境界に影響します。ツール一覧、現在のファイル、選択範囲、Skills、MCP コンテキストは引き続きシステムが動的に追加します。",
+        "reset": "デフォルトに戻す",
+        "saveSuccess": "システムプロンプトを保存しました",
+        "resetSuccess": "システムプロンプトをデフォルトに戻しました"
+      }
     },
     "memories": {
       "title": "記憶管理",

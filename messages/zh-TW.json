@@ -440,7 +440,17 @@
       "optimizing": "最佳化中...",
       "optimizeSuccess": "提示詞最佳化成功",
       "optimizeFailed": "提示詞最佳化失敗，請稍後重試",
-      "noContentToOptimize": "請先輸入提示詞內容"
+      "noContentToOptimize": "請先輸入提示詞內容",
+      "systemPrompt": {
+        "title": "系統提示詞",
+        "desc": "進階選項：編輯 Agent 系統提示詞的靜態規則部分，不建議頻繁修改。",
+        "label": "系統提示詞內容",
+        "placeholder": "輸入 Agent 的身分定義、工具呼叫約束和 Core Rules。",
+        "help": "這項進階設定會影響 Agent 的行為邊界。工具列表、目前檔案、選取範圍、Skills 和 MCP 上下文仍由系統動態追加。",
+        "reset": "恢復預設",
+        "saveSuccess": "系統提示詞已儲存",
+        "resetSuccess": "系統提示詞已恢復預設"
+      }
     },
     "memories": {
       "title": "記憶管理",

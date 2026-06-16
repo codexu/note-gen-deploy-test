@@ -5,6 +5,7 @@ import { AiConfig } from "@/app/core/setting/config";
 import { readFile } from "@tauri-apps/plugin-fs";
 import { platform } from "@tauri-apps/plugin-os";
 import { createTauriOpenAIClient, type OpenAICompatibleClient } from "./tauri-client";
+import { DEFAULT_SYSTEM_PROMPT } from './system-prompt';
 
 /**
  * 获取当前的prompt内容
@@ -25,6 +26,16 @@ export async function getPromptContent(): Promise<string> {
   }
   
   return promptContent
+}
+
+/**
+ * 获取 Agent 系统提示词
+ */
+export async function getSystemPromptContent(): Promise<string> {
+  const store = await Store.load('store.json')
+  const systemPrompt = await store.get<string>('systemPrompt')
+
+  return typeof systemPrompt === 'string' ? systemPrompt.trim() : DEFAULT_SYSTEM_PROMPT
 }
 
 /**
@@ -174,7 +185,7 @@ export async function prepareMessages(
   messages: OpenAI.Chat.ChatCompletionMessageParam[],
   geminiText?: string
 }> {
-  // 获取prompt内容
+  // 获取当前 Prompt 模板
   let promptContent = await getPromptContent()
 
   // 加载记忆上下文

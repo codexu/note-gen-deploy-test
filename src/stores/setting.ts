@@ -14,6 +14,7 @@ import type { SpeechMode } from '@/lib/speech/types'
 import { applyNoteGenDefaultConfig, loadNoteGenDefaultConfig } from '@/lib/ai/notegen-default-models-runtime'
 import { enqueueAutoDataSync, isAutoDataSyncApplyingRemote } from '@/lib/sync/auto-data-sync-queue'
 import { shouldExcludeFromSync } from '@/config/sync-exclusions'
+import { DEFAULT_SYSTEM_PROMPT } from '@/lib/ai/system-prompt'
 
 export enum GenTemplateRange {
   All = 'all',
@@ -92,6 +93,9 @@ interface SettingState {
 
   inspirationModel: string
   setInspirationModel: (inspirationModel: string) => Promise<void>
+
+  systemPrompt: string
+  setSystemPrompt: (systemPrompt: string) => Promise<void>
 
   templateList: GenTemplate[]
   setTemplateList: (templateList: GenTemplate[]) => Promise<void>
@@ -747,6 +751,14 @@ const useSettingStore = create<SettingState>((set, get) => ({
     const store = await Store.load('store.json');
     await store.set('inspirationModel', inspirationModel)
     set({ inspirationModel })
+  },
+
+  systemPrompt: DEFAULT_SYSTEM_PROMPT,
+  setSystemPrompt: async (systemPrompt) => {
+    set({ systemPrompt })
+    const store = await Store.load('store.json')
+    await store.set('systemPrompt', systemPrompt)
+    await store.save()
   },
 
   templateList: [

@@ -625,7 +625,17 @@
       "optimizing": "Otimizando...",
       "optimizeSuccess": "Prompt otimizado com sucesso",
       "optimizeFailed": "Falha ao otimizar o prompt, por favor, tente novamente mais tarde",
-      "noContentToOptimize": "Por favor, insira o conteúdo do prompt primeiro"
+      "noContentToOptimize": "Por favor, insira o conteúdo do prompt primeiro",
+      "systemPrompt": {
+        "title": "Prompt do sistema",
+        "desc": "Opção avançada: edite a seção de regras estáticas do prompt de sistema do Agent. Mudanças frequentes não são recomendadas.",
+        "label": "Conteúdo do prompt do sistema",
+        "placeholder": "Insira a identidade do Agent, restrições de chamada de ferramentas e Core Rules.",
+        "help": "Esta configuração avançada afeta os limites de comportamento do Agent. Listas de ferramentas, arquivo atual, seleção, Skills e contexto MCP continuam sendo anexados dinamicamente pelo sistema.",
+        "reset": "Restaurar padrão",
+        "saveSuccess": "Prompt do sistema salvo",
+        "resetSuccess": "Prompt do sistema restaurado para o padrão"
+      }
     },
     "sync": {
       "title": "Sincronização",
