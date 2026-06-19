@@ -7,6 +7,7 @@ import { readTextFile } from '@tauri-apps/plugin-fs'
 import emitter from '@/lib/emitter'
 import { pullRemoteFile, setLocalRecordedSha, getLocalRecordedSha } from './auto-sync'
 import { getRemoteFileInfo } from './auto-sync'
+import { isSyncConfigured } from './sync-manager'
 import useSettingStore from '@/stores/setting'
 import useSyncStore from '@/stores/sync'
 import { S3Config, WebDAVConfig } from '@/types/sync'
@@ -217,6 +218,11 @@ class SyncPushQueue {
       return
     }
 
+    if (!await isSyncConfigured()) {
+      this.clear()
+      return
+    }
+
     // Bug fix: Process all tasks in the queue (newest first)
     // Group by path - keep only the newest task for each path
     const taskMap = new Map<string, PushTask>()
@@ -273,6 +279,11 @@ class SyncPushQueue {
         ...payload,
       })
       previousPerfAt = now
+    }
+
+    if (!await isSyncConfigured()) {
+      logPerf('skipped', { reason: 'sync-not-configured' })
+      return { success: false }
     }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -751,6 +762,10 @@ class SyncPushQueue {
    */
   async forcePush(path: string): Promise<{ success: boolean; sha?: string }> {
     try {
+      if (!await isSyncConfigured()) {
+        return { success: false }
+      }
+
       const store = await Store.load('store.json')
       const provider = (await store.get<string>('primaryBackupMethod') || 'github') as 'gitee' | 'github' | 'gitlab' | 'gitea' | 's3' | 'webdav'
       const repo = (provider !== 's3' && provider !== 'webdav') ? await getSyncRepoName(provider) : undefined
