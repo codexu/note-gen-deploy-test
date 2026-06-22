@@ -5,10 +5,14 @@
   <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
   <application
+    android:label="NoteGen"
+    android:icon="@mipmap/ic_launcher"
+    android:roundIcon="@mipmap/ic_launcher"
     android:theme="@style/Theme.note_gen"
     android:usesCleartextTraffic="${usesCleartextTraffic}">
     <activity
       android:name=".MainActivity"
+      android:label="NoteGen"
       android:exported="true"
       android:windowSoftInputMode="adjustResize"
       tools:node="merge"
