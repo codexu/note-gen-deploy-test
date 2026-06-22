@@ -4,11 +4,19 @@
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
-  <application>
+  <application
+    android:theme="@style/Theme.note_gen"
+    android:usesCleartextTraffic="${usesCleartextTraffic}">
     <activity
       android:name=".MainActivity"
+      android:exported="true"
       android:windowSoftInputMode="adjustResize"
       tools:node="merge"
-      tools:replace="android:windowSoftInputMode" />
+      tools:replace="android:windowSoftInputMode">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
   </application>
 </manifest>

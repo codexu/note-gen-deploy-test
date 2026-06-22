@@ -19,6 +19,13 @@ src-tauri/gen/android/**
 !src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/
 !src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/.gitkeep
 !src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/OcrPlugin.kt
+!src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/SystemBarsPlugin.kt
+!src-tauri/gen/android/app/src/main/res/
+!src-tauri/gen/android/app/src/main/res/values/
+!src-tauri/gen/android/app/src/main/res/values/colors.xml
+!src-tauri/gen/android/app/src/main/res/values/themes.xml
+!src-tauri/gen/android/app/src/main/res/values-night/
+!src-tauri/gen/android/app/src/main/res/values-night/themes.xml
 !src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset/
 *.local
 target/*

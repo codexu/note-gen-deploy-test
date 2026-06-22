@@ -80,12 +80,25 @@ jobs:
             exit 1
           fi
 
-          # Restore Android permissions that are tracked separately in git
-          echo "🎙️ Restoring Android recording permissions..."
+          # Restore Android customizations that must survive the generated project reset.
+          echo "🧩 Restoring tracked Android customizations..."
+          git checkout -- \
+            src-tauri/gen/android/app/build.gradle.kts \
+            src-tauri/gen/android/app/src/main/AndroidManifest.xml \
+            src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/OcrPlugin.kt \
+            src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/SystemBarsPlugin.kt \
+            src-tauri/gen/android/app/src/main/res/values/colors.xml \
+            src-tauri/gen/android/app/src/main/res/values/themes.xml \
+            src-tauri/gen/android/app/src/main/res/values-night/themes.xml
+
           MANIFEST_PATH="src-tauri/gen/android/app/src/main/AndroidManifest.xml"
-          if ! grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST_PATH"; then
-            perl -0pi -e 's|<manifest([^>]*)>|<manifest$1>\n  <uses-permission android:name="android.permission.RECORD_AUDIO" \/>\n  <uses-feature android:name="android.hardware.microphone" android:required="false" \/>|' "$MANIFEST_PATH"
-          fi
+          test -f "$MANIFEST_PATH"
+          test -f "src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/OcrPlugin.kt"
+          test -f "src-tauri/gen/android/app/src/main/java/com/codexu/NoteGen/SystemBarsPlugin.kt"
+          test -f "src-tauri/gen/android/app/src/main/res/values/themes.xml"
+          grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST_PATH"
+          grep -q 'Theme.note_gen' "$MANIFEST_PATH"
+          grep -q 'text-recognition-chinese' "src-tauri/gen/android/app/build.gradle.kts"
           
           # Set custom Android icon
           echo "🎨 Setting custom Android icon..."

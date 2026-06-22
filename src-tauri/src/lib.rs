@@ -8,6 +8,7 @@ mod fonts;
 mod ios_ocr;
 mod mcp;
 mod mcp_runtime;
+mod mobile_system_bars;
 mod ocr_packages;
 mod skills;
 
@@ -41,6 +42,8 @@ pub fn run() {
 
     #[cfg(target_os = "android")]
     let builder = builder.plugin(android_ocr::init());
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(mobile_system_bars::init());
     #[cfg(target_os = "ios")]
     let builder = builder.plugin(ios_ocr::init());
 
@@ -65,6 +68,7 @@ pub fn run() {
             cancel_ai_request,
             list_ocr_providers,
             run_ocr_provider,
+            mobile_system_bars::set_mobile_system_bars,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
