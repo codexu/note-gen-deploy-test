@@ -79,7 +79,7 @@ NoteGen keeps the everyday experience focused on recording and writing, while st
 | ✅ beta | ✅ beta | ✅ beta | 🛠️ alpha | 🛠️ alpha |
 | [Download](https://notegen.top/en/download) | [Download](https://notegen.top/en/download) | [Download](https://notegen.top/en/download) | [Download](https://notegen.top/en/download) | [TestFlight](https://testflight.apple.com/join/8KjFRTCq) |
 
-> [UpgradeLink offers application upgrade and download services](http://upgrade.toolsetlink.com/upgrade/example/tauri-example.html)
+Desktop and Android packages are distributed through the official download page, with GitHub Releases kept as a fallback mirror.
 
 ## Contribute
 
@@ -103,14 +103,6 @@ Special thanks to our technology partners who make NoteGen better:
 <a href="https://cloud.siliconflow.cn/i/O2ciJeZw" target="_blank">
   <img width="240" src="https://s2.loli.net/2025/09/10/KWPOA5XhIGmYTV9.png" />
 </a>
-
-**[UpgradeLink](http://upgrade.toolsetlink.com/upgrade/example/tauri-example.html)** - Providing reliable installation and upgrade services, ensuring seamless software updates for users.
-
-<a href="http://upgrade.toolsetlink.com/upgrade/example/tauri-example.html" target="_blank">
-  <img width="240" src="https://s2.loli.net/2025/09/10/Ks4EayU9HguXDMF.png" />
-</a>
-
----
 
 We also thank other partners for their service support
 

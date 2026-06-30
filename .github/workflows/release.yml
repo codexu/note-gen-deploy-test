@@ -228,28 +228,6 @@ jobs:
         run: |
           rm -f src-tauri/android-release.keystore
 
-  upgradeLink-upload-android:
-    needs: build-android
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Android APK to UpgradeLink
-        uses: toolsetlink/upgradelink-action@3.0.2
-        with:
-          access_key: ${{ secrets.UPGRADE_LINK_ACCESS_KEY }}
-          access_secret: ${{ secrets.UPGRADE_LINK_ACCESS_SECRET }}
-          config: |
-            {
-              "app_type": "file",
-              "request": {
-                "app_key": "${{ secrets.UPGRADE_LINK_ANDROID_APP_KEY }}",
-                "version": "${{ needs.build-android.outputs.appVersion }}",
-                "url": "https://github.com/${{ github.repository }}/releases/download/note-gen-v${{ needs.build-android.outputs.appVersion }}/NoteGen_${{ needs.build-android.outputs.appVersion }}_android-universal.apk",
-                "prompt_upgrade_content": "新版本已发布，包含重要功能更新和 bug 修复"
-              }
-            }
-
   publish-tauri:
     outputs:
       appVersion: ${{ steps.set_output.outputs.appVersion }}
@@ -385,22 +363,216 @@ jobs:
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           security delete-keychain $KEYCHAIN_PATH || true
 
-  upgradeLink-upload:
-    needs: publish-tauri
+  mirror-release-to-aliyun:
+    needs:
+      - build-android
+      - publish-tauri
     permissions:
-      contents: write
+      contents: read
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build-android.outputs.appVersion }}
+      OSSUTIL_VERSION: 2.3.0
+      OSSUTIL_LINUX_AMD64_SHA256: 3ae4d9fc85a7a6e9f5654d1599766f1a3a42a3692870887b5ae9338d582ef65a
+      OSS_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+      OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+      OSS_REGION: ${{ secrets.ALIYUN_REGION_ID }}
+      OSS_ENDPOINT: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
+      ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+      ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+      ALIYUN_REGION_ID: ${{ secrets.ALIYUN_REGION_ID }}
+      ALIYUN_OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+      ALIYUN_CDN_DOMAIN: ${{ secrets.ALIYUN_CDN_DOMAIN }}
     steps:
-      - name: Send a request to UpgradeLink
-        uses: toolsetlink/upgradelink-action@3.0.2
-        with:
-          access_key: ${{ secrets.UPGRADE_LINK_ACCESS_KEY }}
-          access_secret: ${{ secrets.UPGRADE_LINK_ACCESS_SECRET }}
-          config: |
-            {
-              "app_type": "tauri",
-              "request": {
-                "app_key": "${{ secrets.UPGRADE_LINK_TAURI_KEY }}",
-                "latest_json_url": "https://github.com/${{ github.repository }}/releases/download/note-gen-v${{ needs.publish-tauri.outputs.appVersion }}/latest.json"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Aliyun configuration
+        run: |
+          set -euo pipefail
+          required_vars=(
+            OSS_ACCESS_KEY_ID
+            OSS_ACCESS_KEY_SECRET
+            OSS_REGION
+            OSS_ENDPOINT
+            ALIYUN_ACCESS_KEY_ID
+            ALIYUN_ACCESS_KEY_SECRET
+            ALIYUN_REGION_ID
+            ALIYUN_OSS_BUCKET
+            ALIYUN_CDN_DOMAIN
+          )
+
+          for var_name in "${required_vars[@]}"; do
+            if [ -z "${!var_name}" ]; then
+              echo "::error::Missing required secret or environment value: ${var_name}"
+              exit 1
+            fi
+          done
+
+      - name: Download GitHub release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$VERSION"
+          gh release download "note-gen-v${VERSION}" --dir dist-release --clobber
+          test -f dist-release/latest.json
+          mkdir -p dist-oss
+          find dist-release -maxdepth 1 -type f ! -name 'latest.json' -exec cp {} dist-oss/ \;
+          test "$(find dist-oss -maxdepth 1 -type f | wc -l)" -gt 0
+          ls -lh dist-release dist-oss
+
+      - name: Install ossutil
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          curl -fsSLo "ossutil-${OSSUTIL_VERSION}-linux-amd64.zip" "https://gosspublic.alicdn.com/ossutil/v2/${OSSUTIL_VERSION}/ossutil-${OSSUTIL_VERSION}-linux-amd64.zip"
+          echo "${OSSUTIL_LINUX_AMD64_SHA256}  ossutil-${OSSUTIL_VERSION}-linux-amd64.zip" | sha256sum -c -
+          unzip -q "ossutil-${OSSUTIL_VERSION}-linux-amd64.zip"
+          sudo install -m 755 "ossutil-${OSSUTIL_VERSION}-linux-amd64/ossutil" /usr/local/bin/ossutil
+          ossutil version || ossutil --version || ossutil
+
+      - name: Configure ossutil
+        run: |
+          set -euo pipefail
+          OSSUTIL_CONFIG="$RUNNER_TEMP/.ossutilconfig"
+          {
+            echo "[default]"
+            echo "accessKeyID=${OSS_ACCESS_KEY_ID}"
+            echo "accessKeySecret=${OSS_ACCESS_KEY_SECRET}"
+            echo "region=${OSS_REGION}"
+            echo "endpoint=${OSS_ENDPOINT}"
+          } > "$OSSUTIL_CONFIG"
+          chmod 600 "$OSSUTIL_CONFIG"
+          echo "OSSUTIL_CONFIG=$OSSUTIL_CONFIG" >> "$GITHUB_ENV"
+
+      - name: Install Alibaba Cloud CLI
+        uses: aliyun/setup-aliyun-cli-action@v1
+
+      - name: Mirror installers to OSS
+        run: |
+          set -euo pipefail
+          RELEASE_PREFIX="oss://${ALIYUN_OSS_BUCKET}/releases/note-gen-v${VERSION}/"
+          ossutil cp -r dist-oss/ "$RELEASE_PREFIX" \
+            -c "$OSSUTIL_CONFIG" \
+            --update \
+            --force \
+            --no-progress \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Rewrite latest.json for CDN
+        run: |
+          set -euo pipefail
+          CDN_DOMAIN="${ALIYUN_CDN_DOMAIN#https://}"
+          CDN_DOMAIN="${CDN_DOMAIN#http://}"
+          CDN_DOMAIN="${CDN_DOMAIN%/}"
+          CDN_BASE_URL="https://${CDN_DOMAIN}"
+          RELEASE_BASE_URL="${CDN_BASE_URL}/releases/note-gen-v${VERSION}"
+          export RELEASE_BASE_URL
+          node <<'NODE'
+          const fs = require('node:fs')
+
+          const latestJsonPath = 'dist-release/latest.json'
+          const outputPath = 'latest.aliyun.json'
+          const version = process.env.VERSION
+          const releaseBaseUrl = process.env.RELEASE_BASE_URL
+          const tag = `note-gen-v${version}`
+          const marker = `/releases/download/${tag}/`
+          const original = JSON.parse(fs.readFileSync(latestJsonPath, 'utf8'))
+          let replacements = 0
+
+          function rewrite(value) {
+            if (typeof value === 'string') {
+              try {
+                const url = new URL(value)
+                const markerIndex = url.pathname.indexOf(marker)
+                if (url.hostname === 'github.com' && markerIndex !== -1) {
+                  const assetName = url.pathname.slice(markerIndex + marker.length)
+                  replacements += 1
+                  return `${releaseBaseUrl}/${assetName}`
+                }
+              } catch {
+                return value
               }
+
+              return value
             }
+
+            if (Array.isArray(value)) {
+              return value.map(rewrite)
+            }
+
+            if (value && typeof value === 'object') {
+              return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, rewrite(entry)]))
+            }
+
+            return value
+          }
+
+          const rewritten = rewrite(original)
+          const downloadUrls = []
+
+          function collectUrls(value) {
+            if (typeof value === 'string') {
+              if (/^https?:\/\//.test(value)) {
+                downloadUrls.push(value)
+              }
+              return
+            }
+
+            if (Array.isArray(value)) {
+              value.forEach(collectUrls)
+              return
+            }
+
+            if (value && typeof value === 'object') {
+              Object.values(value).forEach(collectUrls)
+            }
+          }
+
+          collectUrls(rewritten)
+
+          if (replacements === 0) {
+            throw new Error('No GitHub release asset URLs were rewritten in latest.json')
+          }
+
+          const githubReleaseUrls = downloadUrls.filter((url) => url.includes(`github.com/${process.env.GITHUB_REPOSITORY}/releases/download/${tag}/`))
+          if (githubReleaseUrls.length > 0) {
+            throw new Error(`Found ${githubReleaseUrls.length} unreplaced GitHub release asset URL(s)`)
+          }
+
+          const invalidCdnUrls = downloadUrls.filter((url) => url.includes('/releases/') && !url.startsWith(`${releaseBaseUrl}/`))
+          if (invalidCdnUrls.length > 0) {
+            throw new Error(`Found ${invalidCdnUrls.length} release URL(s) outside the CDN release prefix`)
+          }
+
+          fs.writeFileSync(outputPath, `${JSON.stringify(rewritten, null, 2)}\n`)
+          console.log(`Rewrote ${replacements} release asset URL(s) to ${releaseBaseUrl}`)
+          NODE
+
+      - name: Upload CDN updater manifest
+        run: |
+          set -euo pipefail
+          ossutil cp latest.aliyun.json "oss://${ALIYUN_OSS_BUCKET}/updates/latest.json" \
+            -c "$OSSUTIL_CONFIG" \
+            --force \
+            --no-progress \
+            --content-type "application/json; charset=utf-8" \
+            --cache-control "public, max-age=60"
+
+      - name: Refresh CDN updater manifest
+        run: |
+          set -euo pipefail
+          CDN_DOMAIN="${ALIYUN_CDN_DOMAIN#https://}"
+          CDN_DOMAIN="${CDN_DOMAIN#http://}"
+          CDN_DOMAIN="${CDN_DOMAIN%/}"
+          aliyun configure set \
+            --mode AK \
+            --access-key-id "$ALIYUN_ACCESS_KEY_ID" \
+            --access-key-secret "$ALIYUN_ACCESS_KEY_SECRET" \
+            --region "$ALIYUN_REGION_ID"
+          aliyun cdn RefreshObjectCaches \
+            --ObjectPath "https://${CDN_DOMAIN}/updates/latest.json" \
+            --ObjectType File \
+            --region "$ALIYUN_REGION_ID"
