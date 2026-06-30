@@ -292,6 +292,8 @@ export default function RootLayout({
   useEffect(() => {
     let cancelled = false
 
+    void reportAppStart()
+
     const initializeApp = async () => {
       try {
         initSettingData()
@@ -311,7 +313,6 @@ export default function RootLayout({
         initQuickRecordText()
         initShowWindow()
         initMcp()
-        reportAppStart()
 
         await initUpdateStore()
         if (cancelled) return

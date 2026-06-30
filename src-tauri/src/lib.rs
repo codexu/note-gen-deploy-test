@@ -1,4 +1,5 @@
 mod ai;
+mod analytics;
 #[cfg(target_os = "android")]
 mod android_ocr;
 mod backup;
@@ -57,6 +58,7 @@ pub fn run() {
             cancel_mcp_runtime_install,
             get_device_id,
             list_system_fonts,
+            analytics::track_analytics_event,
             export_app_data,
             import_app_data,
             import_app_data_from_file,

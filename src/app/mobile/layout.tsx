@@ -43,6 +43,8 @@ export default function RootLayout({
   useEffect(() => {
     let cancelled = false
 
+    void reportAppStart()
+
     const initializeApp = async () => {
       try {
         initSettingData()
@@ -52,7 +54,6 @@ export default function RootLayout({
         await initAutoDataSyncRuntime()
         if (cancelled) return
         initMcp()
-        reportAppStart()
       } catch (error) {
         console.error('Failed to initialize mobile app:', error)
       }

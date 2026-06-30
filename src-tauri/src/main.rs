@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod ai;
+mod analytics;
 #[cfg(target_os = "android")]
 mod android_ocr;
 mod app_setup;
@@ -83,6 +84,7 @@ fn main() {
             cancel_mcp_runtime_install,
             get_device_id,
             list_system_fonts,
+            analytics::track_analytics_event,
             ai_json_request,
             ai_binary_request,
             ai_multipart_request,
