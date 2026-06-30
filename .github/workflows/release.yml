@@ -302,12 +302,10 @@ jobs:
         run: |
           # Create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          CERTIFICATE_PEM_PATH=$RUNNER_TEMP/build_certificate.pem
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # Import certificate from secrets
           echo -n "$APPLE_CERTIFICATE" | base64 --decode -o $CERTIFICATE_PATH
-          openssl pkcs12 -in $CERTIFICATE_PATH -nokeys -clcerts -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -out $CERTIFICATE_PEM_PATH
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -318,7 +316,6 @@ jobs:
           security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
           security default-keychain -s $KEYCHAIN_PATH
-          security add-trusted-cert -r trustRoot -k $KEYCHAIN_PATH $CERTIFICATE_PEM_PATH || true
 
           # Enable codesigning from a non user interactive shell
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
