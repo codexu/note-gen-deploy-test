@@ -293,7 +293,7 @@ jobs:
 
       - name: Import Apple Certificate
         id: import_apple_certificate
-        if: matrix.platform == 'macos-latest' && github.repository != 'codexu/note-gen-deploy-test'
+        if: matrix.platform == 'macos-latest'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -331,27 +331,11 @@ jobs:
 
       - uses: tauri-apps/tauri-action@v0.5.23
         id: tauri-action
-        if: github.repository != 'codexu/note-gen-deploy-test' || matrix.platform != 'macos-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ steps.import_apple_certificate.outputs.apple_signing_identity || secrets.APPLE_SIGNING_IDENTITY }}
-        with:
-          tagName: note-gen-v__VERSION__
-          releaseName: 'NoteGen v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
-
-      - uses: tauri-apps/tauri-action@v0.5.23
-        id: tauri-action-unsigned-macos
-        if: github.repository == 'codexu/note-gen-deploy-test' && matrix.platform == 'macos-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: note-gen-v__VERSION__
           releaseName: 'NoteGen v__VERSION__'
