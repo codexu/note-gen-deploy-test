@@ -468,12 +468,17 @@ jobs:
         run: |
           set -euo pipefail
           RELEASE_PREFIX="oss://${ALIYUN_OSS_BUCKET}/releases/note-gen-v${VERSION}/"
-          ossutil cp -r dist-oss/ "$RELEASE_PREFIX" \
-            -c "$OSSUTIL_CONFIG" \
-            --update \
-            --force \
-            --no-progress \
-            --cache-control "public, max-age=31536000, immutable"
+          if ! ossutil cp -r dist-oss/ "$RELEASE_PREFIX" \
+              -c "$OSSUTIL_CONFIG" \
+              --update \
+              --force \
+              --no-progress \
+              --cache-control "public, max-age=31536000, immutable"; then
+            echo "::group::ossutil error report"
+            find ossutil_output -maxdepth 2 -type f -name '*.report' -print -exec sed -E 's/(AccessKeyId=)[^&[:space:]]+/\1***/g' {} \; || true
+            echo "::endgroup::"
+            exit 1
+          fi
 
       - name: Rewrite latest.json for CDN
         run: |
