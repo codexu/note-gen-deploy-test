@@ -380,6 +380,7 @@ jobs:
     needs:
       - build-android
       - publish-tauri
+    if: ${{ always() && needs.build-android.result == 'success' && (needs.publish-tauri.result == 'success' || github.repository == 'codexu/note-gen-deploy-test') }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
