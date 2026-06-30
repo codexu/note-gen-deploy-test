@@ -292,6 +292,7 @@ jobs:
         run: pnpm install
 
       - name: Import Apple Certificate
+        id: import_apple_certificate
         if: matrix.platform == 'macos-latest'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -311,11 +312,22 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
           # Import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
 
           # Enable codesigning from a non user interactive shell
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Resolve the imported identity from the temporary keychain so the
+          # workflow does not depend on a manually synchronized identity string.
+          APPLE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning $KEYCHAIN_PATH | awk '/[[:xdigit:]]{40}/ {print $2; exit}')
+          if [ -z "$APPLE_SIGNING_IDENTITY" ]; then
+            echo "No valid Apple codesigning identity found in imported certificate"
+            security find-identity -v -p codesigning $KEYCHAIN_PATH
+            exit 1
+          fi
+          echo "apple_signing_identity=$APPLE_SIGNING_IDENTITY" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0.5.23
         id: tauri-action
@@ -323,7 +335,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_SIGNING_IDENTITY: ${{ steps.import_apple_certificate.outputs.apple_signing_identity || secrets.APPLE_SIGNING_IDENTITY }}
         with:
           tagName: note-gen-v__VERSION__
           releaseName: 'NoteGen v__VERSION__'
