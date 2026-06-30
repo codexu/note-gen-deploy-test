@@ -301,10 +301,40 @@ jobs:
         run: |
           # Create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          DEVELOPER_ID_CERTIFICATE_PATH=$RUNNER_TEMP/developer_id_application.cer
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # Import certificate from secrets
           echo -n "$APPLE_CERTIFICATE" | base64 --decode -o $CERTIFICATE_PATH
+          cat > $RUNNER_TEMP/developer_id_application.cer.base64 <<'CERTIFICATE'
+          MIIFoDCCBIigAwIBAgIICY4NvkqiiM0wDQYJKoZIhvcNAQELBQAweTEtMCsGA1UEAwwkRGV2ZWxv
+          cGVyIElEIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MSYwJAYDVQQLDB1BcHBsZSBDZXJ0aWZpY2F0
+          aW9uIEF1dGhvcml0eTETMBEGA1UECgwKQXBwbGUgSW5jLjELMAkGA1UEBhMCVVMwHhcNMjYwMTAz
+          MDYzNzQ4WhcNMjcwMjAxMjIxMjE1WjCBjzEaMBgGCgmSJomT8ixkAQEMClJHWkM0WlRKTVUxOjA4
+          BgNVBAMMMURldmVsb3BlciBJRCBBcHBsaWNhdGlvbjogemhhbmcgeHVhbiAoUkdaQzRaVEpNVSkx
+          EzARBgNVBAsMClJHWkM0WlRKTVUxEzARBgNVBAoMCnpoYW5nIHh1YW4xCzAJBgNVBAYTAkNOMIIB
+          IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAulYMjWSb2KBTz5HfVQlQeQyec6Y0szJZwSyZ
+          +Xf0SqwPsHhQYi2LcVkhtCl/U9f8E5moJdlJlKuSYQY+HPYpFcjBXHaqNqYZNi5ZaVO0mEHMev6h
+          O1+ROg0YYKcJA9PRy89Lurs+fLaM9TcO+f9eno7mMfXVE5zwUy5izRjQj4Hw7qSsvYq3wtL6HD/w
+          sg85yiQ0gdVm0/7oih+eugi5UiUuZ4TAudQ0rEEZSde7gOKu5fKBJ59hNXW1F7CZsBTsbF4qhTmX
+          SSYNMNmQZqkbXr1GRMV2GDOqPY6ZLHK/pTVOSvwU8LnJgepW0tFWaxScqnJUB+OkrsM5dsSJyCY9
+          5wIDAQABo4ICEzCCAg8wDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBRXF+2iz9x8mKEQ4Py+hy0s
+          8uMXVDBABggrBgEFBQcBAQQ0MDIwMAYIKwYBBQUHMAGGJGh0dHA6Ly9vY3NwLmFwcGxlLmNvbS9v
+          Y3NwMDMtZGV2aWQwNjCCAR0GA1UdIASCARQwggEQMIIBDAYJKoZIhvdjZAUBMIH+MIHDBggrBgEF
+          BQcCAjCBtgyBs1JlbGlhbmNlIG9uIHRoaXMgY2VydGlmaWNhdGUgYnkgYW55IHBhcnR5IGFzc3Vt
+          ZXMgYWNjZXB0YW5jZSBvZiB0aGUgdGhlbiBhcHBsaWNhYmxlIHN0YW5kYXJkIHRlcm1zIGFuZCBj
+          b25kaXRpb25zIG9mIHVzZSwgY2VydGlmaWNhdGUgcG9saWN5IGFuZCBjZXJ0aWZpY2F0aW9uIHBy
+          YWN0aWNlIHN0YXRlbWVudHMuMDYGCCsGAQUFBwIBFipodHRwOi8vd3d3LmFwcGxlLmNvbS9jZXJ0
+          aWZpY2F0ZWF1dGhvcml0eS8wFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwMwHQYDVR0OBBYEFDvmL5xb
+          jY8bAi8kmmuEdbv99SzPMA4GA1UdDwEB/wQEAwIHgDAfBgoqhkiG92NkBgEhBBEMDzIwMjUwOTE5
+          MDAwMDAwWjATBgoqhkiG92NkBgENAQH/BAIFADANBgkqhkiG9w0BAQsFAAOCAQEAeJ+/xobJCCqw
+          v6uHxuMcChq8osCeghdTbpzUM5qq987N6ZOfPpsbWdO/IhJPFs4enco3988ie8ZCR71SSbIaiTmR
+          dlMB4QpGbnZp8vbsTKZhmltczDE5ycnbcKnl9F4oEqy96s4l6OKhJlMrvE7eWCWXv+7fOXoicaOO
+          +B5vh0BjsH5NnzkgzcyYBgIpOQCEz1w8x1fWJYrGJc8/MnbvXg3xtMtt7jafiqA40NhhkuuuRiFw
+          52L+LmDKTaAvkx20/IPqIJvkW9RnVfaflZIzPxfOjRBgRwaImftiCEBTq7nJOmmSt0H2RVerH9kU
+          GeSkHC+6KibJYagzewL6436IQg==
+          CERTIFICATE
+          base64 --decode -i $RUNNER_TEMP/developer_id_application.cer.base64 -o $DEVELOPER_ID_CERTIFICATE_PATH
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -313,6 +343,7 @@ jobs:
 
           # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_CERTIFICATE_PATH -A -t cert -k $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
           security default-keychain -s $KEYCHAIN_PATH
 
